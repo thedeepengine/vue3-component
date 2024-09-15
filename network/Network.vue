@@ -8,7 +8,6 @@ import { drag as d3drag } from 'd3-drag'
 import { hierarchy } from 'd3-hierarchy'
 import { forceSimulation as d3forceSimulation, forceX, forceY, forceCollide } from 'd3-force'
 // orders matters in import here start
-// import { displayStaticTree, d3selection, compute_tree, compute_and_draw_tree } from '@/components/network/network_utils.js';
 import { select as d3select, selectAll as d3selectAll } from 'd3-selection'
 // orders matters in import here end
 import { ref, onMounted, watch } from "vue";

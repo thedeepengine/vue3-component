@@ -229,7 +229,7 @@ function get_front_displayed_text(store,d3sel) {
                 // .attr('disabled', true) 
                 .on('keydown', function(event) {
                     if (event.key === 'Enter') {
-                        updateNestedObjectByKey(store.pythonHierarchy, this.__data__.data.uuid, 'name', this.value)
+                        updateNestedObjectByKey(store.w_data, this.__data__.data.uuid, 'name', this.value)
                         compute_and_draw_tree(store)
                         displayStaticTree(store)
                     }
@@ -573,10 +573,6 @@ function deepEngineSpinner(store) {
 }
 
 function expand_it(withAnimation=true) {
-
-    // const current_map = computed(() => {
-    //     return store.root_nodes.value.map(node => ({ ...node, x: store.selectedItem.x, y: store.selectedItem.y, r: 10, name: node.data.name, computed_x: node.y_start, computed_y: node.x }))
-    // })
 
     if (withAnimation) {
         d3select(".global_tree_container")

@@ -18,22 +18,6 @@ import { displayStaticTree } from './network_utils.js';
 
 const dim_store = dimStore()
 
-
-
-
-
-
-
-
-import useEventBus from '@/eventBus.js';
-
-const { on, emit } = useEventBus();
-
-on('request-map-center', () => {
-    let mapCenter = { x: graphX.value, y: graphY.value }
-  emit('data-map-center', mapCenter);
-});
-
 const props = defineProps({
     is_mobile: false
 });
@@ -52,6 +36,7 @@ watch(() => dim_store.dim_force_network_bool, (newValue, oldValue) => {
         dim_force_network()   
     }
 });
+
 
 const forcedNodeR = 5
 const buttonOpacity = ref(0.2)

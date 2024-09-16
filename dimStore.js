@@ -33,6 +33,7 @@ export const dimStore = defineStore("dimStore", () => {
         ontology_name_selected,
         text_box_displayed,
         dimension,
+        dim_force_network_bool,
     
         set_dimension}
 

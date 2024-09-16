@@ -425,10 +425,9 @@ function getCorneredRectangle(x, y, width=200, height=50, strokeWidth = 2) {
     svgContainer.transition()
         .duration(300)
         .style("opacity", 1);
-
 }
 
-function getFloatingTextBox(store, x, y, width = 200) {
+function getFloatingTextBox(store, x, y, action_func = undefined, width = 200) {
     let strokeWidth = 2
     let fontSize = 12
     let height = fontSize + fontSize
@@ -450,7 +449,9 @@ function getFloatingTextBox(store, x, y, width = 200) {
         .on("keydown", function(event) {
             if (event.key === "Enter" || event.keyCode === 13) {
                 console.log("Enter pressed! Value: ", this.value);
-                store.floatingBoxQuery(this.value)
+                if (action_func !== undefined) {
+                    action_func(this.value)
+                }
             }
         });
         

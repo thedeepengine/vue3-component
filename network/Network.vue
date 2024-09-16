@@ -11,8 +11,12 @@ import { forceSimulation as d3forceSimulation, forceX, forceY, forceCollide } fr
 import { select as d3select, selectAll as d3selectAll } from 'd3-selection'
 // orders matters in import here end
 import { ref, onMounted, watch } from "vue";
-
 import { defineProps } from 'vue';
+import { dimStore } from '@/components_shared/dimStore.js'
+import { displayStaticTree } from './network_utils.js';
+
+
+const dim_store = dimStore()
 
 
 
@@ -30,25 +34,23 @@ on('request-map-center', () => {
   emit('data-map-center', mapCenter);
 });
 
-
-
-
-
-
-
 const props = defineProps({
-    data: Object,
-    dim_force_network_bool: Boolean,
     is_mobile: false
 });
 
-watch(() => props.data, (newValue, oldValue) => {
-    console.log('POPR', props.data)
-    forcedTree(props.data)
+watch(() => dim_store.w_data, (newValue, oldValue) => {
+    console.log('dim_store.dimension', dim_store.dimension)
+    if (dim_store.dimension === 'intro_network') {
+        forcedTree(dim_store.w_data)
+    } else if (dim_store.dimension === 'hierarchical') {
+        displayStaticTree(dim_store)
+    }
 });
 
-watch(() => props.dim_force_network_bool, (newValue, oldValue) => {
-    dim_force_network()
+watch(() => dim_store.dim_force_network_bool, (newValue, oldValue) => {
+    if (dim_store.dim_force_network_bool) {
+        dim_force_network()   
+    }
 });
 
 const forcedNodeR = 5

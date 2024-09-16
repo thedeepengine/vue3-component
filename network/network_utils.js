@@ -348,7 +348,7 @@ function draw_side_tree(store,root,side) {
         store.ontology_left_position = 0 + (text_length[labels[0]] / 2);
         d3select('.ontologyNameBackground')
             .attr("x", store.ontology_left_position)
-            .text(store.ontologyNameSelected);
+            .text(store.ontology_name_selected);
     }
     return root
 }
@@ -477,7 +477,7 @@ function getFloatingTextBox(store, x, y, width = 200) {
         }
     });
 
-    store.textBoxDisplayed = true
+    store.text_box_displayed = true
 }
 
 
@@ -487,7 +487,7 @@ function removeContainerCornerRect(store) {
     .duration(500)
     .style("opacity", 0)
     .remove();
-    store.textBoxDisplayed = false
+    store.text_box_displayed = false
 }
 
 function deepEngineSpinner(store) {

@@ -66,7 +66,10 @@ var adjust_tree_y_graph = function (root_left, root_right, side) {
     }
 }
 
-function displayStaticTree(store) {
+function displayStaticTree(store, add_event_func=undefined) {
+    let { root_nodes, root_links } = compute_and_draw_tree(store)
+    store.root_nodes = root_nodes
+    store.root_links = root_links
     var linkContainer = d3select(".link_container")
     var underlinedPath = d3select(".underlined_path_container")
     var frontText = d3select(".front_text_container").selectAll(".node_text")
@@ -119,60 +122,11 @@ function displayStaticTree(store) {
             );
 
     get_front_displayed_text(store,frontText)
-
-    // addStaticTreeEvents(frontTextSelection, thisRef)
+    if (add_event_func !== undefined) {
+        add_event_func(frontText)
+    }
+    return frontText
 }
-
-function addStaticTreeEvents(selection, thisRef) {
-
-    var longClickDuration = 500; // Duration in milliseconds for a long click
-    var timer;
-    var longClickOccurred = false;
-
-    selection
-    .on('click', function (event) {
-        let notRootNode = event.srcElement.__data__.depth != 0
-            if (!longClickOccurred && notRootNode) {
-                openMapByClickEvent(event, thisRef.store)
-            } else if (!notRootNode) {
-                thisRef.store.displayOntologySunburst = true
-                thisRef.store.updateMarkdown(thisRef.store.ontologyRawMarkdown, false)
-            }
-
-            event.stopPropagation()
-        })
-        .on("mousemove", function (event) {
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-            }
-
-            timeoutId = setTimeout(function () {
-                highlightNodeSwitcher(false)
-                let uuid = event.target.getAttribute('data-pathid')
-                highlightNodeSwitcher(true, uuid)
-                scrollToTitleFromNetwork(thisRef, event)
-                thisRef.$log.debug(logVariables("NETWORK_UTILS-addStaticTreeEvents", { uuid, event }));
-            }, 400);
-        })
-        .on("mouseout", function (event, d) {
-            shrinkGraph(thisRef)
-            thisRef.store.switchHoover = ''
-            thisRef.store.graphPlaceholder = []
-            highlightNodeSwitcher(false)
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-            }
-        }).on("mousedown", function(e) { // double tap works weirdly 
-
-        }).on("mouseup", function() {
-            clearTimeout(timer);
-            longClickOccurred = false
-        }).on("mouseleave", function() {
-            clearTimeout(timer);
-            longClickOccurred = false
-        });
-}
-
 
 function updateNestedObjectByKey(obj, uuid, key, value) {
     if (obj.uuid === uuid) {
@@ -267,7 +221,7 @@ function get_front_displayed_text(store,d3sel) {
 }
 
 function compute_tree(store) {
-    let d = store.pythonHierarchy
+    let d = store.w_data
     let data_right = {}
     let data_left = {}
     if (d.children === undefined) {
@@ -390,20 +344,21 @@ function draw_side_tree(store,root,side) {
     root.descendants().map(item => item.side = side)
 
     if (side === 'right') {
-        store.mapCenter = { ...store.mapCenter, text_length: text_length[labels[0]] }
-        store.ontologyLeftPosition = 0 + (text_length[labels[0]] / 2);
+        store.map_center = { ...store.map_center, text_length: text_length[labels[0]] }
+        store.ontology_left_position = 0 + (text_length[labels[0]] / 2);
         d3select('.ontologyNameBackground')
-            .attr("x", store.ontologyLeftPosition).text(store.ontologyNameSelected);
+            .attr("x", store.ontology_left_position)
+            .text(store.ontologyNameSelected);
     }
     return root
 }
 
-function scrollToTitleFromNetwork(thisRef, event) {
+function scrollToTitleFromNetwork(store, event) {
     const bbox = event.target.getBoundingClientRect();
     const middleX = bbox.x + bbox.width / 2;
     const mouseX = event.clientX
     let eventSide = event.target.__data__.side
-    let switchHoover = thisRef.store.switchHoover
+    let switchHoover = store.switchHoover
 
     if ((eventSide === 'right') && (mouseX >= middleX) && (switchHoover === 'left' || switchHoover === '')) {
         switchHoover = 'right'
@@ -412,23 +367,6 @@ function scrollToTitleFromNetwork(thisRef, event) {
     }
     // scrollToTitle(thisRef, event)
 }
-
-
-function shrinkGraph(thisRef) {
-    let graphElements = thisRef.store.graphPlaceholder
-    if (Object.keys(graphElements).length !== 0) {
-
-        graphElements.toHideText.style('opacity', 1)
-        graphElements.toHideLinks.style('opacity', 1)
-        graphElements.toHideUnderlined.style('opacity', 1)
-
-        d3selectAll('.node_text_graph').remove()
-        d3selectAll('.link_graph').remove()
-    }
-}
-
-
-
 
 function staticTreeOpacity(opacity) {
     d3select(".global_tree_container")
@@ -569,104 +507,7 @@ function deepEngineSpinner(store) {
         .transition()
         .duration(2000)
         .attr("width", `${width - strokeWidth - 2}px`)
-
 }
-
-function expand_it(withAnimation=true) {
-
-    if (withAnimation) {
-        d3select(".global_tree_container")
-            .selectAll(".new")
-            .data(this.current_map, function (d) { return d ? d.name : this.id; })
-            .enter().append('circle').attr('class', 'new')
-
-        var expandSimulation = d3forceSimulation()
-            .force("x", forceX().x(d => d.computed_x))
-            .force("y", forceY().y(d => d.computed_y))
-            .nodes(this.current_map)
-            .alphaMin(0.3)
-            .on("tick", ticked)
-            .on("end", ended)
-
-        var ref = this
-
-        d3selectAll('.back_node_container,.back_link_container').attr('opacity', 0.1)
-
-        var newCircle = d3select(".global_tree_container").selectAll("circle.new")
-
-        function ticked() {
-            newCircle
-                .attr("cx", d => d.x)
-                .attr("cy", d => d.y)
-                .style('opacity', 1 - 0.5 * (1 - expandSimulation.alpha()))
-                .attr('r', 10 - 14 * (1 - expandSimulation.alpha()));
-        }
-
-        function ended() {
-            displayStaticTree(this.store)
-        }
-    } else {
-        var ref = this
-        var newCircle = d3selectAll("circle.base_node")
-        console.log('newCircle', newCircle)
-        newCircle.style('opacity', 0.2)
-        displayStaticTree(this.store)
-    }
-
-}
-
-function shrink_it(initialPosition) {
-
-    d3select(".global_tree_container")
-        .selectAll("g.underlined_path_container path,g.link_container path,g.front_text_container > text")
-        .remove()
-
-    //.right_tree_container,.left_tree_container
-    var toShrink = d3select(".global_tree_container").selectAll("circle.new")
-
-    var shrinkSimulation = d3forceSimulation()
-        .force("x", forceX().x(d => initialPosition.x - this.graphX))
-        .force("y", forceY().y(d => initialPosition.y - this.graphY))
-        .nodes(toShrink.data())
-        .alphaMin(0.1)
-        .on("tick", ticked)
-        .on("end", ended)
-
-
-    // var back_text = d3select(".back_text_container")
-    var forcedNode = d3selectAll("circle.base_node")
-    var ref = this
-
-
-    d3selectAll("circle.base_node,.forcedlink")
-        .style('opacity', 1)
-
-    function ticked() {
-        toShrink
-            .attr("r", () => 10 - 10 * (1 - shrinkSimulation.alpha()))
-            .attr("cx", d => d.x)
-            .attr("cy", d => d.y)
-
-        forcedNode
-            // .style('opacity', 0.5 + 0.5 * (1 - shrinkSimulation.alpha()))
-            .attr('r', ref.forcedNodeR / 2 + ref.forcedNodeR / 2 * (1 - shrinkSimulation.alpha()));
-        // back_text.style('opacity', (1 - shrinkSimulation.alpha()))
-    }
-
-    function ended() {
-        toShrink.remove()
-        ref.store.deepLevel = ref.store.deepLevel - 1
-        ref.store.activeComponent = 'DataShokuninIntro'
-    }
-
-    var clickedItemLink = d3selectAll('.forcedlink').filter(x => x.target.data.name === this.store.selectedItem.data.name)
-    var clickedItemNode = d3selectAll("circle.base_node").filter(x => x.data.name === this.store.selectedItem.data.name)
-
-    clickedItemLink.attr('opacity', 1)
-    clickedItemNode.attr('opacity', 1)
-
-}
-
 
 export {
     stroke,
@@ -683,7 +524,5 @@ export {
     d3selection,
     compute_tree,
     compute_and_draw_tree,
-    updateNestedObjectByKey,
-    expand_it,
-    shrink_it
+    updateNestedObjectByKey
 }

@@ -86,7 +86,6 @@ function dragging(event) {
         dragStartX.value = event.x
         dragStartY.value = event.y
         d3select(".global_tree_container").attr("transform", d => `translate(${graphX.value},${graphY.value})`)
-        // store.mapCenter = { ...store.mapCenter, x: graphX.value, y: graphY.value }
     }
 }
 

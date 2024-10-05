@@ -4,8 +4,6 @@ import { select as d3select, selectAll as d3selectAll, selection as d3selection 
 import { linkHorizontal, line as d3line } from 'd3-shape'
 import { transition } from 'd3-transition'
 import { toRaw } from 'vue';
-import { scrollToTitle, highlightNodeSwitcher, openMapByClickEvent, augmentedId, logVariables } from '@/utils.js'
-import { splitOddEven, translate } from '@/utils.js';
 import { hierarchy, tree } from 'd3-hierarchy'
 
 const stroke = "#555";
@@ -14,7 +12,21 @@ const strokeOpacity = 1;
 
 let timeoutId;
 
-
+function splitOddEven(n) {
+    let odds = [];
+    let evens = [];
+  
+    for (let i = 0; i < n; i++) {
+      if (i % 2 === 0) {
+        evens.push(i);
+      } else {
+        odds.push(i);
+      }
+    }
+  
+    return [odds, evens];
+  }
+  
 d3selection.prototype.setAttrs = function (attrs) {
     Object.entries(attrs).forEach(([key, value]) => {
         this.attr(key, value);

@@ -23,7 +23,6 @@ const props = defineProps({
 });
 
 watch(() => dim_store.w_data, (newValue, oldValue) => {
-    console.log('dim_store.dimension', dim_store.dimension)
     if (dim_store.dimension === 'intro_network') {
         forcedTree(dim_store.w_data)
     } else if (dim_store.dimension === 'hierarchical') {
@@ -98,6 +97,7 @@ function initSVGBase() {
         viewBox = [-width / 2, -height / 2, width, height]
     }
 
+    console.log('window.innerWidth', window.innerWidth)
     d3select(".network_class")
         .append("svg")
         .attr('id', 'forcedtree')
@@ -106,7 +106,12 @@ function initSVGBase() {
         .style("height", "100%")
         .attr("style", "overflow: visible")
         .attr("font-family", "sans-serif")
-        .attr("font-size", 11)
+        .attr("font-size", 11)  
+//         .append("circle")  // Append a circle element
+//   .attr("cx", 50)    // x-coordinate of the center of the circle
+//   .attr("cy", 50)    // y-coordinate of the center of the circle
+//   .attr("r", 40)     // radius of the circle
+//   .style("fill", "black");
 
     d3select(".network_class svg").append("g")
         .attr("class", "global_tree_container unselectable-text")

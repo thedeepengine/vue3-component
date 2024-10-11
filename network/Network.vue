@@ -7,9 +7,7 @@
 import { drag as d3drag } from 'd3-drag'
 import { hierarchy } from 'd3-hierarchy'
 import { forceSimulation as d3forceSimulation, forceX, forceY, forceCollide } from 'd3-force'
-// orders matters in import here start
 import { select as d3select, selectAll as d3selectAll } from 'd3-selection'
-// orders matters in import here end
 import { ref, onMounted, watch } from "vue";
 import { defineProps } from 'vue';
 import { dimStore } from '@/components_shared/dimStore.js'
@@ -23,9 +21,14 @@ const props = defineProps({
 });
 
 watch(() => dim_store.w_data, (newValue, oldValue) => {
-    if (dim_store.dimension === 'intro_network') {
+    if (dim_store.dimension === 'network') {
+        let temp = dim_store.w_data
+        dim_store.w_data=[]
+        displayStaticTree(dim_store)
+        dim_store.w_data=temp
         forcedTree(dim_store.w_data)
-    } else if (dim_store.dimension === 'hierarchical') {
+    } else if (dim_store.dimension === 'hierarchy') {
+        let temp = dim_store.w_data
         displayStaticTree(dim_store)
     }
 });

@@ -2,6 +2,7 @@ import axios from 'axios'
 import { ref, onMounted, watch } from "vue";
 import { defineStore } from "pinia";
 
+
 export const dimStore = defineStore("dimStore", () => {
     const dimension = ref('intro_network')
     const root_nodes = ref(undefined)
@@ -19,9 +20,35 @@ export const dimStore = defineStore("dimStore", () => {
     const html_content = ref('')
     const md_content = ref('')
 
+    // thingsSpace
+    const thingsSpaceOption = ref({})
+
     function set_dimension(dimension_to_set) {
         dimension.value = dimension_to_set
+        console.log('dimension.value', dimension.value)
+        fetch_data('JeopardyQuestion', '')
     }
+
+
+    const apiClient = axios.create({
+      baseURL: 'https://localhost:8002/',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+
+    function fetch_data(clt, request) {
+
+      apiClient
+          .post("https://localhost:8002/v1/api/query/", { clt: clt, request: request })
+          .then(response => {
+              w_data.value = response.data.d3
+              md_content.value = response.data.md
+              return response
+          })
+  }
+
     
     watch(() => w_data.value, (newValue, oldValue) => {
       })
@@ -42,6 +69,10 @@ export const dimStore = defineStore("dimStore", () => {
       
       //tiptap editor
         html_content,
-        md_content}
+        md_content,
+      
+      // thingsSpace
+      thingsSpaceOption,
+      }
 
 })

@@ -15,6 +15,9 @@ export const dimStore = defineStore("dimStore", () => {
     const text_box_displayed = ref(false)
     const dim_force_network_bool = ref(false)
 
+    // tiptap editor
+    const html_content = ref('')
+    const md_content = ref('')
 
     function set_dimension(dimension_to_set) {
         dimension.value = dimension_to_set
@@ -35,6 +38,10 @@ export const dimStore = defineStore("dimStore", () => {
         dimension,
         dim_force_network_bool,
     
-        set_dimension}
+        set_dimension,
+      
+      //tiptap editor
+        html_content,
+        md_content}
 
 })

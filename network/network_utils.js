@@ -229,7 +229,7 @@ function get_front_displayed_text(store,d3sel) {
             .select('input') // Select the input child of each existing .node_text div
                 .property('value', d => d.data.name) // Use property for input value
                 .style('width', d=> `${d.y_end-d.y_start}px`)
-            .each(function(d) { console.log('updating:', d); });  
+            // .each(function(d) { console.log('updating:', d); });  
 
     rr.exit()
     // .each(function(d) { console.log('Exiting:', d); })

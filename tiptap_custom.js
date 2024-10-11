@@ -73,8 +73,6 @@ function getTrackHeadingsExtension(store) {
                       const updatedDataItem = { uuid: newHeadings[0].id, data: { name: newHeadings[0].content } };
                       const specificElement = d3select(`[data-pathid="${updatedDataItem.uuid?.substring(1)}"]`);
                       let a = specificElement.select('input')
-
-                      console.log('specificElement: ', specificElement)
   
                     //   store.update_network()
                     //   let new_width = a.getComputedTextLength

@@ -8,7 +8,6 @@ import { updateNestedObjectByKey, compute_and_draw_tree, displayStaticTree } fro
 
 const CustomHeading = Heading.extend({
   addAttributes() {
-    console.log('sssss', this)
     return {
       ...this.parent?.(),
       id: {
@@ -20,7 +19,6 @@ const CustomHeading = Heading.extend({
 
   renderHTML({ node, HTMLAttributes }) {
     // Extend the default render method to include the custom `id`
-    console.log('node.attrs::: ', node.attrs)
     return [
       `h${node.attrs.level}`,
       {
@@ -46,7 +44,6 @@ function getHeadingsInRange(doc, from, to) {
   let headings = [];
   doc.nodesBetween(from, to, (node, pos) => {
     if (node.type.name === 'heading') {
-        console.log('node: ', node)
       headings.push({ level: node.attrs.level, content: node.textContent, id: node.attrs.id });
     }
   });
@@ -70,13 +67,14 @@ function getTrackHeadingsExtension(store) {
                 stepMap.forEach((oldStart, oldEnd, newStart, newEnd) => {
                   const oldHeadings = getHeadingsInRange(oldState.doc, oldStart, oldEnd);
                   const newHeadings = getHeadingsInRange(newState.doc, newStart, newEnd);
-                  console.log('newHeadings: ', newHeadings)
   
                   if (oldHeadings.length !== newHeadings.length || !oldHeadings.every((val, index) => val === newHeadings[index])) {
                     if (newHeadings.length === 1) {
                       const updatedDataItem = { uuid: newHeadings[0].id, data: { name: newHeadings[0].content } };
                       const specificElement = d3select(`[data-pathid="${updatedDataItem.uuid?.substring(1)}"]`);
                       let a = specificElement.select('input')
+
+                      console.log('specificElement: ', specificElement)
   
                     //   store.update_network()
                     //   let new_width = a.getComputedTextLength

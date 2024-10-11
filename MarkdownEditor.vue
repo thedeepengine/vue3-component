@@ -28,8 +28,9 @@ const editor = useEditor({
     ],
     content: dim_store.html_content,
     onUpdate: ({ editor }) => {
-        if (editor.getHTML() !== dim_store.html_content.value) {
-            dim_store.html_content = editor.getHTML()
+        let html = editor.getHTML()
+        if (html !== dim_store.html_content.value) {
+            dim_store.html_content = html
         }
     },
 });

@@ -193,8 +193,13 @@ function get_front_displayed_text(store,d3sel) {
                 .attr('background', 'transparent')
                 .style('font-family', 'inherit')
                 // .attr('disabled', true) 
+                .on('input', function(event) {
+                    let uuid = event.srcElement.parentElement.parentElement.attributes['data-pathid'].value
+                    const specificElement = d3select(`#X${uuid}`).text(event.srcElement.value)
+                })
                 .on('keydown', function(event) {
                     if (event.key === 'Enter') {
+                        console.log('AAA')
                         updateNestedObjectByKey(store.w_data, this.__data__.data.uuid, 'name', this.value)
                         compute_and_draw_tree(store)
                         displayStaticTree(store)
@@ -207,7 +212,6 @@ function get_front_displayed_text(store,d3sel) {
                     event.stopPropagation()
                 })
                 .on('dblclick', function() {
-                    console.log('fffffds dbl click')
                     this.disabled = false;  // Enable the input on double-click
                     this.focus();  // Manually sets focus on the element when double-clicked
                 })

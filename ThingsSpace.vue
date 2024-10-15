@@ -18,12 +18,13 @@ use([LegendComponent, TooltipComponent, Scatter3DChart, Grid3DComponent, TitleCo
 
 const dim_store = dimStore()
 const options = ref({})
+const dim_reduced_data = ref()
 
-watch(() => [dim_store.w_data, dim_store.dimension],
+watch(() => [dim_store.things_space_data, dim_store.dimension],
   ([new_data, new_dimension], [old_data, old_dimension]) => {
-    console.log('new_dimension ', new_dimension)
     if (new_dimension === 'things_space') {
-      options.value=things_space_options(new_data)
+      let reduced = getThingSpace(new_data)
+      options.value=things_space_options(reduced)
     }
   }
 );
@@ -32,6 +33,7 @@ watch(() => [dim_store.w_data, dim_store.dimension],
 
 function things_space_options(data) {
       let option = {
+        tooltip: {},
         legend: {},
         xAxis3D: {
           type: 'value'
@@ -42,7 +44,16 @@ function things_space_options(data) {
         zAxis3D: {
           type: 'value'
         },
-        grid3D: {},
+        grid3D: {    viewControl: {
+      zoomSensitivity: 1,  // Adjust sensitivity for more or less "speed" in zooming
+      rotateSensitivity: 1,
+      panSensitivity: 1,
+      autoRotate: false,
+      center: [-6,3,3],
+      distance: 200,
+      alpha: 80,
+      beta: 80,
+    }},
         series: []
       }
 
@@ -56,7 +67,8 @@ function things_space_options(data) {
               return value['name'];
             },
           },
-          name: key, data: value
+          name: key, 
+          data: value
         })
       })
 
@@ -68,20 +80,45 @@ function things_space_options(data) {
       return option
 }
 
-// watch(
-//   [dim_store.w_data,dim_store.dimension],
-//   ([newWData, newDimension], [oldWData, oldDimension]) => {
-//     console.log('w_data changed from', oldWData, 'to', newWData);
-//     console.log('dimension changed from', oldDimension, 'to', newDimension);
-//   }
-// );
 
-// watch(() => (dim_store.w_data,dim_store.dimension), (newValue, oldValue) => {
-//     if (dim_store.dimension === 'Things Space') {
+function getThingSpace(response) {
+      let nNeighbors = 15
+      if (response.length < 15) {
+        nNeighbors = response.length
+      }
 
-//     } 
-// });
+      function dr(data, dr_method) {
+        const X = druid.Matrix.from(data);
+        const DR = druid[dr_method];
+        const P = { d: 3, n_neighbors: nNeighbors };
+        return new DR(X, { ...P });
+      }
 
+      let vectors = response.map(obj => obj.value);
+      let names = response.map(obj => obj.name);
+      let colors = response.map(obj => obj.color);
+      let category = response.map(obj => obj.category);
+
+
+      console.log('vectors', vectors)
+
+      var t = dr(vectors, 'UMAP')
+      var Y = t.transform();
+      var mat = Y.asArray
+
+      let res = mat.map((item, index) => {
+        return { 'value': item, 'name': names[index], 'color': colors[index], 'category': category[index] || '_' }
+      });
+
+      const byCategory = res.reduce((acc, obj) => ({
+        ...acc,
+        [obj.category]: [...(acc[obj.category] || []), obj]
+      }), {});
+
+      dim_reduced_data.value = byCategory
+      return byCategory
+
+    }
 </script>
 
 <style scoped>

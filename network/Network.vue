@@ -20,15 +20,29 @@ const props = defineProps({
     is_mobile: false
 });
 
-watch(() => dim_store.w_data, (newValue, oldValue) => {
-    if (dim_store.dimension === 'network') {
-        let temp = dim_store.w_data
+// watch(() => dim_store.w_data, (newValue, oldValue) => {
+//     if (dim_store.dimension === 'network') {
+//         console.log('ccc')
+//         let temp = dim_store.w_data
+//         dim_store.w_data=[]
+//         displayStaticTree(dim_store)
+//         dim_store.w_data=temp
+//         forcedTree(dim_store.w_data)
+//     } else if (dim_store.dimension === 'hierarchy') {
+//         let temp = dim_store.w_data
+//         displayStaticTree(dim_store)
+//     }
+// });
+
+watch(() => [dim_store.w_data,dim_store.dimension], 
+([new_data, new_dimension], [old_data, old_dimension]) => {
+    if (new_dimension === 'network') {
+        let temp = new_data
         dim_store.w_data=[]
         displayStaticTree(dim_store)
         dim_store.w_data=temp
         forcedTree(dim_store.w_data)
-    } else if (dim_store.dimension === 'hierarchy') {
-        let temp = dim_store.w_data
+    } else if (new_dimension === 'hierarchy') {
         displayStaticTree(dim_store)
     }
 });

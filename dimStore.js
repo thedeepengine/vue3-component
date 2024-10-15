@@ -4,7 +4,7 @@ import { defineStore } from "pinia";
 
 
 export const dimStore = defineStore("dimStore", () => {
-    const dimension = ref('intro_network')
+    const dimension = ref('hierarchy')
     const root_nodes = ref(undefined)
     const root_links = ref(undefined)
     const deep_level = ref(0)
@@ -21,12 +21,26 @@ export const dimStore = defineStore("dimStore", () => {
     const md_content = ref('')
 
     // thingsSpace
+    const things_space_data = ref()
     const thingsSpaceOption = ref({})
+
+    // conversation
+    const stream_status = ref('')
+    const stream_content = ref([])
+    const user_input = ref('')
+
+    function submit_header_event(event) {
+      console.log('***', event)
+      fetch_data('NodeTest', event)
+    }
 
     function set_dimension(dimension_to_set) {
         dimension.value = dimension_to_set
         console.log('dimension.value', dimension.value)
-        fetch_data('JeopardyQuestion', '')
+        if (dimension_to_set === 'network') {
+
+        }
+        // fetch_data('NodeTest', 'name=Roommate')
     }
 
 
@@ -40,11 +54,16 @@ export const dimStore = defineStore("dimStore", () => {
 
     function fetch_data(clt, request) {
 
+      if (request === '') {
+        request = 'name,vector,hasChildren:name'
+      }
+
       apiClient
-          .post("https://localhost:8002/v1/api/query/", { clt: clt, request: request })
+          .post("https://localhost:8002/v1/api/query/", { clt: clt, request: request, dimension: dimension.value })
           .then(response => {
               w_data.value = response.data.d3
               md_content.value = response.data.md
+              things_space_data.value = response.data.things_space
               return response
           })
   }
@@ -73,6 +92,15 @@ export const dimStore = defineStore("dimStore", () => {
       
       // thingsSpace
       thingsSpaceOption,
+      things_space_data,
+
+      // header
+      submit_header_event,
+
+      // conversation
+      stream_status, 
+      stream_content, 
+      user_input
       }
 
 })

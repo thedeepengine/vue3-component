@@ -11,8 +11,7 @@ import { select as d3select, selectAll as d3selectAll } from 'd3-selection'
 import { ref, onMounted, watch } from "vue";
 import { defineProps } from 'vue';
 import { dimStore } from '@/components_shared/dimStore.js'
-import { displayStaticTree } from './network_utils.js';
-
+import { displayStaticTree, empty_static_tree } from './network_utils.js';
 
 const dim_store = dimStore()
 
@@ -20,36 +19,19 @@ const props = defineProps({
     is_mobile: false
 });
 
-// watch(() => dim_store.w_data, (newValue, oldValue) => {
-//     if (dim_store.dimension === 'network') {
-//         console.log('ccc')
-//         let temp = dim_store.w_data
-//         dim_store.w_data=[]
-//         displayStaticTree(dim_store)
-//         dim_store.w_data=temp
-//         forcedTree(dim_store.w_data)
-//     } else if (dim_store.dimension === 'hierarchy') {
-//         let temp = dim_store.w_data
-//         displayStaticTree(dim_store)
-//     }
-// });
-
-watch(() => [dim_store.w_data,dim_store.dimension], 
-([new_data, new_dimension], [old_data, old_dimension]) => {
-    if (new_dimension === 'network') {
-        let temp = new_data
-        dim_store.w_data=[]
-        displayStaticTree(dim_store)
-        dim_store.w_data=temp
-        forcedTree(dim_store.w_data)
-    } else if (new_dimension === 'hierarchy') {
-        displayStaticTree(dim_store)
-    }
-});
+watch(() => [dim_store.w_data, dim_store.dimension],
+    ([new_data, new_dimension], [old_data, old_dimension]) => {
+        if (new_dimension === 'network') {
+            empty_static_tree(dim_store)
+            forcedTree(new_data)
+        } else if (new_dimension === 'hierarchy') {
+            displayStaticTree(dim_store)
+        }
+    });
 
 watch(() => dim_store.dim_force_network_bool, (newValue, oldValue) => {
     if (dim_store.dim_force_network_bool) {
-        dim_force_network()   
+        dim_force_network()
     }
 });
 
@@ -123,12 +105,12 @@ function initSVGBase() {
         .style("height", "100%")
         .attr("style", "overflow: visible")
         .attr("font-family", "sans-serif")
-        .attr("font-size", 11)  
-//         .append("circle")  // Append a circle element
-//   .attr("cx", 50)    // x-coordinate of the center of the circle
-//   .attr("cy", 50)    // y-coordinate of the center of the circle
-//   .attr("r", 40)     // radius of the circle
-//   .style("fill", "black");
+        .attr("font-size", 11)
+    //         .append("circle")  // Append a circle element
+    //   .attr("cx", 50)    // x-coordinate of the center of the circle
+    //   .attr("cy", 50)    // y-coordinate of the center of the circle
+    //   .attr("r", 40)     // radius of the circle
+    //   .style("fill", "black");
 
     d3select(".network_class svg").append("g")
         .attr("class", "global_tree_container unselectable-text")
@@ -235,18 +217,18 @@ function forcedTree(data) {
             .on("end", dragended);
     }
 
-        localThis.on("tick", () => {
-            link
-                .attr("x1", d => d.source.x)
-                .attr("y1", d => d.source.y)
-                .attr("x2", d => d.target.x)
-                .attr("y2", d => d.target.y);
+    localThis.on("tick", () => {
+        link
+            .attr("x1", d => d.source.x)
+            .attr("y1", d => d.source.y)
+            .attr("x2", d => d.target.x)
+            .attr("y2", d => d.target.y);
 
-            node
-                .attr("cx", d => d.x)
-                .attr("cy", d => d.y);
+        node
+            .attr("cx", d => d.x)
+            .attr("cy", d => d.y);
 
-        });
+    });
     return svg.node();
 }
 

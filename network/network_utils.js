@@ -78,6 +78,12 @@ var adjust_tree_y_graph = function (root_left, root_right, side) {
     }
 }
 
+function empty_static_tree(store) {
+    d3selectAll(".front_text_container .node_text").remove()
+    d3selectAll(".underlined_path_container .link").remove()
+    d3selectAll(".link_container .link").remove()
+}
+
 function displayStaticTree(store, add_event_func=undefined) {
     let { root_nodes, root_links } = compute_and_draw_tree(store)
     store.root_nodes = root_nodes
@@ -541,5 +547,6 @@ export {
     d3selection,
     compute_tree,
     compute_and_draw_tree,
-    updateNestedObjectByKey
+    updateNestedObjectByKey,
+    empty_static_tree
 }

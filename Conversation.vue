@@ -2,8 +2,7 @@
     <div class="parent">
         <div class='child'>
             <n-grid class="conv-container" :cols="1">
-                <!-- <n-gi style="position:relative;height: 50px"> -->
-                    <n-gi>
+                <n-gi>
                     <div ref="history_ref" class="history-container">
                         <div class="history-context">
                             <div v-for="(item, index) in history" :key="index">
@@ -45,8 +44,8 @@
 
                 <n-gi>
                     <div id="lll" style="margin-top: auto;margin-bottom: 0vh;height:50px">
-                        <n-input v-model:value="box_input" @animationend="handleAnimationEnd" ref="gg"
-                            class="inputrc" round placeholder="" type="textarea" :autosize="{
+                        <n-input v-model:value="box_input" @animationend="handleAnimationEnd" ref="gg" class="inputrc"
+                            round placeholder="" type="textarea" :autosize="{
                                 minRows: 1,
                                 maxRows: 5,
                             }" @keydown.enter.prevent="submit" />
@@ -56,13 +55,7 @@
         </div>
 
     </div>
-    <!-- </div> -->
-
 </template>
-
-<!-- <style>
-
-</style> -->
 
 <script setup>
 import { NInput, NGi, NGrid, NButton, NSpace, NButtonGroup, NIcon, NPopover } from 'naive-ui'
@@ -296,7 +289,6 @@ function measureTextHeightWithinContainer(text, containerSelector) {
     top: 0;
     height: 5vh;
     border-radius: 0;
-    /* backdrop-filter: blur(10px); */
     background-color: transparent !important;
 }
 

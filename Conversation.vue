@@ -44,7 +44,7 @@
                 </n-gi>
 
                 <n-gi>
-                    <div id="lll" style="margin-top: auto;margin-bottom: 0vh;">
+                    <div id="lll" style="margin-top: auto;margin-bottom: 0vh;height:50px">
                         <n-input v-model:value="box_input" @animationend="handleAnimationEnd" ref="gg"
                             class="inputrc" round placeholder="" type="textarea" :autosize="{
                                 minRows: 1,
@@ -123,14 +123,13 @@ const handleAnimationEnd = async (role) => {
     textarea_element.value.classList.remove('blur', 'unblur')
     add_message_to_history(box_input.value, 'human')
     show_new_history_message(box_input.value)
+    dim_store.user_input = box_input.value
+    box_input.value = ''
 };
 
 
 const handleAnimationEndNewItem = (role) => {
-    console.log('role: ', role)
     history.value[history.value.length - 1]['type'] = 'regular'
-    dim_store.user_input = box_input.value
-    box_input.value = ''
     console.log('history.value: ', history.value)
     if (role === 'human' && llm_model.value !== undefined) {
         add_message_to_history('_', 'ai')
@@ -168,11 +167,12 @@ function measureTextHeightWithinContainer(text, containerSelector) {
 <style>
 .inputrc {
     /* position: absolute; */
-    bottom: 4px;
+    /* bottom: 4px; */
     width: 75%;
     left: 0;
     right: 0;
     margin: auto;
+    height: 50px;
     background-color: transparent;
     --n-border-hover: none !important;
     --n-border-focus: none !important;
@@ -183,6 +183,7 @@ function measureTextHeightWithinContainer(text, containerSelector) {
     --n-box-shadow-focus: none !important;
     --n-caret-color: black !important;
     border-radius: 0;
+    align-items: center;
 }
 
 .conversation-elt {
@@ -283,7 +284,7 @@ function measureTextHeightWithinContainer(text, containerSelector) {
     margin: 0;
     height: fit-content;
     /* border-bottom: 2px solid #d4af37; */
-    backdrop-filter: blur(10px);
+    /* backdrop-filter: blur(10px); */
     overflow: hidden;
 }
 
@@ -313,6 +314,7 @@ function measureTextHeightWithinContainer(text, containerSelector) {
 }
 
 .child {
+    background-color: transparent;
     position: absolute;
     width: 100%;
     bottom: 0;

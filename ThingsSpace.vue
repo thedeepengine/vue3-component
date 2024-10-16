@@ -29,8 +29,6 @@ watch(() => [dim_store.things_space_data, dim_store.dimension],
   }
 );
 
-
-
 function things_space_options(data) {
       let option = {
         tooltip: {},
@@ -44,16 +42,8 @@ function things_space_options(data) {
         zAxis3D: {
           type: 'value'
         },
-        grid3D: {    viewControl: {
-      zoomSensitivity: 1,  // Adjust sensitivity for more or less "speed" in zooming
-      rotateSensitivity: 1,
-      panSensitivity: 1,
-      autoRotate: false,
-      center: [-6,3,3],
-      distance: 200,
-      alpha: 80,
-      beta: 80,
-    }},
+        grid3D: {    
+  },
         series: []
       }
 
@@ -98,9 +88,6 @@ function getThingSpace(response) {
       let names = response.map(obj => obj.name);
       let colors = response.map(obj => obj.color);
       let category = response.map(obj => obj.category);
-
-
-      console.log('vectors', vectors)
 
       var t = dr(vectors, 'UMAP')
       var Y = t.transform();

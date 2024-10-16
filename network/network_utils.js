@@ -78,10 +78,15 @@ var adjust_tree_y_graph = function (root_left, root_right, side) {
     }
 }
 
-function empty_static_tree(store) {
+function empty_static_tree() {
     d3selectAll(".front_text_container .node_text").remove()
     d3selectAll(".underlined_path_container .link").remove()
     d3selectAll(".link_container .link").remove()
+}
+
+function empty_force_tree() {
+    d3selectAll("#forcedtree line").remove()
+    d3selectAll("#forcedtree circle").remove()
 }
 
 function displayStaticTree(store, add_event_func=undefined) {
@@ -548,5 +553,6 @@ export {
     compute_tree,
     compute_and_draw_tree,
     updateNestedObjectByKey,
-    empty_static_tree
+    empty_static_tree,
+    empty_force_tree
 }

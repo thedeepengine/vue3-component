@@ -11,7 +11,7 @@ import { select as d3select, selectAll as d3selectAll } from 'd3-selection'
 import { ref, onMounted, watch } from "vue";
 import { defineProps } from 'vue';
 import { dimStore } from '@/components_shared/dimStore.js'
-import { displayStaticTree, empty_static_tree } from './network_utils.js';
+import { displayStaticTree, empty_static_tree, empty_force_tree } from './network_utils.js';
 
 const dim_store = dimStore()
 
@@ -22,9 +22,10 @@ const props = defineProps({
 watch(() => [dim_store.w_data, dim_store.dimension],
     ([new_data, new_dimension], [old_data, old_dimension]) => {
         if (new_dimension === 'network') {
-            empty_static_tree(dim_store)
+            empty_static_tree()
             forcedTree(new_data)
         } else if (new_dimension === 'hierarchy') {
+            empty_force_tree()
             displayStaticTree(dim_store)
         }
     });

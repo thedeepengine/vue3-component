@@ -123,7 +123,6 @@ const handleAnimationEnd = async (role) => {
 
 const handleAnimationEndNewItem = (role) => {
     history.value[history.value.length - 1]['type'] = 'regular'
-    console.log('history.value: ', history.value)
     if (role === 'human' && llm_model.value !== undefined) {
         add_message_to_history('_', 'ai')
         show_new_history_message('')

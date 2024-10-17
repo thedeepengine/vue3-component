@@ -1,3 +1,4 @@
+<!-- TEMPLATE MUST HAVE A SINGLE CHILD EVEN COMMENT NOT ACCEPTED -->
 <template>
     <div class="network_class"></div>
 </template>
@@ -19,8 +20,16 @@ const props = defineProps({
     is_mobile: false
 });
 
+
+onMounted(() => {
+    initSVGBase()
+    window.addEventListener("mousemove", updateButtonOpacity);
+})
+
+
 watch(() => [dim_store.w_data, dim_store.dimension],
     ([new_data, new_dimension], [old_data, old_dimension]) => {
+    
         if (new_dimension === 'network') {
             empty_static_tree()
             forcedTree(new_data)
@@ -30,11 +39,11 @@ watch(() => [dim_store.w_data, dim_store.dimension],
         }
     });
 
-watch(() => dim_store.dim_force_network_bool, (newValue, oldValue) => {
-    if (dim_store.dim_force_network_bool) {
-        dim_force_network()
-    }
-});
+// watch(() => dim_store.dim_force_network_bool, (newValue, oldValue) => {
+//     if (dim_store.dim_force_network_bool) {
+//         dim_force_network()
+//     }
+// });
 
 
 const forcedNodeR = 5
@@ -107,11 +116,6 @@ function initSVGBase() {
         .attr("style", "overflow: visible")
         .attr("font-family", "sans-serif")
         .attr("font-size", 11)
-    //         .append("circle")  // Append a circle element
-    //   .attr("cx", 50)    // x-coordinate of the center of the circle
-    //   .attr("cy", 50)    // y-coordinate of the center of the circle
-    //   .attr("r", 40)     // radius of the circle
-    //   .style("fill", "black");
 
     d3select(".network_class svg").append("g")
         .attr("class", "global_tree_container unselectable-text")
@@ -124,11 +128,11 @@ function initSVGBase() {
     g_tree.append("g").attr("class", "left_tree_container").append("g").attr("class", "node_container")
     g_tree.append("g").attr("class", "right_tree_container").append("g").attr("class", "node_container")
 
-    d3select("#affix_container")
-        .call(d3drag()
-            .on('start.namespace', dragStart)
-            .on('drag.namespace', dragging)
-            .on('end.namespace', dragEnd))
+    // d3select("#affix_container")
+    //     .call(d3drag()
+    //         .on('start.namespace', dragStart)
+    //         .on('drag.namespace', dragging)
+    //         .on('end.namespace', dragEnd))
 }
 
 function addOntologyBackgroundTitle() {
@@ -239,11 +243,6 @@ let updateButtonOpacity = function (event) {
     const distanceToBottom = windowHeight - mouseY - 100;
     buttonOpacity.value = Math.min(1, 1 - distanceToBottom / 100);
 }
-
-onMounted(() => {
-    initSVGBase()
-    window.addEventListener("mousemove", updateButtonOpacity);
-})
 
 </script>
 

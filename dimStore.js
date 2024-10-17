@@ -21,8 +21,8 @@ export const dimStore = defineStore("dimStore", () => {
   const md_content = ref('')
 
   // thingsSpace
-  const things_space_data = ref()
-  const thingsSpaceOption = ref({})
+  const things_space_data = ref(undefined)
+  const things_space_option = ref({})
 
   // conversation
   const stream_status = ref('')
@@ -32,6 +32,106 @@ export const dimStore = defineStore("dimStore", () => {
   watch(() => user_input.value, (newValue, oldValue) => {
     fetch_data('NodeTest', newValue)
   })
+
+  // watch(() => dimension.value, (newValue, oldValue) => {
+  //   console.log('dimensi++++++on', newValue)
+  // })
+
+
+  watch(() => [things_space_data.value, dimension.value],
+  ([new_data, new_dimension], [old_data, old_dimension]) => {
+    console.log('new_dimension', new_dimension)
+    if (new_dimension === 'things_space') {
+      // if (new_data !== undefined) {
+        new_data = [{}]
+        console.log('new_data', new_data)
+        let reduced=getThingSpace(new_data)
+        things_space_option.value=things_space_options(reduced)
+        console.log('things_space_option.value', things_space_option.value)
+      // }
+    }
+  }
+);
+
+
+
+function getThingSpace(response) {
+  let nNeighbors = 15
+  if (response.length < 15) {
+    nNeighbors = response.length
+  }
+
+  function dr(data, dr_method) {
+    const X = druid.Matrix.from(data);
+    const DR = druid[dr_method];
+    const P = { d: 3, n_neighbors: nNeighbors };
+    return new DR(X, { ...P });
+  }
+
+  let vectors = response.map(obj => obj.value);
+  let names = response.map(obj => obj.name);
+  let colors = response.map(obj => obj.color);
+  let category = response.map(obj => obj.category);
+
+  var t = dr(vectors, 'UMAP')
+  var Y = t.transform();
+  var mat = Y.asArray
+
+  let res = mat.map((item, index) => {
+    return { 'value': item, 'name': names[index], 'color': colors[index], 'category': category[index] || '_' }
+  });
+
+  const byCategory = res.reduce((acc, obj) => ({
+    ...acc,
+    [obj.category]: [...(acc[obj.category] || []), obj]
+  }), {});
+
+  // dim_reduced_data.value = byCategory
+  return byCategory
+
+}
+
+function things_space_options(data) {
+  let option = {
+    tooltip: {},
+    legend: {},
+    xAxis3D: {
+      type: 'value'
+    },
+    yAxis3D: {
+      type: 'value'
+    },
+    zAxis3D: {
+      type: 'value'
+    },
+    grid3D: {    
+},
+    series: [{type: 'scatter3D',
+            label: {
+              show: true,
+              fontSize: 10,
+              formatter: function (value) {
+                return value['name'];
+              },
+            },
+            data : [[1,1,1]]
+            // data: Object.entries(data).map(([key, value]) => {
+            //   return [1,1,1]
+            //   // option.series.push({
+            //   //   name: key, 
+            //   //   data: value
+            //   // })
+            // })
+    }]
+  }
+
+  option.legend = {
+    bottom: '10%',
+    right: '10%',
+    data: Object.keys(data),
+  };
+  return option
+}
 
 
   function set_dimension(dimension_to_set) {
@@ -84,7 +184,7 @@ export const dimStore = defineStore("dimStore", () => {
     md_content,
 
     // thingsSpace
-    thingsSpaceOption,
+    things_space_option,
     things_space_data,
 
     // conversation

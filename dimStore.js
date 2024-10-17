@@ -29,14 +29,12 @@ export const dimStore = defineStore("dimStore", () => {
   const stream_content = ref([])
   const user_input = ref('')
 
+  // graphql
+  const code = ref()
+
   watch(() => user_input.value, (newValue, oldValue) => {
     fetch_data('NodeTest', newValue)
   })
-
-  // watch(() => dimension.value, (newValue, oldValue) => {
-  //   console.log('dimensi++++++on', newValue)
-  // })
-
 
   watch(() => [things_space_data.value, dimension.value],
   ([new_data, new_dimension], [old_data, old_dimension]) => {
@@ -54,6 +52,33 @@ export const dimStore = defineStore("dimStore", () => {
 );
 
 
+// var model = monaco.editor.createModel(JSON.stringify(json, null, '\t'), "json", modelUri);
+
+
+function fetch_data(clt, request) {
+
+  if (request === '') {
+    request = 'name,vector,hasChildren:name'
+  }
+
+  apiClient
+    .post("https://localhost:8002/v1/api/query/", { clt: clt, request: request, dimension: dimension.value })
+    .then(response => {
+      w_data.value = response.data.d3
+      md_content.value = response.data.md
+      things_space_data.value = response.data.things_space
+      code.value = response.data.graphql
+
+      code.value = JSON.stringify(code.value, null, '\t')
+      console.log('code.value: ', code.value)
+      // JSON.stringify(code.value)
+
+      // code.value = 
+
+      console.log('code', code.value)
+      return response
+    })
+}
 
 function getThingSpace(response) {
   let nNeighbors = 15
@@ -147,23 +172,6 @@ function things_space_options(data) {
     }
   });
 
-
-  function fetch_data(clt, request) {
-
-    if (request === '') {
-      request = 'name,vector,hasChildren:name'
-    }
-
-    apiClient
-      .post("https://localhost:8002/v1/api/query/", { clt: clt, request: request, dimension: dimension.value })
-      .then(response => {
-        w_data.value = response.data.d3
-        md_content.value = response.data.md
-        things_space_data.value = response.data.things_space
-        return response
-      })
-  }
-
   return {
     deep_level,
     root_nodes,
@@ -190,7 +198,10 @@ function things_space_options(data) {
     // conversation
     stream_status,
     stream_content,
-    user_input
+    user_input,
+
+    // graphql
+    code
   }
 
 })

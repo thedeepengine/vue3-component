@@ -454,7 +454,7 @@ function getCorneredRectangle(x, y, width=200, height=50, strokeWidth = 2) {
         .style("opacity", 1);
 }
 
-function getFloatingTextBox(store, x, y, action_func = undefined, width = 200) {
+function getFloatingTextBox(x, y, action_func = undefined, width = 200) {
     let strokeWidth = 2
     let fontSize = 12
     let height = fontSize + fontSize
@@ -481,8 +481,7 @@ function getFloatingTextBox(store, x, y, action_func = undefined, width = 200) {
                 }
             }
         });
-        
-    
+
     input.node().focus();
 
     var svgText = d3select('.to-compute-text-length')
@@ -498,24 +497,20 @@ function getFloatingTextBox(store, x, y, action_func = undefined, width = 200) {
                 const strokeDashArray = calculateStrokeDashArray(external, height);
 
                 d3select(".svg-container-corner-rect input").style("width", `${internal}px`)
-
                 d3select("#corneredRectId").attr("width", external+strokeWidth);
                 d3select("#corneredRectId rect").attr("width", external);
                 d3select("#corneredRectId rect").attr("stroke-dasharray", strokeDashArray);
         }
     });
-
-    store.text_box_displayed = true
 }
 
 
-function removeContainerCornerRect(store) {
+function removeContainerCornerRect() {
     d3select(".svg-container-corner-rect")
     .transition()
     .duration(500)
     .style("opacity", 0)
     .remove();
-    store.text_box_displayed = false
 }
 
 function deepEngineSpinner(store) {

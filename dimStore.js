@@ -70,12 +70,12 @@ function fetch_data(clt, request) {
       code.value = response.data.graphql
 
       code.value = JSON.stringify(code.value, null, '\t')
-      console.log('code.value: ', code.value)
+      // console.log('code.value: ', code.value)
       // JSON.stringify(code.value)
 
       // code.value = 
 
-      console.log('code', code.value)
+      // console.log('code', code.value)
       return response
     })
 }

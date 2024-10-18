@@ -1,12 +1,18 @@
 <!-- TEMPLATE MUST HAVE A SINGLE CHILD EVEN COMMENT NOT ACCEPTED -->
 <template>
     <div id="popupbox-content">
-        <svg id="popupbox-svg" :style="{ left: `${dim_store.position.x}px`, top: `${dim_store.position.y}px` }">
+        <svg ref="svg_ZXXXelt"
+        id="popupbox-svg" 
+        style="position: fixed"
+        :style="{ left: `${dim_store.position.x}px`, top: `${dim_store.position.y}px` }">
             <path ref="path_elt" stroke="black" fill="none" />
         </svg>
-        <div style="height: 100%;position: fixed;"
-            :style="{ left: `${dim_store.position.x}px`, top: `${dim_store.position.y}px` }">
-            <n-input ref="input_ref" @input="popup_input_event" v-model:value="dim_store.popup_text" class="inputrc"
+        <div style="height: 100%;position: fixed;max-width: 200px;"
+            :style="{ left: `${dim_store.position.x}px`, top: `${dim_store.position.y}px`, 
+                 }">
+            <n-input ref="input_ref" @input="popup_input_event"
+            v-model:value="dim_store.popup_text" 
+            class="inputrc"
                 placeholder="" type="textarea" :autosize="{
                     minRows: 1,
                     maxRows: 5,
@@ -14,6 +20,8 @@
         </div>
     </div>
 </template>
+
+<!-- , height: `${input_height}px` -->
 
 <!-- <svg id="popupbox-svg"></svg> -->
 
@@ -41,26 +49,46 @@ const svg_elt = ref(undefined)
 const path_elt = ref(null);
 const input_ref = ref(null);
 
-const clientX = dim_store.position.x
-const clientY = dim_store.position.y
-const x = 1, y = 1, cornerLength = 10;
+const cornerLength = 10;
 const stroke_width = 3
 const input_width=ref()
 const input_height=ref()
 
 
 onMounted(() => {
+    svg_elt.value = d3select('#popupbox-svg')
+    update_corners()
+    input_ref.value.wrapperElRef.style.height = 'auto'
+})
+
+function update_corners() {
     input_width.value = input_ref.value.wrapperElRef.offsetWidth
     input_height.value = input_ref.value.wrapperElRef.offsetHeight
-    svg_elt.value = d3select('#popupbox-svg')
-    svg_elt.value.setStyles({ left: clientX + "px", top: clientY + "px", position: "fixed", opacity: 1 })
-        .attr('width', input_width.value +stroke_width)
-        .attr('height', input_height.value +stroke_width)
 
-    const pathData = drawAllCorners(x, y, input_width.value, input_height.value, cornerLength);
+    
+    console.log('input_ref.value.wrapperElRef', input_ref.value.wrapperElRef)
+    console.log('input_width.value', input_width.value)
+    console.log('input_height.value', input_height.value)
+    if (input_width.value < 100) {
+        input_width.value = 100
+    }
+    
+    if (input_width.value >250) {
+        input_width.value = 250
+    }
+
+    svg_elt.value
+        .attr('width', input_width.value + stroke_width)
+        .attr('height', input_height.value + stroke_width)
+
+    const pathData = drawAllCorners(1, 1, input_width.value, input_height.value, cornerLength);
     path_elt.value.setAttribute('d', pathData);
 
-})
+}
+
+function popup_input_event(event) {
+    update_corners()
+}
 
 const drawCorner = (x, y, horizontal, vertical) => {
   return `M ${x} ${y} L ${x + horizontal} ${y} L ${x} ${y} L ${x} ${y + vertical} `;
@@ -74,17 +102,6 @@ const drawAllCorners = (x, y, width, height, length) => {
   pathData += drawCorner(x + width, y + height, -length, -length); // Bottom-right
   return pathData;
 };
-
-function popup_input_event(event) {
-    let new_width = input_ref.value.wrapperElRef.offsetWidth
-    let new_height = input_ref.value.wrapperElRef.offsetHeight
-
-    svg_elt.value.attr('width', new_width+stroke_width).attr('height', new_height+stroke_width)
-
-    const pathData = drawAllCorners(1, 1, new_width, new_height, 10);
-    path_elt.value.setAttribute('d', pathData);
-}
-
 
 
 

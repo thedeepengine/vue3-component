@@ -16,10 +16,6 @@
     </div>
 </template>
 
-<!-- , height: `${input_height}px` -->
-
-<!-- <svg id="popupbox-svg"></svg> -->
-
 <script setup>
 import { NInput, NGi, NGrid, NIcon, NDivider } from 'naive-ui'
 import { ArrowCircleUp16Regular, ArrowUp28Regular, ArrowCircleUp48Filled, ArrowCircleUp48Regular } from '@vicons/fluent'
@@ -44,12 +40,13 @@ const svg_elt = ref(undefined)
 const path_elt = ref(null);
 const input_ref = ref(null);
 
-const cornerLength = 10;
+const corner_len_w = 20;
+const corner_len_h = 10;
 const stroke_width = 3
 const input_width = ref()
 const input_height = ref()
 const max_box_width = ref(350)
-const min_box_width = ref(100)
+const min_box_width = ref(150)
 
 
 onMounted(() => {
@@ -57,8 +54,15 @@ onMounted(() => {
     console.log('input_ref.value', input_ref.value)
     input_ref.value.focus()
 
-    update_corners()
-    input_ref.value.wrapperElRef.style.height = 'auto'
+    setTimeout(() => {
+        update_corners()
+    }, 0);
+
+    // input_ref.value.wrapperElRef.style.height = 'auto'
+    input_ref.value.wrapperElRef.style.margin = '1px'
+    console.log('input_ref.value.wrapperElRef.scrollHeight', input_ref.value.wrapperElRef.scrollHeight)
+    console.log('input_ref.value.wrapperElRef.scrollTop', input_ref.value.wrapperElRef.scrollTop)
+    input_ref.value.wrapperElRef.scrollTop = input_ref.value.wrapperElRef.scrollHeight
 })
 
 function update_corners() {
@@ -79,7 +83,7 @@ function update_corners() {
         .attr('width', input_width.value + stroke_width)
         .attr('height', input_height.value + stroke_width)
 
-    const pathData = drawAllCorners(1, 1, input_width.value, input_height.value, cornerLength);
+    const pathData = drawAllCorners(1, 1, input_width.value, input_height.value, corner_len_w, corner_len_h);
     path_elt.value.setAttribute('d', pathData);
 
 }
@@ -92,12 +96,12 @@ const drawCorner = (x, y, horizontal, vertical) => {
     return `M ${x} ${y} L ${x + horizontal} ${y} L ${x} ${y} L ${x} ${y + vertical} `;
 };
 
-const drawAllCorners = (x, y, width, height, length) => {
+const drawAllCorners = (x, y, width, height, length_w, length_h) => {
     let pathData = '';
-    pathData += drawCorner(x, y, length, length); // Top-left
-    pathData += drawCorner(x + width, y, -length, length); // Top-right
-    pathData += drawCorner(x, y + height, length, -length); // Bottom-left
-    pathData += drawCorner(x + width, y + height, -length, -length); // Bottom-right
+    pathData += drawCorner(x, y, length_w, length_h); // Top-left
+    pathData += drawCorner(x + width, y, -length_w, length_h); // Top-right
+    pathData += drawCorner(x, y + height, length_w, -length_h); // Bottom-left
+    pathData += drawCorner(x + width, y + height, -length_w, -length_h); // Bottom-right
     return pathData;
 };
 
@@ -106,7 +110,6 @@ const drawAllCorners = (x, y, width, height, length) => {
 </script>
 
 <style>
-
 .popupbox {
     background-color: transparent;
     --n-border-hover: none !important;

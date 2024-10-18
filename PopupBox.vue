@@ -1,32 +1,28 @@
 <!-- TEMPLATE MUST HAVE A SINGLE CHILD EVEN COMMENT NOT ACCEPTED -->
 <template>
     <div id="popupbox-content">
-        <svg id="popupbox-svg"
-        
-        :style="{ left: `${dim_store.position.x}px`, top: `${dim_store.position.y}px` }"></svg>
+        <svg id="popupbox-svg" :style="{ left: `${dim_store.position.x}px`, top: `${dim_store.position.y}px` }">
+            <path ref="path_elt" stroke="black" fill="none" />
+        </svg>
         <div style="height: 100%;position: fixed;"
             :style="{ left: `${dim_store.position.x}px`, top: `${dim_store.position.y}px` }">
-            <n-input
-            ref="inputRef"
-            @input="popup_input_event"
-            v-model:value="dim_store.popup_text"
-            class="inputrc"
-            placeholder="" type="textarea" :autosize="{
-                minRows: 1,
-                maxRows: 5,
-            }" />
+            <n-input ref="input_ref" @input="popup_input_event" v-model:value="dim_store.popup_text" class="inputrc"
+                placeholder="" type="textarea" :autosize="{
+                    minRows: 1,
+                    maxRows: 5,
+                }" />
         </div>
     </div>
 </template>
 
-        <!-- <svg id="popupbox-svg"></svg> -->
+<!-- <svg id="popupbox-svg"></svg> -->
 
 <script setup>
 import { NInput, NGi, NGrid, NIcon, NDivider } from 'naive-ui'
 import { ArrowCircleUp16Regular, ArrowUp28Regular, ArrowCircleUp48Filled, ArrowCircleUp48Regular } from '@vicons/fluent'
 
 
-import { onMounted, ref, shallowRef } from 'vue'
+import { onMounted, ref, shallowRef, computed } from 'vue'
 import { dimStore } from '@/components_shared/dimStore.js'
 import { select as d3select } from 'd3-selection'
 
@@ -42,50 +38,55 @@ const editor = shallowRef()
 const handleMount = editorInstance => (editor.value = editorInstance)
 const dim_store = dimStore()
 const svg_elt = ref(undefined)
-const inputRef = ref(null);
-
-
-
-
+const path_elt = ref(null);
+const input_ref = ref(null);
 
 const clientX = dim_store.position.x
 const clientY = dim_store.position.y
-const x = 1, y = 1, rectWidth = 150, rectHeight = 50, cornerLength = 10;
+const x = 1, y = 1, cornerLength = 10;
 const stroke_width = 3
+const input_width=ref()
+const input_height=ref()
 
 
-onMounted(()=> {
+onMounted(() => {
+    input_width.value = input_ref.value.wrapperElRef.offsetWidth
+    input_height.value = input_ref.value.wrapperElRef.offsetHeight
     svg_elt.value = d3select('#popupbox-svg')
-    svg_elt.value.setStyles({left:clientX+"px", top:clientY+"px", position: "fixed",opacity:1})
-    .attr('width', rectWidth+2)
-    .attr('height', rectHeight+2)
-    draw_corner_all(x,y,rectWidth,rectHeight,cornerLength)
+    svg_elt.value.setStyles({ left: clientX + "px", top: clientY + "px", position: "fixed", opacity: 1 })
+        .attr('width', input_width.value +stroke_width)
+        .attr('height', input_height.value +stroke_width)
+
+    const pathData = drawAllCorners(x, y, input_width.value, input_height.value, cornerLength);
+    path_elt.value.setAttribute('d', pathData);
 
 })
 
-function drawCorner(x, y, horizontal, vertical) {
-    svg_elt.value.append('path')
-    .attr('d', `M ${x} ${y} L ${x + horizontal} ${y} L ${x} ${y} L ${x} ${y + vertical}`)
-    .attr('stroke', 'black')
-    .attr('fill', 'none');
-}
+const drawCorner = (x, y, horizontal, vertical) => {
+  return `M ${x} ${y} L ${x + horizontal} ${y} L ${x} ${y} L ${x} ${y + vertical} `;
+};
 
-function draw_corner_all(x,y,width, height, length) {
-    drawCorner(x, y, length, length); // Top-left
-    drawCorner(x + width, y, -length, length); // Top-right
-    drawCorner(x, y + height, length, -length); // Bottom-left
-    drawCorner(x + width, y + height, -length, -length); // Bottom-right
-}
+const drawAllCorners = (x, y, width, height, length) => {
+  let pathData = '';
+  pathData += drawCorner(x, y, length, length); // Top-left
+  pathData += drawCorner(x + width, y, -length, length); // Top-right
+  pathData += drawCorner(x, y + height, length, -length); // Bottom-left
+  pathData += drawCorner(x + width, y + height, -length, -length); // Bottom-right
+  return pathData;
+};
 
 function popup_input_event(event) {
-    console.log('inputRef: ', inputRef.value)
-    console.log('inputRef: ', inputRef.value.wrapperElRef.offsetWidth)
-    let new_width = inputRef.value.wrapperElRef.offsetWidth
-    let new_height = inputRef.value.wrapperElRef.offsetHeight
-    
-    svg_elt.value.attr('width', new_width+stroke_width+5).attr('height', new_height+stroke_width+5)
-    draw_corner_all(1, 1,new_width+stroke_width,new_height+stroke_width,10)
+    let new_width = input_ref.value.wrapperElRef.offsetWidth
+    let new_height = input_ref.value.wrapperElRef.offsetHeight
+
+    svg_elt.value.attr('width', new_width+stroke_width).attr('height', new_height+stroke_width)
+
+    const pathData = drawAllCorners(1, 1, new_width, new_height, 10);
+    path_elt.value.setAttribute('d', pathData);
 }
+
+
+
 
 </script>
 

@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, computed } from "vue";
 import { defineStore } from "pinia";
 
 
@@ -32,6 +32,14 @@ export const dimStore = defineStore("dimStore", () => {
   // graphql
   const code = ref()
 
+  //popup box
+  const isVisible = ref(false);
+  const position = ref({ x: 400, y: 400 }); 
+  const isDragging = ref(false);
+  const lastPosition = ref({ x: 0, y: 0 });
+  const popup_text = ref('')
+
+
   watch(() => user_input.value, (newValue, oldValue) => {
     fetch_data('NodeTest', newValue)
   })
@@ -50,6 +58,16 @@ export const dimStore = defineStore("dimStore", () => {
     }
   }
 );
+
+
+const popUpBoxStyle = computed(() => ({
+  position: 'fixed',
+  top: `${dim_store.position.y}px`,
+  left: `${dim_store.position.x}px`,
+  cursor: dim_store.isDragging ? 'grabbing' : 'grab',
+  userSelect: 'none',
+  'z-index': 99999999999999
+}));
 
 
 // var model = monaco.editor.createModel(JSON.stringify(json, null, '\t'), "json", modelUri);
@@ -201,7 +219,15 @@ function things_space_options(data) {
     user_input,
 
     // graphql
-    code
+    code,
+
+    //popup box
+    isVisible,
+    position,
+    isDragging,
+    lastPosition,
+    popup_text
+
   }
 
 })

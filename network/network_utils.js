@@ -419,42 +419,28 @@ function getCorneredRectangle(x, y, width=200, height=50, strokeWidth = 2) {
 
     const strokeDashArray = calculateStrokeDashArray(width, height);
 
-    var svgContainer = d3select("body").append("div")
+    var svgContainer = d3select("#popupbox").append("div")
+    .setStyles({left:x+"px", top:y+"px", position: "fixed",opacity:0,"z-index":999999999})
     .attr("class", "svg-container-corner-rect")
-    .style("left", x + "px")
-    .style("top", y + "px")
-    .style("position", "fixed")
-    .style("opacity", 0)
-    .style("z-index", 999999999)
 
     var svg = svgContainer.append("svg")
-                .attr('id', 'corneredRectId')
-                .attr("width", width+strokeWidth)
-                .attr("height", height+strokeWidth)
-                
+    .setAttrs({id:'corneredRectId', width:width+strokeWidth, height:height+strokeWidth})
 
     svg.append("rect")
-        .attr("x", 1)
-        .attr("y", 1)
+        .setAttrs({x:1,y:1,fill:"none",
+            width: width, height: height, 
+            stroke: "black","stroke-width": strokeWidth, "stroke-dasharray": strokeDashArray})
         .style("position", "fixed")
-        .attr("width", width)
-        .attr("height", height)
-        .attr("fill", "none")
-        .attr("stroke", "black")
-        .attr("stroke-width", strokeWidth)
-        .attr("stroke-dasharray", strokeDashArray);
-    
+
     svg.append('text')
     .attr("class", "to-compute-text-length")
     .style("opacity", 0)
     .style("font-size", `12px`)
     
-    svgContainer.transition()
-        .duration(300)
-        .style("opacity", 1);
+    svgContainer.transition().duration(300).style("opacity", 1);
 }
 
-function getFloatingTextBox(x, y, action_func = undefined, width = 200) {
+function getFloatingTextBox(x, y, action_func = undefined, width = 200, content='') {
     let strokeWidth = 2
     let fontSize = 12
     let height = fontSize + fontSize
@@ -473,6 +459,7 @@ function getFloatingTextBox(x, y, action_func = undefined, width = 200) {
         .style("border", "none")
         .style("padding", "0")
         .style("outline", "none")
+        .property("value", content)
         .on("keydown", function(event) {
             if (event.key === "Enter" || event.keyCode === 13) {
                 console.log("Enter pressed! Value: ", this.value);
@@ -489,23 +476,28 @@ function getFloatingTextBox(x, y, action_func = undefined, width = 200) {
     input.on('input', function() {
             svgText.text(this.value);
             let textWidth = svgText.node().getComputedTextLength();
+            console.log('textWidth: ', textWidth)
             if (textWidth > 195) {
+                console.log('limit')
                 // textWidth = max(textWidth, 200)
                 var extraAntiStutter = 5 // random value to make sure the most inner input text is always more than the text length to avoid hidden
                 var internal = textWidth+extraAntiStutter
                 var external = internal+2*strokeWidth
-                const strokeDashArray = calculateStrokeDashArray(external, height);
 
                 d3select(".svg-container-corner-rect input").style("width", `${internal}px`)
                 d3select("#corneredRectId").attr("width", external+strokeWidth);
-                d3select("#corneredRectId rect").attr("width", external);
-                d3select("#corneredRectId rect").attr("stroke-dasharray", strokeDashArray);
+                
+                const strokeDashArray = calculateStrokeDashArray(external,height);
+                d3select("#corneredRectId rect")
+                .attr("stroke-dasharray", strokeDashArray)
+                .attr("width", external);
         }
     });
 }
 
 
 function removeContainerCornerRect() {
+    console.log('d3select(".svg-container-corner-rect")', d3select(".svg-container-corner-rect"))
     d3select(".svg-container-corner-rect")
     .transition()
     .duration(500)

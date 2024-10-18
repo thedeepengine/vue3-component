@@ -1,104 +1,92 @@
 <!-- TEMPLATE MUST HAVE A SINGLE CHILD EVEN COMMENT NOT ACCEPTED -->
 <template>
-    <div>
-        <div id="popupbox"></div>
+    <div id="popupbox-content">
+        <svg id="popupbox-svg"
+        
+        :style="{ left: `${dim_store.position.x}px`, top: `${dim_store.position.y}px` }"></svg>
+        <div style="height: 100%;position: fixed;"
+            :style="{ left: `${dim_store.position.x}px`, top: `${dim_store.position.y}px` }">
+            <n-input
+            ref="inputRef"
+            @input="popup_input_event"
+            v-model:value="dim_store.popup_text"
+            class="inputrc"
+            placeholder="" type="textarea" :autosize="{
+                minRows: 1,
+                maxRows: 5,
+            }" />
+        </div>
     </div>
-    <!-- <n-grid :cols="1">
-        <n-gi>
-            <div style="position: absolute;">
-                <ul class="custom-dots">
-                    <li v-for="index of total" :key="index" :class="{ ['is-active']: currentIndex === index - 1 }"
-                        @click="to(index - 1)"></li>
-                </ul>
-            </div>
-        </n-gi>
-        <n-gi style="position: relative; height: 100%;">
-            <n-input class="popupbox" 
-            style="position: absolute; top: 0; min-width: 200px; max-width: 450px; width: 100%;"
-            placeholder="" type="textarea"
-                :autosize="{
-                    minRows: 1,
-                    maxRows: 10,
-                }" />
-        </n-gi>
-    </n-grid> -->
-
-
-<!-- 
-    <n-grid style="width:470px;background-color: transparent;backdrop-filter: blur(10px);">
-        <n-gi style="margin:auto">
-            <p style="text-align:center;font-size:40px;line-height: 1">&#8226;</p>
-            <n-divider vertical />
-        </n-gi>
-        <n-gi style="margin:auto;">
-                <n-input
-            style="min-width: 450px;max-width: 450px;"
-            class="popupbox"
-            placeholder="" type="textarea"
-                :autosize="{
-                    minRows: 1,
-                    maxRows: 10,
-                }" />
-        </n-gi>
-    </n-grid> -->
-
 </template>
 
-
-
-<!-- <div>
-        <div>
-            <div style="position: absolute;">
-                <ul class="custom-dots">
-                    <li v-for="index of total" :key="index" :class="{ ['is-active']: currentIndex === index - 1 }"
-                        @click="to(index - 1)"></li>
-                </ul>
-            </div>
-        </div>
-        <div style="background-color:transparent;position: relative; 
-        height: 100%;border: 0px solid rgba(52, 109, 127, 0.5);border-radius:8px">
-            <div>
-                <n-input
-            style="min-width: 450px;max-width: 450px;"
-            class="popupbox"
-            placeholder="" type="textarea"
-                :autosize="{
-                    minRows: 1,
-                    maxRows: 10,
-                }" />
-            </div>
-        </div>
-    </div> -->
-
-<!-- <div class="svg-container-corner-rect"></div> -->
-
-<!-- <div>
-    <div class="card">
-
-        <n-input style="min-width: 450px;max-width: 450px;" class="popupbox" placeholder="" type="textarea"
-            :autosize="{
-                minRows: 1,
-                maxRows: 10,
-            }" />
-        <div style="display:flex;justify-content: flex-end;">
-            <n-icon :component="ArrowCircleUp48Regular" color="black" size="26"></n-icon>
-        </div>
-    </div>
-
-</div> -->
+        <!-- <svg id="popupbox-svg"></svg> -->
 
 <script setup>
-import { computed, ref, onMounted } from 'vue'
 import { NInput, NGi, NGrid, NIcon, NDivider } from 'naive-ui'
 import { ArrowCircleUp16Regular, ArrowUp28Regular, ArrowCircleUp48Filled, ArrowCircleUp48Regular } from '@vicons/fluent'
 
-const total = ref(2)
-const currentIndex = ref(0)
+
+import { onMounted, ref, shallowRef } from 'vue'
+import { dimStore } from '@/components_shared/dimStore.js'
+import { select as d3select } from 'd3-selection'
 
 
-function to(index) {
-    currentIndex.value = index
+const MONACO_EDITOR_OPTIONS = {
+    automaticLayout: true,
+    formatOnType: true,
+    formatOnPaste: true,
 }
+
+const code = ref('{"test": "aaaa", "test2": {"jjjj": "sssss", "ppp":"aaaa"}}')
+const editor = shallowRef()
+const handleMount = editorInstance => (editor.value = editorInstance)
+const dim_store = dimStore()
+const svg_elt = ref(undefined)
+const inputRef = ref(null);
+
+
+
+
+
+const clientX = dim_store.position.x
+const clientY = dim_store.position.y
+const x = 1, y = 1, rectWidth = 150, rectHeight = 50, cornerLength = 10;
+const stroke_width = 3
+
+
+onMounted(()=> {
+    svg_elt.value = d3select('#popupbox-svg')
+    svg_elt.value.setStyles({left:clientX+"px", top:clientY+"px", position: "fixed",opacity:1})
+    .attr('width', rectWidth+2)
+    .attr('height', rectHeight+2)
+    draw_corner_all(x,y,rectWidth,rectHeight,cornerLength)
+
+})
+
+function drawCorner(x, y, horizontal, vertical) {
+    svg_elt.value.append('path')
+    .attr('d', `M ${x} ${y} L ${x + horizontal} ${y} L ${x} ${y} L ${x} ${y + vertical}`)
+    .attr('stroke', 'black')
+    .attr('fill', 'none');
+}
+
+function draw_corner_all(x,y,width, height, length) {
+    drawCorner(x, y, length, length); // Top-left
+    drawCorner(x + width, y, -length, length); // Top-right
+    drawCorner(x, y + height, length, -length); // Bottom-left
+    drawCorner(x + width, y + height, -length, -length); // Bottom-right
+}
+
+function popup_input_event(event) {
+    console.log('inputRef: ', inputRef.value)
+    console.log('inputRef: ', inputRef.value.wrapperElRef.offsetWidth)
+    let new_width = inputRef.value.wrapperElRef.offsetWidth
+    let new_height = inputRef.value.wrapperElRef.offsetHeight
+    
+    svg_elt.value.attr('width', new_width+stroke_width+5).attr('height', new_height+stroke_width+5)
+    draw_corner_all(1, 1,new_width+stroke_width,new_height+stroke_width,10)
+}
+
 </script>
 
 <style>

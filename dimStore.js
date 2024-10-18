@@ -37,7 +37,7 @@ export const dimStore = defineStore("dimStore", () => {
   const position = ref({ x: 400, y: 400 }); 
   const isDragging = ref(false);
   const lastPosition = ref({ x: 0, y: 0 });
-  const popup_text = ref('')
+  const popup_text = ref('ooooo')
 
 
   watch(() => user_input.value, (newValue, oldValue) => {
@@ -62,9 +62,9 @@ export const dimStore = defineStore("dimStore", () => {
 
 const popUpBoxStyle = computed(() => ({
   position: 'fixed',
-  top: `${dim_store.position.y}px`,
-  left: `${dim_store.position.x}px`,
-  cursor: dim_store.isDragging ? 'grabbing' : 'grab',
+  top: `${position.value.y}px`,
+  left: `${position.value.x}px`,
+  cursor: isDragging.value ? 'grabbing' : 'grab',
   userSelect: 'none',
   'z-index': 99999999999999
 }));
@@ -226,7 +226,8 @@ function things_space_options(data) {
     position,
     isDragging,
     lastPosition,
-    popup_text
+    popup_text,
+    popUpBoxStyle
 
   }
 

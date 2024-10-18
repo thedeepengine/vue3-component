@@ -476,6 +476,7 @@ function getFloatingTextBox(x, y, action_func = undefined, width = 200, content=
     input.on('input', function() {
             svgText.text(this.value);
             let textWidth = svgText.node().getComputedTextLength();
+
             console.log('textWidth: ', textWidth)
             if (textWidth > 195) {
                 console.log('limit')
@@ -484,13 +485,16 @@ function getFloatingTextBox(x, y, action_func = undefined, width = 200, content=
                 var internal = textWidth+extraAntiStutter
                 var external = internal+2*strokeWidth
 
-                d3select(".svg-container-corner-rect input").style("width", `${internal}px`)
-                d3select("#corneredRectId").attr("width", external+strokeWidth);
+                height=2*height
+                d3select(".svg-container-corner-rect input").style("width", `${internal}px`).attr("height", height);
+                d3select("#corneredRectId").attr("width", external+strokeWidth).attr("height", height);
+                
                 
                 const strokeDashArray = calculateStrokeDashArray(external,height);
                 d3select("#corneredRectId rect")
                 .attr("stroke-dasharray", strokeDashArray)
-                .attr("width", external);
+                .attr("width", external)
+                .attr("height", height);
         }
     });
 }
@@ -523,6 +527,8 @@ function deepEngineSpinner(store) {
         .duration(2000)
         .attr("width", `${width - strokeWidth - 2}px`)
 }
+
+
 
 export {
     stroke,

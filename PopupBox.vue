@@ -1,18 +1,13 @@
 <!-- TEMPLATE MUST HAVE A SINGLE CHILD EVEN COMMENT NOT ACCEPTED -->
 <template>
     <div id="popupbox-content">
-        <svg ref="svg_ZXXXelt"
-        id="popupbox-svg" 
-        style="position: fixed"
-        :style="{ left: `${dim_store.position.x}px`, top: `${dim_store.position.y}px` }">
+        <svg id="popupbox-svg" style="position: fixed"
+            :style="{ left: `${dim_store.position.x}px`, top: `${dim_store.position.y}px` }">
             <path ref="path_elt" stroke="black" fill="none" />
         </svg>
-        <div style="height: 100%;position: fixed;max-width: 200px;"
-            :style="{ left: `${dim_store.position.x}px`, top: `${dim_store.position.y}px`, 
-                 }">
-            <n-input ref="input_ref" @input="popup_input_event"
-            v-model:value="dim_store.popup_text" 
-            class="inputrc"
+        <div style="position: fixed;"
+            :style="{ 'max-width': `${max_box_width}px`, left: `${dim_store.position.x}px`, top: `${dim_store.position.y}px` }">
+            <n-input ref="input_ref" @input="popup_input_event" v-model:value="dim_store.popup_text" class="popupbox"
                 placeholder="" type="textarea" :autosize="{
                     minRows: 1,
                     maxRows: 5,
@@ -51,12 +46,17 @@ const input_ref = ref(null);
 
 const cornerLength = 10;
 const stroke_width = 3
-const input_width=ref()
-const input_height=ref()
+const input_width = ref()
+const input_height = ref()
+const max_box_width = ref(350)
+const min_box_width = ref(100)
 
 
 onMounted(() => {
     svg_elt.value = d3select('#popupbox-svg')
+    console.log('input_ref.value', input_ref.value)
+    input_ref.value.focus()
+
     update_corners()
     input_ref.value.wrapperElRef.style.height = 'auto'
 })
@@ -65,16 +65,14 @@ function update_corners() {
     input_width.value = input_ref.value.wrapperElRef.offsetWidth
     input_height.value = input_ref.value.wrapperElRef.offsetHeight
 
-    
-    console.log('input_ref.value.wrapperElRef', input_ref.value.wrapperElRef)
-    console.log('input_width.value', input_width.value)
-    console.log('input_height.value', input_height.value)
-    if (input_width.value < 100) {
-        input_width.value = 100
+    console.log('height.value', input_ref.value.wrapperElRef.offsetHeight)
+
+    if (input_width.value < min_box_width.value) {
+        input_width.value = min_box_width.value
     }
-    
-    if (input_width.value >250) {
-        input_width.value = 250
+
+    if (input_width.value > max_box_width.value) {
+        input_width.value = max_box_width.value
     }
 
     svg_elt.value
@@ -91,16 +89,16 @@ function popup_input_event(event) {
 }
 
 const drawCorner = (x, y, horizontal, vertical) => {
-  return `M ${x} ${y} L ${x + horizontal} ${y} L ${x} ${y} L ${x} ${y + vertical} `;
+    return `M ${x} ${y} L ${x + horizontal} ${y} L ${x} ${y} L ${x} ${y + vertical} `;
 };
 
 const drawAllCorners = (x, y, width, height, length) => {
-  let pathData = '';
-  pathData += drawCorner(x, y, length, length); // Top-left
-  pathData += drawCorner(x + width, y, -length, length); // Top-right
-  pathData += drawCorner(x, y + height, length, -length); // Bottom-left
-  pathData += drawCorner(x + width, y + height, -length, -length); // Bottom-right
-  return pathData;
+    let pathData = '';
+    pathData += drawCorner(x, y, length, length); // Top-left
+    pathData += drawCorner(x + width, y, -length, length); // Top-right
+    pathData += drawCorner(x, y + height, length, -length); // Bottom-left
+    pathData += drawCorner(x + width, y + height, -length, -length); // Bottom-right
+    return pathData;
 };
 
 
@@ -108,6 +106,21 @@ const drawAllCorners = (x, y, width, height, length) => {
 </script>
 
 <style>
+
+.popupbox {
+    background-color: transparent;
+    --n-border-hover: none !important;
+    --n-border-focus: none !important;
+    --n-border: none !important;
+    --n-color-focus: none !important;
+    box-shadow: 0px !important;
+    outline: none !important;
+    --n-box-shadow-focus: none !important;
+    --n-caret-color: black !important;
+    border-radius: 0;
+    align-items: center;
+}
+
 .card {
     min-width: 450px;
     max-width: 450px;
@@ -124,21 +137,6 @@ const drawAllCorners = (x, y, width, height, length) => {
     /* justify-content: center; */
     /* align-items: center; */
     font-family: Arial, sans-serif;
-}
-
-.popupbox {
-    top: 0;
-    margin: auto;
-    /* background-color: transparent; */
-    background-color: blue;
-    --n-border-hover: none !important;
-    --n-border-focus: none !important;
-    --n-border: none !important;
-    --n-color-focus: none !important;
-    box-shadow: 0px !important;
-    outline: none !important;
-    --n-box-shadow-focus: none !important;
-    --n-caret-color: black !important;
 }
 
 .custom-dots {

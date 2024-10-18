@@ -6,7 +6,7 @@
             <path ref="path_elt" stroke="black" fill="none" />
         </svg>
         <div style="position: fixed;"
-            :style="{ 'max-width': `${max_box_width}px`, left: `${dim_store.position.x}px`, top: `${dim_store.position.y}px` }">
+            :style="{ 'min-width': `${min_box_width}px`, 'max-width': `${max_box_width}px`, left: `${dim_store.position.x}px`, top: `${dim_store.position.y}px` }">
             <n-input ref="input_ref" @input="popup_input_event" v-model:value="dim_store.popup_text" class="popupbox"
                 placeholder="" type="textarea" :autosize="{
                     minRows: 1,

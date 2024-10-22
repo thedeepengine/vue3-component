@@ -1,6 +1,6 @@
 <!-- TEMPLATE MUST HAVE A SINGLE CHILD EVEN COMMENT NOT ACCEPTED -->
 <template>
-    <div id="graphql-container" style="height: 100%;padding-top:120px">
+    <div id="graphql-container" style="height: 100vh;padding-top:120px">
         <vue-monaco-editor v-model:value="dim_store.code" 
         theme="vs-light" 
         :options="MONACO_EDITOR_OPTIONS"
@@ -18,6 +18,7 @@ const MONACO_EDITOR_OPTIONS = {
     automaticLayout: true,
     formatOnType: true,
     formatOnPaste: true,
+    scrollBeyondLastLine: false
 }
 
 const code = ref('{"test": "aaaa", "test2": {"jjjj": "sssss", "ppp":"aaaa"}}')

@@ -37,7 +37,7 @@ export const dimStore = defineStore("dimStore", () => {
   const position = ref({ x: 400, y: 400 }); 
   const isDragging = ref(false);
   const lastPosition = ref({ x: 0, y: 0 });
-  const popup_text = ref('ooooo')
+  const shared_popup_text = ref()
 
 
   watch(() => user_input.value, (newValue, oldValue) => {
@@ -226,8 +226,8 @@ function things_space_options(data) {
     position,
     isDragging,
     lastPosition,
-    popup_text,
-    popUpBoxStyle
+    popUpBoxStyle,
+    shared_popup_text
 
   }
 

@@ -74,6 +74,16 @@ const streaming_mode = ref('opacity')
 const words = ref(['_']);
 const llm_model = ref(undefined)
 
+
+import { useEventBus } from '@/components_shared/event_bus';
+const { on, emit } = useEventBus();
+
+onMounted(() => {
+    on('need_history', (idx)=>{
+        let message = history.value[history.value.length-idx]?.message
+        emit('history', message)});
+});
+
 onMounted(() => {
     textarea_element.value = gg.value?.$el.querySelector('.n-input__textarea.n-scrollbar');
 
@@ -101,6 +111,9 @@ onMounted(() => {
         }
     });
 
+    watch(() => dim_store.shared_popup_text, ()=> {
+        add_message_to_history(dim_store.shared_popup_text, 'human')
+    })
 })
 
 function submit() {

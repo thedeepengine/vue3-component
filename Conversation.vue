@@ -1,5 +1,22 @@
 <template>
     <div class="parent">
+        <div style="backdrop-filter: blur(10px);background-color: transparent;border-bottom: 2px solid #d4af37;">
+            <div style="background-color: transparent;">
+                <editor-content class="editor" 
+                @animationend="handleAnimationEnd"
+                ref="editor_ref"
+                id="conversation_tiptap"
+                    style="padding:10px;"
+                    :editor="editor" 
+                 
+                  />
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- <div ref="parent" class="parent">
         <div class='child'>
             <n-grid class="conv-container" :cols="1">
                 <n-gi>
@@ -41,31 +58,31 @@
                         </div>
                     </div>
                 </n-gi>
-
                 <n-gi>
-                    <div id="lll" style="margin-top: auto;margin-bottom: 0vh;height:50px">
-                        <n-input v-model:value="box_input" @animationend="handleAnimationEnd" ref="gg" class="inputrc"
-                            round placeholder="" type="textarea" :autosize="{
-                                minRows: 1,
-                                maxRows: 5,
-                            }" @keydown.enter.prevent="submit" />
-                    </div>
+
                 </n-gi>
             </n-grid>
         </div>
-
     </div>
+     -->
 </template>
 
 <script setup>
 import { NInput, NGi, NGrid, NButton, NSpace, NButtonGroup, NIcon, NPopover } from 'naive-ui'
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref, watch, onBeforeUnmount } from 'vue';
 import { nextTick } from 'vue';
 import { dimStore } from '@/components_shared/dimStore.js'
+
+import { useEditor, Editor, EditorContent } from '@tiptap/vue-3'
+import StarterKit from '@tiptap/starter-kit'
+import { markdownToHtml, augmentedRawMarkdown } from '@/components_shared/utils.js'
+import { Underline as OriginalUnderline } from '@tiptap/extension-underline'
 
 const gg = ref(null)
 const history_ref = ref(null)
 const box_input = ref('')
+const box_input_html = ref('')
+const box_input_md = ref('')
 const history = ref([])
 const dim_store = dimStore()
 const textarea_element = ref(null)
@@ -73,19 +90,105 @@ const trick_empty_string = ref(1)
 const streaming_mode = ref('opacity')
 const words = ref(['_']);
 const llm_model = ref(undefined)
+const editor_ref = ref()
+
+const parent = ref('parent')
+
 
 
 import { useEventBus } from '@/components_shared/event_bus';
 const { on, emit } = useEventBus();
 
-onMounted(() => {
-    on('need_history', (idx)=>{
-        let message = history.value[history.value.length-idx]?.message
-        emit('history', message)});
+
+import { Extension } from '@tiptap/core'
+
+const EnterKeyHandler = Extension.create({
+  name: 'enterKeyHandler',
+
+  addKeyboardShortcuts() {
+    return {
+      'Enter': () => {
+        submit()
+        return true; // Return false to let the editor handle the Enter key normally
+      }
+    };
+  },
+});
+
+const ShiftEnterHandler = Extension.create({
+  name: 'shiftEnterHandler',
+
+  addKeyboardShortcuts() {
+    return {
+      'Shift-Enter': () => {
+        this.editor.commands.insertContent('\n'); // Inserts a newline at the cursor position
+        return true; // Prevents the default handling to only apply this effect
+      }
+    };
+  },
+});
+
+const Underline = OriginalUnderline.extend({
+  addAttributes() {
+    return {
+      style: {
+        default: "text-decoration: underline; text-decoration-color: lightgreen;",
+        parseHTML: element => element.style.cssText,
+        renderHTML: attributes => {
+          return { style: attributes.style }
+        },
+      }
+    };
+  }
+});
+
+const editor = useEditor({
+    extensions: [
+        StarterKit, 
+        EnterKeyHandler,
+        ShiftEnterHandler,
+        Underline.configure({
+      HTMLAttributes: {
+        class: 'light-green-underline'
+      },
+    }),
+    ],
+    content: box_input_html.value,
+    onUpdate: ({ editor }) => {
+        let html = editor.getHTML()
+        if (html !== box_input_html.value) {
+            console.log('ccc: ', html)
+            box_input_html.value = html
+        }
+    },
 });
 
 onMounted(() => {
-    textarea_element.value = gg.value?.$el.querySelector('.n-input__textarea.n-scrollbar');
+    watch(() => box_input_md, (newValue) => {
+        if (editor.value && editor.value.getHTML() !== newValue.value && newValue.value !== '') {
+            box_input_html.value = markdownToHtml(augmentedRawMarkdown(newValue.value))
+            editor.value.commands.setContent(box_input_html.value);
+        }
+    }, { immediate: true });
+
+});
+
+onBeforeUnmount(() => {
+    if (editor) {
+        editor.value.destroy();
+    }
+});
+
+onMounted(() => {
+    on('need_history', (idx) => {
+        let message = history.value[history.value.length - idx]?.message
+        emit('history', message)
+    });
+});
+
+onMounted(() => {
+    // textarea_element.value = gg.value?.$el.querySelector('.n-input__textarea.n-scrollbar');
+    // editor_ref.value = gg.value?.$el.querySelector('.n-input__textarea.n-scrollbar');
 
     watch(() => dim_store.stream_status, (newValue, oldValue) => {
         console.log('newValuenewValue', newValue)
@@ -111,13 +214,13 @@ onMounted(() => {
         }
     });
 
-    watch(() => dim_store.shared_popup_text, ()=> {
+    watch(() => dim_store.shared_popup_text, () => {
         add_message_to_history(dim_store.shared_popup_text, 'human')
     })
 })
 
 function submit() {
-    toggleAnimation(textarea_element.value, 'blur')
+    toggleAnimation(editor_ref.value.$el, 'blur')
 }
 
 function toggleAnimation(element, type) {
@@ -126,13 +229,30 @@ function toggleAnimation(element, type) {
 }
 
 const handleAnimationEnd = async (role) => {
-    textarea_element.value.classList.remove('blur', 'unblur')
-    add_message_to_history(box_input.value, 'human')
-    show_new_history_message(box_input.value)
-    dim_store.user_input = box_input.value
-    box_input.value = ''
+    editor_ref.value.$el.classList.remove('blur', 'unblur')
+    add_message_to_history('box_input.value', 'human')
+    show_new_history_message('box_input.value')
+    dim_store.user_input = getTextContent(box_input_html.value).trim()
+    editor.value.commands.setContent('');
 };
 
+function getTextContent(htmlString) {
+    const tempElement = document.createElement('div');
+    tempElement.innerHTML = htmlString;
+    return tempElement.innerText || tempElement.textContent;
+}
+
+
+const show_new_history_message = async (message) => {
+    await nextTick();
+    if (message === '') {
+        message = '_'
+    }
+    // const element2 = history_ref.value?.querySelector('.history-context > div:last-child > .n-space');
+    // let height = measureTextHeightWithinContainer(message);
+    // document.documentElement.style.setProperty('--item-height', '40px');
+    // toggleAnimation(element2, 'unblur')
+}
 
 const handleAnimationEndNewItem = (role) => {
     history.value[history.value.length - 1]['type'] = 'regular'
@@ -146,33 +266,37 @@ const add_message_to_history = async (message, role) => {
     history.value.push({ message: message, user: role, type: 'last' })
 }
 
-const show_new_history_message = async (message) => {
-    await nextTick();
-    if (message === '') {
-        message = '_'
-    }
-    const element2 = history_ref.value?.querySelector('.history-context > div:last-child > .n-space');
-    let height = measureTextHeightWithinContainer(message, '.history-context');
-    document.documentElement.style.setProperty('--item-height', '40px');
-    toggleAnimation(element2, 'unblur')
-}
 
-function measureTextHeightWithinContainer(text, containerSelector) {
-    const container = document.querySelector(containerSelector);
-    const tempElement = document.createElement('div');
-    tempElement.textContent = text;
-    Object.assign(tempElement.style, { visibility: 'hidden', position: 'absolute', top: '0', left: '0', width: '100%' });
-    container.appendChild(tempElement);
-    const height = tempElement.getBoundingClientRect().height;
-    container.removeChild(tempElement);
+function measureTextHeightWithinContainer(text) {
+    const container = document.querySelector('#conversation_tiptap');
+    // const tempElement = document.createElement('div');
+    // tempElement.textContent = text;
+    // Object.assign(tempElement.style, { visibility: 'hidden', position: 'absolute', top: '0', left: '0', width: '100%' });
+    // container.appendChild(tempElement);
+    // const height = tempElement.getBoundingClientRect().height;
+    // container.removeChild(tempElement);
+    let height = container.offsetHeight
     return height;
 }
 </script>
 
 <style>
+#conversation_tiptap {
+    width: 100%;
+}
+
+#conversation_tiptap .tiptap {
+    width: 100%;
+    /* backdrop-filter: blur(10px);
+background-color: transparent; */
+}
+
+#conversation_tiptap .tiptap:focus {
+    outline: none !important;
+}
+
+
 .inputrc {
-    /* position: absolute; */
-    /* bottom: 4px; */
     width: 75%;
     left: 0;
     right: 0;
@@ -266,55 +390,13 @@ function measureTextHeightWithinContainer(text, containerSelector) {
     opacity: 0;
 }
 
-
-/* .conv-container {
-    backdrop-filter: blur(10px);
-    z-index: 999999999999999999999;
-    width: 50% !important;
-    left: 25vw !important;
-    position: fixed;
-    top: 0;
-    overflow-y: scroll;
-    border-radius: 0;
-    background-color: transparent !important;
-    margin: 0px;
-    height: auto
-} */
-
-
-.sub-container {
-    position: relative;
-    padding: 0;
-    list-style-type: none;
-    margin: 0;
-    height: fit-content;
-    /* border-bottom: 2px solid #d4af37; */
-    /* backdrop-filter: blur(10px); */
-    overflow: hidden;
-}
-
-.speak-easy-wrapper {
-    z-index: 999999999999999999999;
-    width: 50% !important;
-    left: 25vw !important;
-    position: fixed;
-    top: 0;
-    height: 5vh;
-    border-radius: 0;
-    background-color: transparent !important;
-}
-
 .parent {
     z-index: 999999999999999999999;
-    backdrop-filter: blur(10px);
     width: 50%;
     left: 25vw;
     position: fixed;
     top: 0;
-    height: 50px;
     margin: 0 auto;
-    overflow: scroll;
-    border-bottom: 2px solid #d4af37;
 }
 
 .child {
@@ -323,5 +405,9 @@ function measureTextHeightWithinContainer(text, containerSelector) {
     width: 100%;
     bottom: 0;
     box-sizing: border-box;
+}
+
+.light-green-underline {
+  text-decoration-color: lightgreen; /* Custom color for the underline */
 }
 </style>

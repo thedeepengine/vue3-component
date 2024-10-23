@@ -41,7 +41,7 @@ export const dimStore = defineStore("dimStore", () => {
 
 
   watch(() => user_input.value, (newValue, oldValue) => {
-    fetch_data('NodeTest', newValue)
+    fetch_data('NodeTest2', newValue)
   })
 
   watch(() => [things_space_data.value, dimension.value],

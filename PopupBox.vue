@@ -7,9 +7,15 @@
         </svg>
         <div style="position: fixed;"
             :style="{ 'min-width': `${min_box_width}px`, 'max-width': `${max_box_width}px`, left: `${dim_store.position.x}px`, top: `${dim_store.position.y}px` }">
-            <n-input ref="input_ref" v-model:value="popup_text" class="popupbox" @input="popup_input_event"
-                @keydown.enter.prevent="popup_enter_event" @keydown.up="event => popup_arrow_event(event, 'up')"
-                @keydown.down="event => popup_arrow_event(event, 'down')" placeholder="" type="textarea" :autosize="{
+            <n-input ref="input_ref" 
+            v-model:value="popup_text" 
+            class="popupbox" 
+            @input="popup_input_event"
+                @keydown.enter.prevent="popup_enter_event" 
+                @keydown.up="event => popup_arrow_event(event, 'up')"
+                @keydown.down="event => popup_arrow_event(event, 'down')" 
+                placeholder="" 
+                type="textarea" :autosize="{
                     minRows: 1,
                     maxRows: 5,
                 }" />
@@ -146,24 +152,6 @@ const drawAllCorners = (x, y, width, height, length_w, length_h) => {
     --n-caret-color: black !important;
     border-radius: 0;
     align-items: center;
-}
-
-.card {
-    min-width: 450px;
-    max-width: 450px;
-    backdrop-filter: blur(10px);
-    background-color: transparent;
-    /* background-color: #ECEDF1; */
-    box-shadow:
-        -10px -10px 20px #FFFFFF,
-        /* Light shadow */
-        10px 10px 20px #A6ABB0;
-    /* Dark shadow */
-    border-radius: 20px;
-    display: flex;
-    /* justify-content: center; */
-    /* align-items: center; */
-    font-family: Arial, sans-serif;
 }
 
 .custom-dots {

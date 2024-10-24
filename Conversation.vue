@@ -75,7 +75,7 @@ import { dimStore } from '@/components_shared/dimStore.js'
 
 import { useEditor, Editor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
-import { markdownToHtml, augmentedRawMarkdown } from '@/components_shared/utils.js'
+import { markdownToHtml } from '@/components_shared/utils.js'
 import { Underline as OriginalUnderline } from '@tiptap/extension-underline'
 
 const gg = ref(null)
@@ -166,7 +166,7 @@ const editor = useEditor({
 onMounted(() => {
     watch(() => box_input_md, (newValue) => {
         if (editor.value && editor.value.getHTML() !== newValue.value && newValue.value !== '') {
-            box_input_html.value = markdownToHtml(augmentedRawMarkdown(newValue.value))
+            box_input_html.value = markdownToHtml(newValue.value)
             editor.value.commands.setContent(box_input_html.value);
         }
     }, { immediate: true });

@@ -5,11 +5,6 @@ marked.use(customHeadingId());
 marked.use(markedKatex({throwOnError: false,displayMode: true}));
 
 
-function augmentedRawMarkdown(rawMarkdown) {
-    if (rawMarkdown !== undefined) {
-        return rawMarkdown.replace(/(^#+.*\{#.*?\})/gm, (match) => match.replace('{#', '{#X'))
-    }
-} 
 
 
 function translate(data) {
@@ -35,5 +30,4 @@ function markdownToHtml(rawMarkdown) {
 
 export {
     markdownToHtml,
-    augmentedRawMarkdown
 }

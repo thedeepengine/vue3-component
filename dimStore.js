@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { ref, onMounted, watch, computed } from "vue";
 import { defineStore } from "pinia";
-
+import TurndownService from 'turndown';
 
 export const dimStore = defineStore("dimStore", () => {
   const dimension = ref('hierarchy')
@@ -38,7 +38,25 @@ export const dimStore = defineStore("dimStore", () => {
   const isDragging = ref(false);
   const lastPosition = ref({ x: 0, y: 0 });
   const shared_popup_text = ref()
+  
+  const turndownService = ref(new TurndownService());
+  
+  onMounted(() => {
 
+    turndownService.value.escape = function(text) {
+      return text.replace(/([\\`*{}[\]()#+.!-])/g, '\\$1'); // Keep only necessary escapes
+    };
+    
+    turndownService.value.addRule('heading', {
+      filter: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+      replacement: function (content, node) {
+        var hLevel = node.nodeName.charAt(1);
+        var hashes = new Array(parseInt(hLevel) + 1).join('#');
+        var id = node.id ? ` {#${node.id}}` : '';
+        return `\n\n${hashes} ${content}${id}\n\n`;
+      }
+    });
+  })  
 
   watch(() => user_input.value, (newValue, oldValue) => {
     fetch_data('NodeTest2', newValue)
@@ -70,8 +88,14 @@ const popUpBoxStyle = computed(() => ({
 }));
 
 
-// var model = monaco.editor.createModel(JSON.stringify(json, null, '\t'), "json", modelUri);
-
+function md_to_hierarchy(md) {
+  apiClient
+  .post("https://localhost:8002/v1/api/md_to_hierarchy/", { md: md })
+  .then(response => {
+    console.log('md_to_hierarchy', response.data)
+    w_data.value = response.data.hierarchy
+  })
+}
 
 function fetch_data(clt, request) {
 
@@ -227,8 +251,11 @@ function things_space_options(data) {
     isDragging,
     lastPosition,
     popUpBoxStyle,
-    shared_popup_text
+    shared_popup_text,
 
+
+    turndownService,
+    md_to_hierarchy
   }
 
 })

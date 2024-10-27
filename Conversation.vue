@@ -2,14 +2,8 @@
     <div class="parent">
         <div style="backdrop-filter: blur(10px);background-color: transparent;border-bottom: 2px solid #d4af37;">
             <div style="background-color: transparent;">
-                <editor-content class="editor" 
-                @animationend="handleAnimationEnd"
-                ref="editor_ref"
-                id="conversation_tiptap"
-                    style="padding:10px;"
-                    :editor="editor" 
-                 
-                  />
+                <editor-content class="editor" @animationend="handleAnimationEnd" ref="editor_ref"
+                    id="conversation_tiptap" style="padding:10px;" :editor="editor" />
             </div>
         </div>
     </div>
@@ -77,6 +71,9 @@ import { useEditor, Editor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import { markdownToHtml } from '@/components_shared/utils.js'
 import { Underline as OriginalUnderline } from '@tiptap/extension-underline'
+import Mention from '@tiptap/extension-mention'
+// import { get_mention_options } from '@/components_shared/suggestion.js'
+import suggestion from '@/components_shared/suggestion.js'
 
 const gg = ref(null)
 const history_ref = ref(null)
@@ -95,73 +92,150 @@ const editor_ref = ref()
 const parent = ref('parent')
 
 
-
 import { useEventBus } from '@/components_shared/event_bus';
 const { on, emit } = useEventBus();
-
-
 import { Extension } from '@tiptap/core'
 
-const EnterKeyHandler = Extension.create({
-  name: 'enterKeyHandler',
 
-  addKeyboardShortcuts() {
-    return {
-      'Enter': () => {
-        submit()
-        return true; // Return false to let the editor handle the Enter key normally
-      }
-    };
-  },
+function matching_clt(str, clt_ctx) {
+  const result = [];
+  for (const key in clt_ctx) {
+    if (clt_ctx[key].includes(str)) {
+      result.push(key);
+    }
+  }
+  return result.length > 0 ? result : undefined;
+}
+
+const EnterKeyHandler = Extension.create({
+    name: 'enterKeyHandler',
+
+    addKeyboardShortcuts() {
+        return {
+            'Enter': () => {
+                submit()
+                return true; // Return false to let the editor handle the Enter key normally
+            }
+        };
+    },
 });
 
 const ShiftEnterHandler = Extension.create({
-  name: 'shiftEnterHandler',
+    name: 'shiftEnterHandler',
 
-  addKeyboardShortcuts() {
-    return {
-      'Shift-Enter': () => {
-        this.editor.commands.insertContent('\n'); // Inserts a newline at the cursor position
-        return true; // Prevents the default handling to only apply this effect
-      }
-    };
-  },
+    addKeyboardShortcuts() {
+        return {
+            'Shift-Enter': () => {
+                this.editor.commands.insertContent('\n'); // Inserts a newline at the cursor position
+                return true; // Prevents the default handling to only apply this effect
+            }
+        };
+    },
 });
 
 const Underline = OriginalUnderline.extend({
-  addAttributes() {
-    return {
-      style: {
-        default: "text-decoration: underline; text-decoration-color: lightgreen;",
-        parseHTML: element => element.style.cssText,
-        renderHTML: attributes => {
-          return { style: attributes.style }
-        },
-      }
-    };
-  }
+    addAttributes() {
+        return {
+            style: {
+                default: "text-decoration: underline; text-decoration-color: lightgreen;",
+                parseHTML: element => element.style.cssText,
+                renderHTML: attributes => {
+                    return { style: attributes.style }
+                },
+            }
+        };
+    }
 });
+
+// const editor = useEditor({
+//     extensions: [
+//         StarterKit,
+//         EnterKeyHandler,
+//         ShiftEnterHandler,
+//         Underline.configure({
+//             HTMLAttributes: {
+//                 class: 'light-green-underline'
+//             },
+//         }),
+//     ],
+//     content: '<u>aaaaa</u>',
+//     editorProps: {
+//     attributes: {
+//       spellcheck: "false"
+//     }
+//   },
+//     // content: box_input_html.value,
+// //     editorProps: {
+// //     attributes: {
+// //       spellcheck: "false"
+// //     }
+// //   },
+//     // onUpdate: ({ editor }) => {
+//     //     let html = editor.getHTML()
+//     //     if (html !== box_input_html.value) {
+//     //         box_input_html.value = html
+//     //     }
+//     // },
+// });
+
+
 
 const editor = useEditor({
     extensions: [
-        StarterKit, 
-        EnterKeyHandler,
-        ShiftEnterHandler,
-        Underline.configure({
-      HTMLAttributes: {
-        class: 'light-green-underline'
-      },
-    }),
+        StarterKit,
+        
+
+        Mention.configure({
+          HTMLAttributes: {
+            class: 'mention',
+          },
+        // ...get_mention_options(dim_store.allowed_clt_fields)
+          suggestion,
+        }),
+
+
+        Underline.extend({
+            addAttributes() {
+                return {
+                    class: {
+                        default: 'green-underline',
+                        renderHTML: attributes => {
+                            return {
+                                class: attributes.class,
+                            }
+                        }
+                    }
+                }
+            }
+        })
     ],
-    content: box_input_html.value,
-    onUpdate: ({ editor }) => {
-        let html = editor.getHTML()
-        if (html !== box_input_html.value) {
-            console.log('ccc: ', html)
-            box_input_html.value = html
+    // content: `
+    //     <p>
+    //         <u class="green-underline">Green underlined text</u> 
+    //         <u class="red-underline">Red underlined text</u>
+    //     </p>
+    // `,
+    content: '',
+    editorProps: {
+        attributes: {
+            spellcheck: "false"
         }
     },
+    onUpdate: ({ editor }) => {
+        console.log('dddd', editor.getText())
+        let input = editor.getText()
+        let m = matching_clt(input, dim_store.allowed_clt_fields)
+        console.log('m----- ', m)
+
+        
+
+        // let html = editor.getHTML()
+        // if (html !== box_input_html.value) {
+        //     box_input_html.value = html
+        // }
+    },
 });
+
 
 onMounted(() => {
     watch(() => box_input_md, (newValue) => {
@@ -407,7 +481,24 @@ background-color: transparent; */
     box-sizing: border-box;
 }
 
-.light-green-underline {
-  text-decoration-color: lightgreen; /* Custom color for the underline */
+.green-underline {
+    text-decoration-color: #9fd698
+    /* Custom color for the underline */
 }
+
+
+.red-underline {
+    text-decoration-color: red
+    /* Custom color for the underline */
+}
+
+
+.mention {
+    background-color: var(--purple-light);
+    border-radius: 0.4rem;
+    box-decoration-break: clone;
+    color: var(--purple);
+    padding: 0.1rem 0.3rem;
+  }
+
 </style>

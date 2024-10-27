@@ -41,6 +41,9 @@ export const dimStore = defineStore("dimStore", () => {
   
   const turndownService = ref(new TurndownService());
   
+  const allowed_clt_fields = ref({})
+
+
   onMounted(() => {
 
     turndownService.value.escape = function(text) {
@@ -56,6 +59,19 @@ export const dimStore = defineStore("dimStore", () => {
         return `\n\n${hashes} ${content}${id}\n\n`;
       }
     });
+
+    apiClient
+    .get("https://localhost:8002/v1/api/get_allowed_fields/")
+    .then(response => {
+      const obj = response.data['ctx']['fields']
+      const result = {};
+      for (const key in obj) {
+        result[key] = obj[key]?.all;
+      }
+
+      allowed_clt_fields.value = result
+      console.log('allowed_clt_fields', allowed_clt_fields.value)
+    })
   })  
 
   watch(() => user_input.value, (newValue, oldValue) => {
@@ -255,7 +271,9 @@ function things_space_options(data) {
 
 
     turndownService,
-    md_to_hierarchy
+    md_to_hierarchy,
+
+    allowed_clt_fields
   }
 
 })

@@ -65,12 +65,16 @@ export const dimStore = defineStore("dimStore", () => {
     .then(response => {
       const obj = response.data['ctx']['fields']
       const result = {};
+      let all_concat = [];
       for (const key in obj) {
-        result[key] = obj[key]?.all;
+        if (Array.isArray(obj[key]?.all)) {
+          obj[key].all.forEach(item => {
+            all_concat.push({label:`${item}|${key}`, key: `${item}|${key}`, field: item, clt: key});
+          });
+        }
       }
 
-      allowed_clt_fields.value = result
-      console.log('allowed_clt_fields', allowed_clt_fields.value)
+      allowed_clt_fields.value = all_concat
     })
   })  
 

@@ -2,11 +2,29 @@
     <div class="parent">
         <div style="backdrop-filter: blur(10px);background-color: transparent;border-bottom: 2px solid #d4af37;">
             <div style="background-color: transparent;">
-                <editor-content class="editor" @animationend="handleAnimationEnd" ref="editor_ref"
-                    id="conversation_tiptap" style="padding:10px;" :editor="editor" />
+                <editor-content class="editor" @animationend="handleAnimationEnd"
+                    ref="editor_ref" id="conversation_tiptap" style="padding:10px;" :editor="editor" />
             </div>
         </div>
     </div>
+
+
+    <n-dropdown placement="bottom-start" trigger="manual" 
+    style="z-index: 999999999999999999;"
+    :x="menuPosition.left" :y="menuPosition.top" :options="menu_options" :show="show_menu"
+        :on-clickoutside="onClickoutside" @select="selectOption" />
+
+
+    <!-- <div ref="conv_menu" v-if="show_menu" class="custom-menu"
+        style="position:fixed;z-index: 999999999999;background-color: white;"
+        :style="{ top: menuPosition.top + 'px', left: menuPosition.left + 'px' }">
+            <div v-for="(option, index) in menu_options" 
+            :key="index" 
+            @click="selectOption(option)"
+            :class="{ 'suggestion-menu-active': option === selected_option}">
+                {{ option }}
+        </div>    
+    </div> -->
 
 
 
@@ -62,7 +80,7 @@
 </template>
 
 <script setup>
-import { NInput, NGi, NGrid, NButton, NSpace, NButtonGroup, NIcon, NPopover } from 'naive-ui'
+import { NDropdown } from 'naive-ui'
 import { onMounted, ref, watch, onBeforeUnmount } from 'vue';
 import { nextTick } from 'vue';
 import { dimStore } from '@/components_shared/dimStore.js'
@@ -72,11 +90,11 @@ import StarterKit from '@tiptap/starter-kit'
 import { markdownToHtml } from '@/components_shared/utils.js'
 import { Underline as OriginalUnderline } from '@tiptap/extension-underline'
 import Mention from '@tiptap/extension-mention'
-// import { get_mention_options } from '@/components_shared/suggestion.js'
-import suggestion from '@/components_shared/suggestion.js'
+import { get_mention_options } from '@/components_shared/suggestion.js'
 
 const gg = ref(null)
 const history_ref = ref(null)
+const conv_menu = ref(null)
 const box_input = ref('')
 const box_input_html = ref('')
 const box_input_md = ref('')
@@ -92,19 +110,22 @@ const editor_ref = ref()
 const parent = ref('parent')
 
 
+
+// Reactive state for menu 
+const menu_options = ref([])
+const show_menu = ref(false);
+const menuPosition = ref({ top: 0, left: 0 });
+const selected_option = ref(null);
+const last_index = ref(null);
+
+
 import { useEventBus } from '@/components_shared/event_bus';
 const { on, emit } = useEventBus();
 import { Extension } from '@tiptap/core'
 
 
-function matching_clt(str, clt_ctx) {
-  const result = [];
-  for (const key in clt_ctx) {
-    if (clt_ctx[key].includes(str)) {
-      result.push(key);
-    }
-  }
-  return result.length > 0 ? result : undefined;
+function onClickoutside() {
+    show_menu.value = false
 }
 
 const EnterKeyHandler = Extension.create({
@@ -147,95 +168,122 @@ const Underline = OriginalUnderline.extend({
     }
 });
 
-// const editor = useEditor({
-//     extensions: [
-//         StarterKit,
-//         EnterKeyHandler,
-//         ShiftEnterHandler,
-//         Underline.configure({
-//             HTMLAttributes: {
-//                 class: 'light-green-underline'
-//             },
-//         }),
-//     ],
-//     content: '<u>aaaaa</u>',
-//     editorProps: {
-//     attributes: {
-//       spellcheck: "false"
-//     }
-//   },
-//     // content: box_input_html.value,
-// //     editorProps: {
-// //     attributes: {
-// //       spellcheck: "false"
-// //     }
-// //   },
-//     // onUpdate: ({ editor }) => {
-//     //     let html = editor.getHTML()
-//     //     if (html !== box_input_html.value) {
-//     //         box_input_html.value = html
-//     //     }
-//     // },
-// });
-
-
-
 const editor = useEditor({
     extensions: [
         StarterKit,
-        
-
-        Mention.configure({
-          HTMLAttributes: {
-            class: 'mention',
-          },
-        // ...get_mention_options(dim_store.allowed_clt_fields)
-          suggestion,
+        EnterKeyHandler,
+        ShiftEnterHandler,
+        Underline.configure({
+            HTMLAttributes: {
+                class: 'light-green-underline'
+            },
         }),
-
-
-        Underline.extend({
-            addAttributes() {
-                return {
-                    class: {
-                        default: 'green-underline',
-                        renderHTML: attributes => {
-                            return {
-                                class: attributes.class,
-                            }
-                        }
-                    }
-                }
-            }
-        })
     ],
-    // content: `
-    //     <p>
-    //         <u class="green-underline">Green underlined text</u> 
-    //         <u class="red-underline">Red underlined text</u>
-    //     </p>
-    // `,
-    content: '',
+    content: '<u>aaaaa</u>',
     editorProps: {
-        attributes: {
-            spellcheck: "false"
-        }
-    },
+    attributes: {
+      spellcheck: "false"
+    }
+  },
+    content: box_input_html.value,
+    editorProps: {
+    attributes: {
+      spellcheck: "false"
+    }
+  },
     onUpdate: ({ editor }) => {
-        console.log('dddd', editor.getText())
-        let input = editor.getText()
-        let m = matching_clt(input, dim_store.allowed_clt_fields)
-        console.log('m----- ', m)
-
-        
-
-        // let html = editor.getHTML()
-        // if (html !== box_input_html.value) {
-        //     box_input_html.value = html
-        // }
+        let html = editor.getHTML()
+        if (html !== box_input_html.value) {
+            box_input_html.value = html
+        }
     },
 });
 
+
+
+// const editor = useEditor({
+//     extensions: [
+//         StarterKit,
+//         Underline.extend({
+//             addAttributes() {
+//                 return {
+//                     class: {
+//                         default: 'green-underline',
+//                         renderHTML: attributes => {
+//                             return {
+//                                 class: attributes.class,
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//         })
+//     ],
+//     content: '',
+//     editorProps: {
+//         attributes: {
+//             spellcheck: "false"
+//         }
+//     },
+//     onUpdate: ({ editor }) => {
+//         let input = editor.getText()
+//         // let m = matching_clt(input, dim_store.allowed_clt_fields)
+//         // console.log('m----- ', m)
+
+
+
+//         // let html = editor.getHTML()
+//         // if (html !== box_input_html.value) {
+//         //     box_input_html.value = html
+//         // }
+//     },
+//     onBlur({ event }) {
+//         console.log('blur')
+//         // show_menu.value = false
+//     },
+//     onTransaction: ({ editor, transaction }) => {
+//         const { state } = editor;
+//         const selection = state.selection;
+//         const from = selection.from;
+
+//         const all = state.doc.textBetween(0, from, ' ');
+//         let last_word = all.match(/\b\w+$/);
+
+//         if (last_word != null & transaction.docChanged) {
+//             if (last_word[0] !== '' & last_word[0] !== ' ') {
+//                 last_index.value = last_word['index']
+//                 last_word = last_word[0]
+
+//                 let m = dim_store.allowed_clt_fields.filter(item => item['field'].toLowerCase().startsWith(last_word.toLowerCase()))
+
+//                 if (m.length > 0) {
+//                     menu_options.value = m
+//                     selected_option.value = m[0]
+//                     show_menu.value = true;
+//                     const coords = editor.view.coordsAtPos(from);
+//                     menuPosition.value = { top: coords.top + 20, left: coords.left };
+//                 } else {
+//                     show_menu.value = false;
+//                 }
+//             }
+//         }
+//     }
+// });
+
+const handleClickOutside = (event) => {
+    if (conv_menu.value && !conv_menu.value.contains(event.target)) {
+        show_menu.value = false;
+    }
+};
+
+const selectOption = (key, option) => {
+    if (!editor) return;
+    editor.value.commands.deleteRange({ from: last_index.value + 1, to: editor.value.state.selection.from })
+    editor.value.commands.insertContent(option['field'])
+    editor.value.commands.focus();
+    selected_option.value = option['field']
+    show_menu.value = false;
+};
 
 onMounted(() => {
     watch(() => box_input_md, (newValue) => {
@@ -245,9 +293,11 @@ onMounted(() => {
         }
     }, { immediate: true });
 
+    document.addEventListener('click', handleClickOutside);
 });
 
 onBeforeUnmount(() => {
+    document.removeEventListener('click', handleClickOutside);
     if (editor) {
         editor.value.destroy();
     }
@@ -369,6 +419,9 @@ background-color: transparent; */
     outline: none !important;
 }
 
+.suggestion-menu-active {
+    background-color: grey;
+}
 
 .inputrc {
     width: 75%;
@@ -483,13 +536,13 @@ background-color: transparent; */
 
 .green-underline {
     text-decoration-color: #9fd698
-    /* Custom color for the underline */
+        /* Custom color for the underline */
 }
 
 
 .red-underline {
     text-decoration-color: red
-    /* Custom color for the underline */
+        /* Custom color for the underline */
 }
 
 
@@ -499,6 +552,5 @@ background-color: transparent; */
     box-decoration-break: clone;
     color: var(--purple);
     padding: 0.1rem 0.3rem;
-  }
-
+}
 </style>

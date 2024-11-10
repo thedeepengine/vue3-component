@@ -89,7 +89,7 @@ import { useEditor, Editor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import { markdownToHtml } from '@/components_shared/utils.js'
 import { Underline as OriginalUnderline } from '@tiptap/extension-underline'
-import Mention from '@tiptap/extension-mention'
+// import Mention from '@tiptap/extension-mention'
 import { get_mention_options } from '@/components_shared/suggestion.js'
 
 const gg = ref(null)
@@ -130,11 +130,12 @@ function onClickoutside() {
 
 const EnterKeyHandler = Extension.create({
     name: 'enterKeyHandler',
-
     addKeyboardShortcuts() {
         return {
             'Enter': () => {
-                submit()
+                if (show_menu.value === false) {
+                    submit()
+                }
                 return true; // Return false to let the editor handle the Enter key normally
             }
         };
@@ -197,6 +198,33 @@ const editor = useEditor({
             box_input_html.value = html
         }
     },
+    onTransaction: ({ editor, transaction }) => {
+        const { state } = editor;
+        const selection = state.selection;
+        const from = selection.from;
+
+        const all = state.doc.textBetween(0, from, ' ');
+        let last_word = all.match(/\b\w+$/);
+
+        if (last_word != null & transaction.docChanged) {
+            if (last_word[0] !== '' & last_word[0] !== ' ') {
+                last_index.value = last_word['index']
+                last_word = last_word[0]
+
+                let m = dim_store.allowed_clt_fields.filter(item => item['field'].toLowerCase().startsWith(last_word.toLowerCase()))
+
+                if (m.length > 0) {
+                    menu_options.value = m
+                    selected_option.value = m[0]
+                    show_menu.value = true;
+                    const coords = editor.view.coordsAtPos(from);
+                    menuPosition.value = { top: coords.top + 20, left: coords.left };
+                } else {
+                    show_menu.value = false;
+                }
+            }
+        }
+    }
 });
 
 

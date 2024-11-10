@@ -2,6 +2,8 @@ import axios from 'axios'
 import { ref, onMounted, watch, computed } from "vue";
 import { defineStore, acceptHMRUpdate } from "pinia";
 import TurndownService from 'turndown';
+import {test_click_utils} from '@/components_shared/utils'
+import { marked } from "marked";
 
 export const dimStore = defineStore("dimStore", () => {
   const dimension = ref('hierarchy')
@@ -43,8 +45,105 @@ export const dimStore = defineStore("dimStore", () => {
   
   const allowed_clt_fields = ref({})
 
-  function tt() {
-    console.log('----JJJ')
+  
+
+  const streamed_test = ref('')
+
+  function streamRandomText() {
+    const words = ['lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit'];
+    let text = '';
+    
+    const interval = setInterval(() => {
+      const randomWord = words[Math.floor(Math.random() * words.length)];
+      text += randomWord + ' ';
+      console.log(text);
+  
+      // Stop streaming after a certain length
+      if (text.length > 100) {
+        clearInterval(interval);
+        console.log('Streaming finished.');
+      }
+    }, 200);
+  }
+  
+  
+  function addWordToContainer(container, word) {
+    const currentText = container.textContent;
+  
+    container.classList.remove('fade-in');
+  
+    setTimeout(() => {
+      container.textContent = currentText ? currentText + ' ' : '';  
+      container.setAttribute('data-new-word', word);
+      container.classList.add('fade-in');
+      setTimeout(() => {
+        container.textContent += word + ' ';
+        container.removeAttribute('data-new-word');
+        container.classList.remove('fade-in');
+        container.offsetHeight;
+      }, 1100);
+    }, 200);
+  }
+  
+  function generateRandomWord() {
+    const alphabet = 'abcdefghijklmnopqrstuvwxyz';
+    let word = '';
+    for(let i = 0; i < 5; i++) {
+      // Choose a random character from the alphabet
+      word += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+    }
+    return word;
+  }
+
+  
+  function click_test() {
+
+      // Example usage
+  const textContainer = document.getElementById('text-container');
+  addWordToContainer(textContainer, generateRandomWord());
+  // addWordToContainer(textContainer, 'World');
+  
+
+    // streamRandomText()
+    
+//     // const marked = new marked()
+//     marked.setOptions({
+//       langPrefix: "hljs language-",
+//     });
+
+//     const lexer = new marked.Lexer();
+//     const originalLex = lexer.lex; 
+    
+//     lexer.lex = function (src) {
+//       const tokens = originalLex.call(this, src);    
+//       tokens.forEach(token => {
+//         console.log('Token:', token);
+//       });
+      
+//       return tokens;
+//     };
+  
+//     const markdown = `
+//   # Main Heading
+//   ## Subheading with **bold** text
+//   This is a paragraph with a [link](https://example.com).
+//   `;
+//     const tokens = lexer.lex(markdown);
+//     // console.log('tokeffffns ', tokens)
+//     // console.log('lexer func ', function(x) {return lexer.lex(x)})
+
+//     // console.log('AAAAhGdGGG----GGGGGhhhLLLLL')
+//     // console.log('lexer', marked.lexer('# fdsjfidsfdis'))
+
+//     marked(`| Syntax | Description |
+// |--------|-------------|
+// | Header | Title       |
+// | Paragraph | Text   |`)
+//     // test_click_utils()
+
+
+
+    
   }
 
   onMounted(() => {
@@ -281,7 +380,8 @@ function things_space_options(data) {
     md_to_hierarchy,
 
     allowed_clt_fields,
-    tt
+
+    click_test
   }
 
 })

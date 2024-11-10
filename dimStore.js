@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { ref, onMounted, watch, computed } from "vue";
-import { defineStore } from "pinia";
+import { defineStore, acceptHMRUpdate } from "pinia";
 import TurndownService from 'turndown';
 
 export const dimStore = defineStore("dimStore", () => {
@@ -43,6 +43,9 @@ export const dimStore = defineStore("dimStore", () => {
   
   const allowed_clt_fields = ref({})
 
+  function tt() {
+    console.log('----JJJ')
+  }
 
   onMounted(() => {
 
@@ -277,7 +280,12 @@ function things_space_options(data) {
     turndownService,
     md_to_hierarchy,
 
-    allowed_clt_fields
+    allowed_clt_fields,
+    tt
   }
 
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(dimStore, import.meta.hot))
+}

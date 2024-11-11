@@ -42,7 +42,8 @@ export const dimStore = defineStore("dimStore", () => {
   const shared_popup_text = ref()
   
   const turndownService = ref(new TurndownService());
-  
+  const isAnimatingNew = ref(false)
+
   const allowed_clt_fields = ref({})
 
   
@@ -50,6 +51,7 @@ export const dimStore = defineStore("dimStore", () => {
   const text_chunk = ref('')
   const stream_queue = ref([])
   let isProcessing = false; 
+  let isAnimating = false;
 
   function streamText() {
     const words = ['# this ', 'is ', 'a ', 'title ', 'here ', 'as ', 'it ', 'has ', 'to ', 'be ', 'ordered '];
@@ -65,94 +67,16 @@ export const dimStore = defineStore("dimStore", () => {
       if (i >= words.length) {
         clearInterval(interval);
       }
-    }, 500);
+    }, 300);
   }
-
-  // watch(() => text_chunk.value, (n,o)=> {
-  //   stream_queue.value.push(text_chunk.value)
-  //   const textContainer = document.getElementById('text-container');
-  //   addWordToContainer(textContainer)
-  // })
-
-
-let isAnimating = false;
-
-function addWordToContainer(container) {
-  if (!isAnimating) {
-    processQueue(container);
-  }
-}
-
-function processQueue(container) {
-  if (stream_queue.value.length === 0) {
-    isAnimating = false;
-    return;
-  }
-
-  const word = stream_queue.value.shift();
-  isAnimating = true;
-  const currentText = container.textContent;
-  container.textContent = currentText ? currentText : '' ;  
-  
-
-    // container.classList.remove(toggle ? 'fade-in-a' : 'fade-in-b');
-    container.setAttribute('data-new-word', word);
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        let a = toggle ? 'fade-in-a' : 'fade-in-b'
-        if (a === 'fade-in-a') {
-          is_animating_a = true
-        } 
-        if (a === 'fade-in-b') {
-          is_animating_b = true
-        }
-        container.classList.add(toggle ? 'fade-in-b' : 'fade-in-a');
-      });
-    })
-}
-
-
-
-
-const isAnimatingNew = ref(false)
 
 function handleAnimationEnd(event) {
-  // console.log('Animation ended:', event);
-  console.log('Animation ENDEDDDD:', event.animationName);
-
-  // if (event.animationName.startsWith('fadeIn')) {
-  //   console.log('fadeIn animation completed!');
-    
-  // } else if (event.animationName.startsWith('fadeInAlt')) {
-  //   console.log('fadeInAlt animation completed!');
-  // }
-
   const container = document.getElementById('text-container');
   const word = container.getAttribute('data-new-word');
-
   const currentText = container.textContent;
   container.textContent = currentText ? currentText + word : word ;  
-  
-  // container.textContent = word
+  container.setAttribute('data-new-word', '');
   isAnimatingNew.value=false
-
-  // if (stream_queue.value.length > 0) {
-  //   const word_n = stream_queue.value.shift();
-  //   console.log('word_n: ', word_n)
-  //   container.setAttribute('data-new-word', word_n);
-  
-    
-    
-  //   console.log('stream_queue.value.length', stream_queue.value.length)
-  //   if (container.classList.contains('fade-in')) {
-  //     container.classList.remove('fade-in');
-  //     container.classList.add('fade-in-alt');
-  //   } else {
-  //     container.classList.remove('fade-in-alt');
-  //     container.classList.add('fade-in');
-  //   }
-  // }
 }
 
 
@@ -184,41 +108,6 @@ function click_test() {
   streamText()
 }
 
-
-// function handleTransitionEnd(event) {
-//   console.log('END ANIM', event)
-//   const container = document.getElementById('text-container');
-//   void container.offsetWidth; // Trigger a reflow
-
-//   setTimeout(() => {
-//   container.classList.remove('fade-in');
-//   container.setAttribute('data-new-word', 'you');
-//   }, 1000)
-//   void container.offsetWidth; // Trigger a reflow
-
-//   setTimeout(() => {
-//     container.classList.add('fade-in');
-//   }, 3000)
-// }
-
-
-//   function click_test() {
-//     const container = document.getElementById('text-container');
-//     container.setAttribute('data-new-word', 'hey');
-//     container.classList.add('fade-in');
-
-//   }
-
-    // streamText()
-
-  // const textContainer = document.getElementById('text-container');
-  // addWordToContainer(textContainer, 'sss');
-
-
-  // addWordToContainer(textContainer, 'World');
-  
-
-    // streamRandomText()
     
 //     // const marked = new marked()
 //     marked.setOptions({

@@ -62,7 +62,9 @@ export const dimStore = defineStore("dimStore", () => {
     // const markdown = '# Main this **thats bold** \n\n simple paragraph';
     // const markdown = '# Main this _thats bold_ \n\n simple paragraph';
     // const markdown = '# Here is a title which is so nice _thats italic_';
-    const words = ['#', ' Here', ' is', ' a', ' title', ' which', ' is', ' so', ' nice', ' _thats', ' italic_', '\n\n', 'thast', 'a', 'paragraph'];
+    // const words = ['#', ' Here', ' is', ' a', ' title', ' which', ' is', ' so', ' nice', ' _thats', ' italic_', '\n\n', 'thast', 'a', 'paragraph'];
+
+    const words = ['#', ' Here', ' is', ' a', ' title', ' which', ' jjjj', '\n\n', 'thast', 'a', 'paragraph'];
 
     // const words = ['# this ', 'is ', 'a ', 'title ', 'here ', 'as ', 'it ', 'has ', 'to ', 'be ', 'ordered '];
     let text = '';
@@ -86,34 +88,41 @@ export const dimStore = defineStore("dimStore", () => {
     const word = container.getAttribute('data-new-word');
     const currentText = container.textContent;
     container.textContent = currentText ? currentText + word : word;
-    text_tracker.value.push(container.textContent)
+    // text_tracker.value.push(container.textContent)
     container.setAttribute('data-new-word', '');
     isAnimatingNew.value = false
-    stream_queue.value.shift()
+    let popped_up = stream_queue.value.shift()
+    console.log('popped_uppopped_uppopped_uppopped_uppopped_uppopped_up: ', popped_up)
   }
 
 
   watch(() => text_chunk.value, (n, o) => {
-    // console.log('text_chunk.value', text_chunk.value)
+    console.log('text_chunk.value', text_chunk.value)
     stream_queue.value.push(text_chunk.value)
     stream_accumulated.value += text_chunk.value + ' '
   })
 
 
   watch(() => stream_queue.value[0], (n, o) => {
-    if (stream_queue.value[0] !== undefined && stream_queue.value.length > 0) {
+    console.log('stream_queue.value[0]', stream_queue.value[0])
+    if (stream_queue.value[0] === '\n' || stream_queue.value[0] === '\n\n') {
+      let popped_up = stream_queue.value.shift()
+      console.log('popped_uppopped_uppopped_uppopped_uppopped_uppopped_up: ', popped_up)
+    } else if (stream_queue.value[0] !== undefined && stream_queue.value.length > 0) {
       stream_idx.value = 0
       console.log('STREAM QUEUE: =======================', stream_queue.value[0])
       console.log('PROCESSED STRING: =======================', stream_accumulated.value)
       
       const g = customLexer(stream_accumulated.value)
       let last_g = g[g.length - 1]
-      let r = last_g.text.split(' ')
-      last_g.text = r.slice(0, -1).join(' ');
+      // let r = last_g.text.split(' ')
+      // last_g.text = r.slice(0, -1).join(' ');
+      console.log('last_g.textlast_g.textlast_g.textlast_g.text: ', last_g.text)
       let last_token = getLastTokenWithParent(last_g)
+      console.log('gggggg: ', g)
       console.log('last_g: ', last_g)
       console.log('last_token: ', last_token)
-      let parsed = marked.parser(g)
+      let parsed = marked.parser([last_g])
   
       let container2
       let main_current
@@ -126,8 +135,14 @@ export const dimStore = defineStore("dimStore", () => {
 
       if (last_g.id !== lastChildId) {
         if (['heading', 'paragraph', 'strong', 'em'].some(prefix => last_token.last_id.startsWith(prefix))) {
+          if ('tokens' in last_g && last_g.tokens.length > 0) {
+            console.log('last_g.tok999999ens', last_g.tokens)
+            last_g.tokens[last_g.tokens.length-1].text = ''
+          }
+          let parsed = marked.parser([last_g])
           console.log('ADJACENT: ', parsed)
           container2.insertAdjacentHTML('beforeend', parsed)
+          // container2.innerText=''
           main_current = document.getElementById(last_g.id);
           main_current.classList.add('dynamic-div');
         }
@@ -169,6 +184,7 @@ export const dimStore = defineStore("dimStore", () => {
   
       // }
     }
+
   })
 
 
@@ -248,14 +264,18 @@ export const dimStore = defineStore("dimStore", () => {
           token.id = `${token.type}-${idx}`;
           stored_ids.value.push(token.id);
 
-          if (text_tracker.value[idx] !== undefined) {
-            token.text = text_tracker.value[idx]
-          } else {
+          // if (text_tracker.value[idx] !== undefined) {
+            // token.text = text_tracker.value[idx]
+          // } else {
             token.text=''
-          }
+          // }
           
           idx += 1;
         }
+
+        // if (token.type === 'text') {
+        //   token.text=''
+        // }
         token.to_stream = token?.text.trim().split(' ') || '';
         token.to_stream = token.to_stream.map((item, index) => index === 0 ? item : ` ${item}`);
 

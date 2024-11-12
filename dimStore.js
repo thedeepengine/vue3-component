@@ -77,6 +77,7 @@ export const dimStore = defineStore("dimStore", () => {
   }
 
   function handleAnimationEnd(event) {
+    console.log('ANIMATION END ========')
     const container = document.getElementById('text-container');
     const word = container.getAttribute('data-new-word');
     const currentText = container.textContent;
@@ -93,18 +94,6 @@ export const dimStore = defineStore("dimStore", () => {
   })
 
 
-  function getLastTokenWithParent(dict) {
-    let parentType = null;
-    let parent_id = null;
-  
-    while (dict && dict.tokens && dict.tokens.length > 0) {
-      parentType = dict.type ?? null; // Store the current type as parent type
-      parent_id = dict.id
-      dict = dict.tokens[dict.tokens.length - 1];
-    }
-  
-    return { lastToken: dict, parentType };
-  }
   watch(() => [stream_queue.value[0], isAnimatingNew.value], (n, o) => {
     stream_idx.value=0
     const g = customLexer(stream_accumulated.value)
@@ -112,80 +101,118 @@ export const dimStore = defineStore("dimStore", () => {
     let t = getLastTokenWithParent(last_g)
   
     let parsed = marked.parser(g)
-    console.log('parsed: ', parsed)
+    // console.log('parsed: ', parsed)
+    // console.log('t.lastToken.id: ', t.lastToken.id)
+    // console.log('t.lastToken.id: ', stored_ids.value[stored_ids.value.length-1])
 
-    console.log('t.lastToken.id: ', t.lastToken.id)
-    console.log('t.lastToken.id: ', stored_ids.value[stored_ids.value.length-1])
-
+    let container2
     if (t.lastToken.id !== stored_ids.value[stored_ids.value.length-1] && !t.lastToken.id.startsWith('text')) {
-      console.log('NEW TAG ========')
       stored_ids.value.push(t.lastToken.id)
       console.log('last parent:', t?.parent_id)
-      let container2
       if (t?.parent_id === undefined) {
         container2 = document.getElementById('text-container2');
       } else {
         container2 = document.getElementById(t.parent_id);
       }
+      console.log('PARENT TAG SET ========', container2)
+
       container2.innerHTML = parsed
-      const tag_elt = document.getElementById(t.lastToken.id);
-      current_stream_tag.value = tag_elt
-      // console.log('last_ct_id=++++++++++++++++++++++\n', last_ct_id)
+      // setTimeout(() => {
+        const tag_elt = document.getElementById(t.lastToken.id);
+        current_stream_tag.value = tag_elt
+        console.log('CURRENT TAG SET ========', current_stream_tag.value)
+      // }, 500)
     } 
 
-    current_stream_tag.value.textContent+='a'
 
     
 
-
-
     if (!isAnimatingNew.value && stream_queue.value.length > 0) {
-      isAnimatingNew.value = true
-      const container = document.getElementById('text-container');
-      const word_n = stream_queue.value.shift();
-      container.setAttribute('data-new-word', word_n);
+      stream_queue.value.shift()
+      console.log('LAST WORD ========== ', t.last_word)
+      if (t.last_word !== null && t.last_word !== undefined) {
+        // setTimeout(() => {
+          isAnimatingNew.value = true
+          console.log('LAST WORD TO ENTER ======= ', t.last_word)
+          current_stream_tag.value.setAttribute('data-new-word', t.last_word);
+    
 
-      if (container.classList.contains('fade-in')) {
-        container.classList.remove('fade-in');
-        container.classList.add('fade-in-alt');
-      } else {
-        container.classList.remove('fade-in-alt');
-        container.classList.add('fade-in');
+          
+          if (current_stream_tag.value.classList.contains('fade-in')) {
+            current_stream_tag.value.classList.remove('fade-in');
+            current_stream_tag.value.classList.add('fade-in-alt');
+          } else {
+            current_stream_tag.value.classList.remove('fade-in-alt');
+            current_stream_tag.value.classList.add('fade-in');
+          }
+        // }, 1000)
       }
+
     }
   })
 
-  const addIdToTag = (html, tagName, args) => {
-    console.log('args===', args)
-    // const customId = `${tagName}-${Math.random().toString(36).substr(2, 9)}`;
-    // stream_idx.value.push(customId)
-    let val = ''
 
-    //   val = ''
-    // } else {
-      // stored_tags.value.push(customId.split('-')[0])
-      val = html.replace(/<([a-zA-Z0-9]+)([^>]*)>/, `<$1 id="${args[0].id}"$2>`);
-    // }
+  function click_test() {
+    streamText()
+
+
+    // console.log(customLexer(`# ffff`))
+    // console.log(customLexer(`# ffff *aaaa*`))
+    // console.log(customLexer(`# ffff *aaaa* hhhhh`))
+    // console.log(customLexer(`# ffff *aaaa* hhhhh\n\n pajfds`))
+
+  }
+
+
+  function click_test2() {
+    // current_stream_tag.value.classList.add('fade-in');
+
+    // current_stream_tag.value.classList.add("dynamic-div");
+    // current_stream_tag.value.setAttribute('data-new-word', 'aaaa');
+
+  }
+
+
+  function getLastTokenWithParent(dict) {
+    let parentType = null;
+    let parent_id = null;
+    let last_word = null;
+  
+    while (dict && dict.tokens && dict.tokens.length > 0) {
+      parentType = dict.type ?? null; // Store the current type as parent type
+      parent_id = dict.id
+      last_word = dict.to_stream[dict.to_stream.length-1]
+      dict = dict.tokens[dict.tokens.length - 1];
+    }
+  
+    return { last_word, lastToken: dict, parentType };
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  const addIdToTag = (html, tagName, args) => {
+    let val = ''
+    val = html.replace(/<([a-zA-Z0-9]+)([^>]*)>/, `<$1 id="${args[0].id}"$2>`);
     stream_idx.value+=1
     return val
   };
-
-  // const customLexer = (markdown) => {
-  //   let idx = 0
-  //   const tokens = marked.lexer(markdown);
-  //   tokens.forEach(token => {
-  //     console.log(';;;', token)
-  //     // token.id = `${token.type}-${Math.random().toString(36).substr(2, 9)}`;
-  //     token.id = `${token.type}-${idx}`;
-  //     token.to_stream = token.text
-  //     token.text = ''
-  //     stored_ids.value.push(token.id)
-  //     idx+=1
-  //   });
-  //   return tokens;
-  // };
-
-
+  
   const customLexer = (markdown) => {
     let idx = 0;
     const tokens = marked.lexer(markdown);
@@ -213,7 +240,7 @@ export const dimStore = defineStore("dimStore", () => {
     return tokens;
   };
   
-  
+
   function init_md_parser() {
     const renderer = new marked.Renderer();
     const block_level = ['space', 'code', 'blockquote', 'html', 'heading', 'hr', 'list', 'listitem', 'checkbox', 'paragraph', 'tablecell']
@@ -235,64 +262,11 @@ export const dimStore = defineStore("dimStore", () => {
       renderer: renderer
     });
 
-    // const lexer = new marked.Lexer();
-    // const originalLex = lexer.lex;
-
-    // lexer.lex = function (src) {
-    //   const tokens = originalLex.call(this, src);
-    //   tokens.forEach(token => {
-    //     console.log('Token:', token);
-    //     token.id = `${token.type}-${Math.random().toString(36).substr(2, 9)}`;
-    //   });
-
-    //   return tokens;
-    // };
-
-    // marked.use({ lexer: lexer });
-
-    const markdown = 'This is normal text. !custom This should be a custom token.';
-    const tokens = customLexer(markdown);
-    console.log('tokens', tokens)
-    const html = marked.parser(tokens);
-
   }
-
-
-  function click_test() {
-    streamText()
-
-
-    // console.log(customLexer(`# ffff`))
-    // console.log(customLexer(`# ffff *aaaa*`))
-    // console.log(customLexer(`# ffff *aaaa* hhhhh`))
-    // console.log(customLexer(`# ffff *aaaa* hhhhh\n\n pajfds`))
-
-  }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
   onMounted(() => {
-    const container = document.getElementById('text-container');
+    const container = document.getElementById('text-container2');
     // container.addEventListener('transitionend', handleTransitionEnd);
     container.addEventListener('animationend', handleAnimationEnd);
 
@@ -535,7 +509,8 @@ export const dimStore = defineStore("dimStore", () => {
 
     allowed_clt_fields,
 
-    click_test
+    click_test,
+    click_test2
   }
 
 })

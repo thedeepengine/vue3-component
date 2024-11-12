@@ -64,7 +64,8 @@ export const dimStore = defineStore("dimStore", () => {
     // const markdown = '# Here is a title which is so nice _thats italic_';
     // const words = ['#', ' Here', ' is', ' a', ' title', ' which', ' is', ' so', ' nice', ' _thats', ' italic_', '\n\n', 'thast', 'a', 'paragraph'];
 
-    const words = ['#', ' Here', ' is', ' a', ' title', ' which', ' jjjj', '\n\n', 'thast', 'a', 'paragraph'];
+    // const words = ['#', ' Here', ' is', ' a', ' title', ' which', ' jjjj', '\n\n', 'thast', 'a', 'paragraph'];
+    const words = ['###', ' Here', ' is', ' a', '_title', ' which_', ' jjjj', '\n\n', 'thast', 'a', 'paragraph'];
 
     // const words = ['# this ', 'is ', 'a ', 'title ', 'here ', 'as ', 'it ', 'has ', 'to ', 'be ', 'ordered '];
     let text = '';
@@ -87,7 +88,8 @@ export const dimStore = defineStore("dimStore", () => {
     const container = current_stream_tag.value
     const word = container.getAttribute('data-new-word');
     const currentText = container.textContent;
-    container.textContent = currentText ? currentText + word : word;
+    container.insertAdjacentText('beforeend', word);
+    // container.textContent = currentText ? currentText + word : word;
     // text_tracker.value.push(container.textContent)
     container.setAttribute('data-new-word', '');
     isAnimatingNew.value = false
@@ -107,7 +109,7 @@ export const dimStore = defineStore("dimStore", () => {
     console.log('stream_queue.value[0]', stream_queue.value[0])
     if (stream_queue.value[0] === '\n' || stream_queue.value[0] === '\n\n') {
       let popped_up = stream_queue.value.shift()
-      console.log('popped_uppopped_uppopped_uppopped_uppopped_uppopped_up: ', popped_up)
+      console.log('popped_uppopped_uppopped_uppopped_uppopped_uppopped_up: FROM NEW LINE', popped_up)
     } else if (stream_queue.value[0] !== undefined && stream_queue.value.length > 0) {
       stream_idx.value = 0
       console.log('STREAM QUEUE: =======================', stream_queue.value[0])
@@ -122,7 +124,7 @@ export const dimStore = defineStore("dimStore", () => {
       console.log('gggggg: ', g)
       console.log('last_g: ', last_g)
       console.log('last_token: ', last_token)
-      let parsed = marked.parser([last_g])
+      let parsed = marked.parser([last_g]) // to be removed
   
       let container2
       let main_current
@@ -136,7 +138,6 @@ export const dimStore = defineStore("dimStore", () => {
       if (last_g.id !== lastChildId) {
         if (['heading', 'paragraph', 'strong', 'em'].some(prefix => last_token.last_id.startsWith(prefix))) {
           if ('tokens' in last_g && last_g.tokens.length > 0) {
-            console.log('last_g.tok999999ens', last_g.tokens)
             last_g.tokens[last_g.tokens.length-1].text = ''
           }
           let parsed = marked.parser([last_g])
@@ -157,10 +158,14 @@ export const dimStore = defineStore("dimStore", () => {
         tag_elt.classList.add('dynamic-div');
         current_stream_tag.value = tag_elt
         console.log('CURRENT TAG SET ========', current_stream_tag.value)
-      } else {                
+      } else {
+        console.log('NESTED ITEM NEED FULL CURRENT UPDATE')
         let to_remove = document.getElementById(last_g.id);
         container2.removeChild(to_remove);
+        console.log('parsed NESTED: ', parsed)
         container2.insertAdjacentHTML('beforeend', parsed)
+        let popped_up = stream_queue.value.shift()
+        console.log('popped_uppopped_uppopped_uppopped_uppopped_uppopped_up: FROM NESTED ', popped_up)
         // container2.innerHTML=parsed
       }
   

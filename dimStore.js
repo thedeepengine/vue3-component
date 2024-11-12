@@ -57,7 +57,7 @@ export const dimStore = defineStore("dimStore", () => {
   function streamText() {
     // const markdown = '# Main Heading\n\nthis is a paragraph\n## Subheading with **bold** text\n\nThis is a paragraph with a [link](https://example.com).';
     // const markdown = '# Main Heading\n\nthis is a paragraph\n';
-    const markdown = '# Main this is a tiltle with some custom text';
+    const markdown = '# Main this is a tiltle with some custom text\n\nsimple paragraph';
 
     const words = markdown.trim().split(' ');
     // const words = ['# this ', 'is ', 'a ', 'title ', 'here ', 'as ', 'it ', 'has ', 'to ', 'be ', 'ordered '];
@@ -78,7 +78,7 @@ export const dimStore = defineStore("dimStore", () => {
 
   function handleAnimationEnd(event) {
     console.log('ANIMATION END ========')
-    const container = document.getElementById('text-container');
+    const container = current_stream_tag.value
     const word = container.getAttribute('data-new-word');
     const currentText = container.textContent;
     container.textContent = currentText ? currentText + word : word;
@@ -90,23 +90,23 @@ export const dimStore = defineStore("dimStore", () => {
   watch(() => text_chunk.value, (n, o) => {
     // console.log('text_chunk.value', text_chunk.value)
     stream_queue.value.push(text_chunk.value)
-    stream_accumulated.value += text_chunk.value+' '
+    stream_accumulated.value += text_chunk.value + ' '
   })
 
 
   watch(() => [stream_queue.value[0], isAnimatingNew.value], (n, o) => {
-    stream_idx.value=0
+    stream_idx.value = 0
     const g = customLexer(stream_accumulated.value)
-    let last_g = g[g.length-1]
+    let last_g = g[g.length - 1]
     let t = getLastTokenWithParent(last_g)
-  
+
     let parsed = marked.parser(g)
     // console.log('parsed: ', parsed)
     // console.log('t.lastToken.id: ', t.lastToken.id)
     // console.log('t.lastToken.id: ', stored_ids.value[stored_ids.value.length-1])
 
     let container2
-    if (t.lastToken.id !== stored_ids.value[stored_ids.value.length-1] && !t.lastToken.id.startsWith('text')) {
+    if (t.lastToken.id !== stored_ids.value[stored_ids.value.length - 1] && !t.lastToken.id.startsWith('text')) {
       stored_ids.value.push(t.lastToken.id)
       console.log('last parent:', t?.parent_id)
       if (t?.parent_id === undefined) {
@@ -117,34 +117,33 @@ export const dimStore = defineStore("dimStore", () => {
       console.log('PARENT TAG SET ========', container2)
 
       container2.innerHTML = parsed
-      // setTimeout(() => {
-        const tag_elt = document.getElementById(t.lastToken.id);
-        current_stream_tag.value = tag_elt
-        console.log('CURRENT TAG SET ========', current_stream_tag.value)
-      // }, 500)
-    } 
+      const tag_elt = document.getElementById(t.lastToken.id);
+      tag_elt.classList.add('dynamic-div');
+      current_stream_tag.value = tag_elt
+      console.log('CURRENT TAG SET ========', current_stream_tag.value)
+    }
 
 
-    
+
 
     if (!isAnimatingNew.value && stream_queue.value.length > 0) {
       stream_queue.value.shift()
       console.log('LAST WORD ========== ', t.last_word)
       if (t.last_word !== null && t.last_word !== undefined) {
         // setTimeout(() => {
-          isAnimatingNew.value = true
-          console.log('LAST WORD TO ENTER ======= ', t.last_word)
-          current_stream_tag.value.setAttribute('data-new-word', t.last_word);
-    
+        isAnimatingNew.value = true
+        console.log('LAST WORD TO ENTER ======= ', t.last_word)
+        current_stream_tag.value.setAttribute('data-new-word', t.last_word);
 
-          
-          if (current_stream_tag.value.classList.contains('fade-in')) {
-            current_stream_tag.value.classList.remove('fade-in');
-            current_stream_tag.value.classList.add('fade-in-alt');
-          } else {
-            current_stream_tag.value.classList.remove('fade-in-alt');
-            current_stream_tag.value.classList.add('fade-in');
-          }
+
+
+        if (current_stream_tag.value.classList.contains('fade-in')) {
+          current_stream_tag.value.classList.remove('fade-in');
+          current_stream_tag.value.classList.add('fade-in-alt');
+        } else {
+          current_stream_tag.value.classList.remove('fade-in-alt');
+          current_stream_tag.value.classList.add('fade-in');
+        }
         // }, 1000)
       }
 
@@ -177,14 +176,14 @@ export const dimStore = defineStore("dimStore", () => {
     let parentType = null;
     let parent_id = null;
     let last_word = null;
-  
+
     while (dict && dict.tokens && dict.tokens.length > 0) {
       parentType = dict.type ?? null; // Store the current type as parent type
       parent_id = dict.id
-      last_word = dict.to_stream[dict.to_stream.length-1]
+      last_word = dict.to_stream[dict.to_stream.length - 1]
       dict = dict.tokens[dict.tokens.length - 1];
     }
-  
+
     return { last_word, lastToken: dict, parentType };
   }
 
@@ -209,15 +208,15 @@ export const dimStore = defineStore("dimStore", () => {
   const addIdToTag = (html, tagName, args) => {
     let val = ''
     val = html.replace(/<([a-zA-Z0-9]+)([^>]*)>/, `<$1 id="${args[0].id}"$2>`);
-    stream_idx.value+=1
+    stream_idx.value += 1
     return val
   };
-  
+
   const customLexer = (markdown) => {
     let idx = 0;
     const tokens = marked.lexer(markdown);
     const stored_ids = { value: [] };
-  
+
     const processTokens = (tokens) => {
       tokens.forEach((token) => {
         // Assign unique ID and to_stream field, then clear text
@@ -228,18 +227,18 @@ export const dimStore = defineStore("dimStore", () => {
         token.text = '';
         stored_ids.value.push(token.id);
         idx += 1;
-  
+
         // Recursively process nested tokens if they exist
         if (token.tokens && Array.isArray(token.tokens)) {
           processTokens(token.tokens);
         }
       });
     };
-  
+
     processTokens(tokens);
     return tokens;
   };
-  
+
 
   function init_md_parser() {
     const renderer = new marked.Renderer();
@@ -267,7 +266,6 @@ export const dimStore = defineStore("dimStore", () => {
 
   onMounted(() => {
     const container = document.getElementById('text-container2');
-    // container.addEventListener('transitionend', handleTransitionEnd);
     container.addEventListener('animationend', handleAnimationEnd);
 
     init_md_parser()

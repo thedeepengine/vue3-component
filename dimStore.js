@@ -57,7 +57,8 @@ export const dimStore = defineStore("dimStore", () => {
   function streamText() {
     // const markdown = '# Main Heading\n\nthis is a paragraph\n## Subheading with **bold** text\n\nThis is a paragraph with a [link](https://example.com).';
     // const markdown = '# Main Heading\n\nthis is a paragraph\n';
-    const markdown = '# Main this is a tiltle with some custom text\n\nsimple paragraph';
+    // const markdown = '# Main this is a tiltle with some custom text\n\nsimple paragraph';
+    const markdown = '# Main this\n\n simple paragraph';
 
     const words = markdown.trim().split(' ');
     // const words = ['# this ', 'is ', 'a ', 'title ', 'here ', 'as ', 'it ', 'has ', 'to ', 'be ', 'ordered '];
@@ -84,6 +85,7 @@ export const dimStore = defineStore("dimStore", () => {
     container.textContent = currentText ? currentText + word : word;
     container.setAttribute('data-new-word', '');
     isAnimatingNew.value = false
+    stream_queue.value.shift()
   }
 
 
@@ -94,59 +96,71 @@ export const dimStore = defineStore("dimStore", () => {
   })
 
 
-  watch(() => [stream_queue.value[0], isAnimatingNew.value], (n, o) => {
-    stream_idx.value = 0
-    const g = customLexer(stream_accumulated.value)
-    let last_g = g[g.length - 1]
-    let t = getLastTokenWithParent(last_g)
-
-    let parsed = marked.parser(g)
-    // console.log('parsed: ', parsed)
-    // console.log('t.lastToken.id: ', t.lastToken.id)
-    // console.log('t.lastToken.id: ', stored_ids.value[stored_ids.value.length-1])
-
-    let container2
-    if (t.lastToken.id !== stored_ids.value[stored_ids.value.length - 1] && !t.lastToken.id.startsWith('text')) {
-      stored_ids.value.push(t.lastToken.id)
-      console.log('last parent:', t?.parent_id)
-      if (t?.parent_id === undefined) {
-        container2 = document.getElementById('text-container2');
-      } else {
-        container2 = document.getElementById(t.parent_id);
-      }
-      console.log('PARENT TAG SET ========', container2)
-
-      container2.innerHTML = parsed
-      const tag_elt = document.getElementById(t.lastToken.id);
-      tag_elt.classList.add('dynamic-div');
-      current_stream_tag.value = tag_elt
-      console.log('CURRENT TAG SET ========', current_stream_tag.value)
-    }
-
-
-
-
-    if (!isAnimatingNew.value && stream_queue.value.length > 0) {
-      stream_queue.value.shift()
-      console.log('LAST WORD ========== ', t.last_word)
-      if (t.last_word !== null && t.last_word !== undefined) {
-        // setTimeout(() => {
-        isAnimatingNew.value = true
-        console.log('LAST WORD TO ENTER ======= ', t.last_word)
-        current_stream_tag.value.setAttribute('data-new-word', t.last_word);
-
-
-
-        if (current_stream_tag.value.classList.contains('fade-in')) {
-          current_stream_tag.value.classList.remove('fade-in');
-          current_stream_tag.value.classList.add('fade-in-alt');
-        } else {
-          current_stream_tag.value.classList.remove('fade-in-alt');
-          current_stream_tag.value.classList.add('fade-in');
+  watch(() => stream_queue.value[0], (n, o) => {
+    if (stream_queue.value[0] !== undefined && stream_queue.value.length > 0) {
+      stream_idx.value = 0
+      console.log('STREAM QUEUE: =======================', stream_queue.value[0])
+      console.log('PROCESSED STRING: =======================', stream_accumulated.value)
+      const g = customLexer(stream_accumulated.value)
+      let last_g = g[g.length - 1]
+      let last_token = getLastTokenWithParent(last_g)
+  
+      let parsed = marked.parser(g)
+      console.log('parsed: ', parsed)
+      console.log('FULL LEXER ANSWER =========== +++++++++++ ', g)
+      console.log('LAST LEXER ANSWER =========== ', last_token)
+      // console.log('t.lastToken.id: ', stored_ids.value[stored_ids.value.length-1])
+  
+      let container2
+    
+      if (last_token.last_id !== stored_ids.value[stored_ids.value.length - 1]) {
+        if (['heading', 'paragraph', 'strong', 'em'].some(prefix => last_token.lastToken.id.startsWith(prefix))) {
+          
+          
+  
+          stored_ids.value.push(last_token.last_id)
+          console.log('last parent:', last_token?.parent_id)
+          console.log('PREVIOUS LAST ID ======== ', last_token.last_id)
+          if (last_token?.parent_id === undefined) {
+            container2 = document.getElementById('text-container2');
+          } else {
+            container2 = document.getElementById(last_token.parent_id);
+          }
+          console.log('PARENT TAG SET ========', container2)
+    
+          // container2.innerHTML = parsed
+          container2.insertAdjacentHTML('beforeend', parsed)
+          const tag_elt = document.getElementById(last_token.last_id);
+          tag_elt.classList.add('dynamic-div');
+          current_stream_tag.value = tag_elt
+          console.log('CURRENT TAG SET ========', current_stream_tag.value)
         }
-        // }, 1000)
       }
-
+  
+  
+  
+  
+      // if (!isAnimatingNew.value && stream_queue.value.length > 0) {
+        console.log('LAST WORD ========== ', last_token.last_word)
+        if (last_token.last_word !== null && last_token.last_word !== undefined) {
+          // setTimeout(() => {
+          isAnimatingNew.value = true
+          console.log('LAST WORD TO ENTER ======= ', last_token.last_word)
+          current_stream_tag.value.setAttribute('data-new-word', last_token.last_word);
+  
+  
+  
+          if (current_stream_tag.value.classList.contains('fade-in')) {
+            current_stream_tag.value.classList.remove('fade-in');
+            current_stream_tag.value.classList.add('fade-in-alt');
+          } else {
+            current_stream_tag.value.classList.remove('fade-in-alt');
+            current_stream_tag.value.classList.add('fade-in');
+          }
+          // }, 1000)
+        }
+  
+      // }
     }
   })
 
@@ -172,25 +186,67 @@ export const dimStore = defineStore("dimStore", () => {
   }
 
 
+  // function getLastTokenWithParent(dict) {
+  //   let parentType = null;
+  //   let parent_id = null;
+  //   let last_word = null;
+  //   let last_id = null;
+
+  //   while (dict && dict.tokens && dict.tokens.length > 0) {
+  //     parentType = dict.type ?? null; // Store the current type as parent type
+  //     parent_id = dict.id
+  //     last_word = dict.to_stream[dict.to_stream.length - 1]
+  //     dict = dict.tokens[dict.tokens.length - 1]
+  //   }
+
+  //   if (dict) {
+  //     last_id = dict.id;
+  //   }
+  
+  //   return { last_id, last_word, lastToken: dict, parentType };
+  // }
+
+
+
+
   function getLastTokenWithParent(dict) {
     let parentType = null;
     let parent_id = null;
     let last_word = null;
-
-    while (dict && dict.tokens && dict.tokens.length > 0) {
-      parentType = dict.type ?? null; // Store the current type as parent type
-      parent_id = dict.id
-      last_word = dict.to_stream[dict.to_stream.length - 1]
+    let last_id = null;
+    let lastTokenWithId = null;
+  
+    //&& dict.tokens.length > 0
+    while (dict && dict.tokens) {
+      parentType = dict.type ?? null;
+      parent_id = dict.id;
+      // last_word = dict.to_stream[dict.to_stream.length - 1];
+  
+      if (dict.id) {
+        console.log('dict.id1111111111: ', dict.id)
+        lastTokenWithId = dict; 
+        last_id = dict.id;
+        console.log('dict', dict)
+        if (dict.tokens.length > 0) {
+          let token_array = dict.tokens[dict.tokens.length-1]
+          console.log('token_array', token_array)
+          last_word = token_array.to_stream[token_array.to_stream.length-1]
+        } else {
+          last_word = dict.to_stream[dict.to_stream.length - 1];
+        }
+      }
+  
       dict = dict.tokens[dict.tokens.length - 1];
     }
-
-    return { last_word, lastToken: dict, parentType };
+  
+    // if (dict && dict.id) {
+    //   last_id = dict.id;
+    //   lastTokenWithId = dict;
+    // }
+  
+    return { last_id, last_word, lastToken: lastTokenWithId, parentType };
   }
-
-
-
-
-
+  
 
 
 
@@ -221,9 +277,10 @@ export const dimStore = defineStore("dimStore", () => {
       tokens.forEach((token) => {
         // Assign unique ID and to_stream field, then clear text
 
-        // if (['heading', 'paragraph', 'strong', 'em'].includes(token.type))
-        token.id = `${token.type}-${idx}`;
-        token.to_stream = token?.text.split(' ') || '';
+        if (['heading', 'paragraph', 'strong', 'em'].includes(token.type)) {
+          token.id = `${token.type}-${idx}`;
+        }
+        token.to_stream = token?.text.trim().split(' ') || '';
         token.text = '';
         stored_ids.value.push(token.id);
         idx += 1;

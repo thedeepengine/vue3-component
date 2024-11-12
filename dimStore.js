@@ -53,20 +53,23 @@ export const dimStore = defineStore("dimStore", () => {
   const stored_ids = ref([])
   const stored_tags = ref([])
   const current_stream_tag = ref([])
+  const text_tracker = ref([])
 
   function streamText() {
     // const markdown = '# Main Heading\n\nthis is a paragraph\n## Subheading with **bold** text\n\nThis is a paragraph with a [link](https://example.com).';
     // const markdown = '# Main Heading\n\nthis is a paragraph\n';
     // const markdown = '# Main this is a tiltle with some custom text\n\nsimple paragraph';
-    const markdown = '# Main this\n\n simple paragraph';
+    // const markdown = '# Main this **thats bold** \n\n simple paragraph';
+    // const markdown = '# Main this _thats bold_ \n\n simple paragraph';
+    // const markdown = '# Here is a title which is so nice _thats italic_';
+    const words = ['#', ' Here', ' is', ' a', ' title', ' which', ' is', ' so', ' nice', ' _thats', ' italic_', '\n\n', 'thast', 'a', 'paragraph'];
 
-    const words = markdown.trim().split(' ');
     // const words = ['# this ', 'is ', 'a ', 'title ', 'here ', 'as ', 'it ', 'has ', 'to ', 'be ', 'ordered '];
     let text = '';
     let i = 0
 
     const interval = setInterval(() => {
-      text += words[i] + ' ';
+      text += words[i]
       text_chunk.value = words[i]
 
       i += 1;
@@ -83,6 +86,7 @@ export const dimStore = defineStore("dimStore", () => {
     const word = container.getAttribute('data-new-word');
     const currentText = container.textContent;
     container.textContent = currentText ? currentText + word : word;
+    text_tracker.value.push(container.textContent)
     container.setAttribute('data-new-word', '');
     isAnimatingNew.value = false
     stream_queue.value.shift()
@@ -101,49 +105,53 @@ export const dimStore = defineStore("dimStore", () => {
       stream_idx.value = 0
       console.log('STREAM QUEUE: =======================', stream_queue.value[0])
       console.log('PROCESSED STRING: =======================', stream_accumulated.value)
+      
       const g = customLexer(stream_accumulated.value)
       let last_g = g[g.length - 1]
+      let r = last_g.text.split(' ')
+      last_g.text = r.slice(0, -1).join(' ');
       let last_token = getLastTokenWithParent(last_g)
-  
+      console.log('last_g: ', last_g)
+      console.log('last_token: ', last_token)
       let parsed = marked.parser(g)
-      console.log('parsed: ', parsed)
-      console.log('FULL LEXER ANSWER =========== +++++++++++ ', g)
-      console.log('LAST LEXER ANSWER =========== ', last_token)
-      // console.log('t.lastToken.id: ', stored_ids.value[stored_ids.value.length-1])
   
       let container2
-    
-      if (last_token.last_id !== stored_ids.value[stored_ids.value.length - 1]) {
-        if (['heading', 'paragraph', 'strong', 'em'].some(prefix => last_token.lastToken.id.startsWith(prefix))) {
-          
-          
-  
-          stored_ids.value.push(last_token.last_id)
-          console.log('last parent:', last_token?.parent_id)
-          console.log('PREVIOUS LAST ID ======== ', last_token.last_id)
-          if (last_token?.parent_id === undefined) {
-            container2 = document.getElementById('text-container2');
-          } else {
-            container2 = document.getElementById(last_token.parent_id);
-          }
-          console.log('PARENT TAG SET ========', container2)
-    
-          // container2.innerHTML = parsed
+      let main_current
+      container2 = document.getElementById('text-container2');
+      const lastChildId = container2.lastElementChild?.id || null;
+
+      console.log('last_g.last_id: ', last_g.id)
+      console.log('lastChildId: ', lastChildId)
+
+
+      if (last_g.id !== lastChildId) {
+        if (['heading', 'paragraph', 'strong', 'em'].some(prefix => last_token.last_id.startsWith(prefix))) {
+          console.log('ADJACENT: ', parsed)
           container2.insertAdjacentHTML('beforeend', parsed)
-          const tag_elt = document.getElementById(last_token.last_id);
-          tag_elt.classList.add('dynamic-div');
-          current_stream_tag.value = tag_elt
-          console.log('CURRENT TAG SET ========', current_stream_tag.value)
+          main_current = document.getElementById(last_g.id);
+          main_current.classList.add('dynamic-div');
         }
+      } 
+      
+      console.log('last_token.last_id: ', last_token.last_id)
+      console.log('last_g.id: ', last_g.id)
+
+
+      if (last_token.last_id === last_g.id) {
+        const tag_elt = document.getElementById(last_token.last_id);
+        tag_elt.classList.add('dynamic-div');
+        current_stream_tag.value = tag_elt
+        console.log('CURRENT TAG SET ========', current_stream_tag.value)
+      } else {                
+        let to_remove = document.getElementById(last_g.id);
+        container2.removeChild(to_remove);
+        container2.insertAdjacentHTML('beforeend', parsed)
+        // container2.innerHTML=parsed
       }
   
   
-  
-  
-      // if (!isAnimatingNew.value && stream_queue.value.length > 0) {
         console.log('LAST WORD ========== ', last_token.last_word)
         if (last_token.last_word !== null && last_token.last_word !== undefined) {
-          // setTimeout(() => {
           isAnimatingNew.value = true
           console.log('LAST WORD TO ENTER ======= ', last_token.last_word)
           current_stream_tag.value.setAttribute('data-new-word', last_token.last_word);
@@ -157,7 +165,6 @@ export const dimStore = defineStore("dimStore", () => {
             current_stream_tag.value.classList.remove('fade-in-alt');
             current_stream_tag.value.classList.add('fade-in');
           }
-          // }, 1000)
         }
   
       // }
@@ -167,44 +174,17 @@ export const dimStore = defineStore("dimStore", () => {
 
   function click_test() {
     streamText()
-
-
-    // console.log(customLexer(`# ffff`))
-    // console.log(customLexer(`# ffff *aaaa*`))
-    // console.log(customLexer(`# ffff *aaaa* hhhhh`))
-    // console.log(customLexer(`# ffff *aaaa* hhhhh\n\n pajfds`))
-
   }
 
 
   function click_test2() {
-    // current_stream_tag.value.classList.add('fade-in');
-
-    // current_stream_tag.value.classList.add("dynamic-div");
-    // current_stream_tag.value.setAttribute('data-new-word', 'aaaa');
-
   }
 
 
-  // function getLastTokenWithParent(dict) {
-  //   let parentType = null;
-  //   let parent_id = null;
-  //   let last_word = null;
-  //   let last_id = null;
 
-  //   while (dict && dict.tokens && dict.tokens.length > 0) {
-  //     parentType = dict.type ?? null; // Store the current type as parent type
-  //     parent_id = dict.id
-  //     last_word = dict.to_stream[dict.to_stream.length - 1]
-  //     dict = dict.tokens[dict.tokens.length - 1]
-  //   }
 
-  //   if (dict) {
-  //     last_id = dict.id;
-  //   }
-  
-  //   return { last_id, last_word, lastToken: dict, parentType };
-  // }
+
+
 
 
 
@@ -215,51 +195,36 @@ export const dimStore = defineStore("dimStore", () => {
     let last_word = null;
     let last_id = null;
     let lastTokenWithId = null;
+    let previousDict = null;
+    let very_first_id = null;
   
-    //&& dict.tokens.length > 0
+    very_first_id = dict.id
     while (dict && dict.tokens) {
       parentType = dict.type ?? null;
-      parent_id = dict.id;
-      // last_word = dict.to_stream[dict.to_stream.length - 1];
   
       if (dict.id) {
-        console.log('dict.id1111111111: ', dict.id)
-        lastTokenWithId = dict; 
+        lastTokenWithId = dict;
         last_id = dict.id;
-        console.log('dict', dict)
+  
         if (dict.tokens.length > 0) {
-          let token_array = dict.tokens[dict.tokens.length-1]
-          console.log('token_array', token_array)
-          last_word = token_array.to_stream[token_array.to_stream.length-1]
+          let token_array = dict.tokens[dict.tokens.length - 1];
+          last_word = token_array.to_stream[token_array.to_stream.length - 1];
         } else {
           last_word = dict.to_stream[dict.to_stream.length - 1];
         }
       }
   
+      // Update parent_id with the id of the previous dict (the parent)
+      parent_id = previousDict?.id || null;
+  
+      // Update previousDict before moving to the next token dictionary
+      previousDict = dict;
       dict = dict.tokens[dict.tokens.length - 1];
     }
   
-    // if (dict && dict.id) {
-    //   last_id = dict.id;
-    //   lastTokenWithId = dict;
-    // }
-  
-    return { last_id, last_word, lastToken: lastTokenWithId, parentType };
+    return { very_first_id, last_id, last_word, parent_id, lastToken: lastTokenWithId, parentType };
   }
   
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   const addIdToTag = (html, tagName, args) => {
     let val = ''
@@ -272,6 +237,8 @@ export const dimStore = defineStore("dimStore", () => {
     let idx = 0;
     const tokens = marked.lexer(markdown);
     const stored_ids = { value: [] };
+    // text_tracker.value = []
+
 
     const processTokens = (tokens) => {
       tokens.forEach((token) => {
@@ -279,18 +246,26 @@ export const dimStore = defineStore("dimStore", () => {
 
         if (['heading', 'paragraph', 'strong', 'em'].includes(token.type)) {
           token.id = `${token.type}-${idx}`;
+          stored_ids.value.push(token.id);
+
+          if (text_tracker.value[idx] !== undefined) {
+            token.text = text_tracker.value[idx]
+          } else {
+            token.text=''
+          }
+          
+          idx += 1;
         }
         token.to_stream = token?.text.trim().split(' ') || '';
-        token.text = '';
-        stored_ids.value.push(token.id);
-        idx += 1;
+        token.to_stream = token.to_stream.map((item, index) => index === 0 ? item : ` ${item}`);
 
-        // Recursively process nested tokens if they exist
         if (token.tokens && Array.isArray(token.tokens)) {
           processTokens(token.tokens);
         }
       });
     };
+
+    // tokens[tokens.length-1].
 
     processTokens(tokens);
     return tokens;
@@ -317,6 +292,8 @@ export const dimStore = defineStore("dimStore", () => {
       langPrefix: "hljs language-",
       renderer: renderer
     });
+
+    console.log('marked', marked)
 
   }
 

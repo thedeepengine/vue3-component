@@ -55,6 +55,9 @@ export const dimStore = defineStore("dimStore", () => {
   const current_stream_tag = ref([])
   const text_tracker = ref([])
 
+  // data table
+  const is_full_screen = ref(false);
+
   function streamText() {
     // const markdown = '# Main Heading\n\nthis is a paragraph\n## Subheading with **bold** text\n\nThis is a paragraph with a [link](https://example.com).';
     // const markdown = '# Main Heading\n\nthis is a paragraph\n';
@@ -329,12 +332,10 @@ export const dimStore = defineStore("dimStore", () => {
 
 
   onMounted(() => {
-    const container = document.getElementById('text-container2');
-    container.addEventListener('animationend', handleAnimationEnd);
+    // const container = document.getElementById('text-container2');
+    // container.addEventListener('animationend', handleAnimationEnd);
+    // init_md_parser()
 
-    init_md_parser()
-
-    console.log('customLexer', customLexer)
 
 
 
@@ -574,7 +575,11 @@ export const dimStore = defineStore("dimStore", () => {
     allowed_clt_fields,
 
     click_test,
-    click_test2
+    click_test2,
+    testttt,
+
+    // data table
+    is_full_screen
   }
 
 })

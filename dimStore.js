@@ -65,7 +65,9 @@ export const dimStore = defineStore("dimStore", () => {
     // const words = ['#', ' Here', ' is', ' a', ' title', ' which', ' is', ' so', ' nice', ' _thats', ' italic_', '\n\n', 'thast', 'a', 'paragraph'];
 
     // const words = ['#', ' Here', ' is', ' a', ' title', ' which', ' jjjj', '\n\n', 'thast', 'a', 'paragraph'];
-    const words = ['###', ' Here', ' is', ' a', '_title', ' which_', ' jjjj', '\n\n', 'thast', 'a', 'paragraph'];
+    let words = ['###', ' Here', ' is', ' a', '_title', ' which_', ' jjjj', '\n\n', 'thast', 'a', 'paragraph'];
+    words = words.concat('also her is a s fudsi fdhi fdsuf dsuf idufhds iufhdif dsf dfyd fyd'.split(' '))
+    words = words.concat('\n\n also her is a s fudsi fdhi fdsuf \n\n dsuf idufhds iufhdif dsf dfyd fyd'.split(' '))
 
     // const words = ['# this ', 'is ', 'a ', 'title ', 'here ', 'as ', 'it ', 'has ', 'to ', 'be ', 'ordered '];
     let text = '';
@@ -263,6 +265,7 @@ export const dimStore = defineStore("dimStore", () => {
 
     const processTokens = (tokens) => {
       tokens.forEach((token) => {
+        console.log('token', token)
         // Assign unique ID and to_stream field, then clear text
 
         if (['heading', 'paragraph', 'strong', 'em'].includes(token.type)) {
@@ -281,8 +284,10 @@ export const dimStore = defineStore("dimStore", () => {
         // if (token.type === 'text') {
         //   token.text=''
         // }
-        token.to_stream = token?.text.trim().split(' ') || '';
-        token.to_stream = token.to_stream.map((item, index) => index === 0 ? item : ` ${item}`);
+        if (token.type !== 'space') {
+          token.to_stream = token?.text.trim().split(' ') || '';
+          token.to_stream = token.to_stream.map((item, index) => index === 0 ? item : ` ${item}`);  
+        }
 
         if (token.tokens && Array.isArray(token.tokens)) {
           processTokens(token.tokens);
@@ -328,6 +333,8 @@ export const dimStore = defineStore("dimStore", () => {
     container.addEventListener('animationend', handleAnimationEnd);
 
     init_md_parser()
+
+    console.log('customLexer', customLexer)
 
 
 

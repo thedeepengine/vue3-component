@@ -97,23 +97,20 @@ const expand = () => {
 
 onMounted(() => {
     tabulator.value = new Tabulator(table.value, {
-        data: tableData,
+        data: dim_store.data_table.data,
         reactiveData: true,
         layout: "fitColumns",
-        columns: [ 
-            { title: "Name", field: "name", width: 150 },
-            { title: "Age", field: "age", hozAlign: "left", formatter: "progress" },
-            { title: "Favourite Color", field: "col" },
-            { title: "Date Of Birth", field: "dob", sorter: "date", hozAlign: "center" },
-        ],
+        columns: dim_store.data_table.column_meta
+
+        // [ 
+        //     { title: "Name", field: "name", width: 150 },
+        //     { title: "Age", field: "age", hozAlign: "left", formatter: "progress" },
+        //     { title: "Favourite Color", field: "col" },
+        //     { title: "Date Of Birth", field: "dob", sorter: "date", hozAlign: "center" },
+        // ],
     });
 })
 
-
-// watch(() => [dim_store.w_data, dim_store.dimension],
-//     ([new_data, new_dimension], [old_data, old_dimension]) => {
-
-//     });
 
 </script>
 

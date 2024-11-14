@@ -56,8 +56,10 @@ export const dimStore = defineStore("dimStore", () => {
   const text_tracker = ref([])
 
   // data table
+  const data_table = ref()
   const is_full_screen = ref(false);
 
+  
   function streamText() {
     // const markdown = '# Main Heading\n\nthis is a paragraph\n## Subheading with **bold** text\n\nThis is a paragraph with a [link](https://example.com).';
     // const markdown = '# Main Heading\n\nthis is a paragraph\n';
@@ -392,6 +394,14 @@ export const dimStore = defineStore("dimStore", () => {
   );
 
 
+watch(() => [data_table.value, dimension.value],
+([new_data, new_dimension], [old_data, old_dimension]) => {
+    console.log('ddddd', data_table.value)
+    // Object.assign(tableData, dim_store.datatable);
+    // data_table.value.data.splice(0, data_table.value.data.length, data_table.value.data);
+});
+
+
   const popUpBoxStyle = computed(() => ({
     position: 'fixed',
     top: `${position.value.y}px`,
@@ -424,7 +434,7 @@ export const dimStore = defineStore("dimStore", () => {
         md_content.value = response.data.md
         things_space_data.value = response.data.things_space
         code.value = response.data.graphql
-
+        data_table.value = response.data.data_table
         code.value = JSON.stringify(code.value, null, '\t')
         // console.log('code.value: ', code.value)
         // JSON.stringify(code.value)
@@ -576,10 +586,10 @@ export const dimStore = defineStore("dimStore", () => {
 
     click_test,
     click_test2,
-    testttt,
 
     // data table
-    is_full_screen
+    is_full_screen,
+    data_table
   }
 
 })

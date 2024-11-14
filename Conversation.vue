@@ -8,75 +8,11 @@
         </div>
     </div>
 
-
     <n-dropdown placement="bottom-start" trigger="manual" 
     style="z-index: 999999999999999999;"
     :x="menuPosition.left" :y="menuPosition.top" :options="menu_options" :show="show_menu"
         :on-clickoutside="onClickoutside" @select="selectOption" />
 
-
-    <!-- <div ref="conv_menu" v-if="show_menu" class="custom-menu"
-        style="position:fixed;z-index: 999999999999;background-color: white;"
-        :style="{ top: menuPosition.top + 'px', left: menuPosition.left + 'px' }">
-            <div v-for="(option, index) in menu_options" 
-            :key="index" 
-            @click="selectOption(option)"
-            :class="{ 'suggestion-menu-active': option === selected_option}">
-                {{ option }}
-        </div>    
-    </div> -->
-
-
-
-    <!-- <div ref="parent" class="parent">
-        <div class='child'>
-            <n-grid class="conv-container" :cols="1">
-                <n-gi>
-                    <div ref="history_ref" class="history-container">
-                        <div class="history-context">
-                            <div v-for="(item, index) in history" :key="index">
-
-                                <n-space v-if="item.type === 'last'" style="opacity:0;align-content:center"
-                                    @animationend="handleAnimationEndNewItem(item.user)"
-                                    :justify="item.user === 'human' ? 'end' : 'start'">
-                                    <div class="conversation-elt">{{ item.message }}</div>
-                                </n-space>
-
-                                <n-space v-else :justify="item.user === 'human' ? 'end' : 'start'"
-                                    style="align-content:center">
-
-                                    <div class="conversation-elt" v-if="streaming_mode === 'normal'">
-                                        <div v-if="history.length === index + 1"
-                                            :style="{ opacity: trick_empty_string }" style="padding: 0px;">{{
-                                                item.message }}</div>
-                                        <div v-else style="padding: 0px;">{{ item.message }}</div>
-                                    </div>
-
-                                    <div class="conversation-elt" v-if="streaming_mode === 'opacity'">
-                                        <div v-if="(history.length === index + 1) && llm_model !== undefined"
-                                            :justify="item.user === 'human' ? 'end' : 'start'">
-                                            <transition-group name="fade" tag="div">
-                                                <span v-for="(word, index) in words" :key="index" class="word">
-                                                    {{ word }}
-                                                </span>
-                                            </transition-group>
-                                        </div>
-                                        <div v-else :justify="item.user === 'human' ? 'end' : 'start'">{{
-                                            item.message }}
-                                        </div>
-                                    </div>
-                                </n-space>
-                            </div>
-                        </div>
-                    </div>
-                </n-gi>
-                <n-gi>
-
-                </n-gi>
-            </n-grid>
-        </div>
-    </div>
-     -->
 </template>
 
 <script setup>
@@ -89,8 +25,7 @@ import { useEditor, Editor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import { markdownToHtml } from '@/components_shared/utils.js'
 import { Underline as OriginalUnderline } from '@tiptap/extension-underline'
-// import Mention from '@tiptap/extension-mention'
-import { get_mention_options } from '@/components_shared/suggestion.js'
+
 
 const gg = ref(null)
 const history_ref = ref(null)
@@ -108,8 +43,6 @@ const llm_model = ref(undefined)
 const editor_ref = ref()
 
 const parent = ref('parent')
-
-
 
 // Reactive state for menu 
 const menu_options = ref([])
@@ -155,154 +88,59 @@ const ShiftEnterHandler = Extension.create({
     },
 });
 
-const Underline = OriginalUnderline.extend({
-    addAttributes() {
-        return {
-            style: {
-                default: "text-decoration: underline; text-decoration-color: lightgreen;",
-                parseHTML: element => element.style.cssText,
-                renderHTML: attributes => {
-                    return { style: attributes.style }
-                },
-            }
-        };
-    }
-});
-
 const editor = useEditor({
     extensions: [
         StarterKit,
         EnterKeyHandler,
         ShiftEnterHandler,
-        Underline.configure({
-            HTMLAttributes: {
-                class: 'light-green-underline'
-            },
-        }),
     ],
-    content: '<u>aaaaa</u>',
-    editorProps: {
-    attributes: {
-      spellcheck: "false"
-    }
-  },
     content: box_input_html.value,
     editorProps: {
+        attributes: {
+            spellcheck: "false"
+        }
+    },
     attributes: {
       spellcheck: "false"
-    }
-  },
+    },
     onUpdate: ({ editor }) => {
         let html = editor.getHTML()
         if (html !== box_input_html.value) {
             box_input_html.value = html
         }
     },
+    onBlur({ event }) {
+        console.log('blur')
+        // show_menu.value = false
+    },
     onTransaction: ({ editor, transaction }) => {
-        const { state } = editor;
-        const selection = state.selection;
-        const from = selection.from;
+        // const { state } = editor;
+        // const selection = state.selection;
+        // const from = selection.from;
 
-        const all = state.doc.textBetween(0, from, ' ');
-        let last_word = all.match(/\b\w+$/);
+        // const all = state.doc.textBetween(0, from, ' ');
+        // let last_word = all.match(/\b\w+$/);
 
-        if (last_word != null & transaction.docChanged) {
-            if (last_word[0] !== '' & last_word[0] !== ' ') {
-                last_index.value = last_word['index']
-                last_word = last_word[0]
+        // if (last_word != null & transaction.docChanged) {
+        //     if (last_word[0] !== '' & last_word[0] !== ' ') {
+        //         last_index.value = last_word['index']
+        //         last_word = last_word[0]
 
-                let m = dim_store.allowed_clt_fields.filter(item => item['field'].toLowerCase().startsWith(last_word.toLowerCase()))
+        //         let m = dim_store.allowed_clt_fields.filter(item => item['field'].toLowerCase().startsWith(last_word.toLowerCase()))
 
-                if (m.length > 0) {
-                    menu_options.value = m
-                    selected_option.value = m[0]
-                    show_menu.value = true;
-                    const coords = editor.view.coordsAtPos(from);
-                    menuPosition.value = { top: coords.top + 20, left: coords.left };
-                } else {
-                    show_menu.value = false;
-                }
-            }
-        }
+        //         if (m.length > 0) {
+        //             menu_options.value = m
+        //             selected_option.value = m[0]
+        //             show_menu.value = true;
+        //             const coords = editor.view.coordsAtPos(from);
+        //             menuPosition.value = { top: coords.top + 20, left: coords.left };
+        //         } else {
+        //             show_menu.value = false;
+        //         }
+        //     }
+        // }
     }
 });
-
-
-
-// const editor = useEditor({
-//     extensions: [
-//         StarterKit,
-//         Underline.extend({
-//             addAttributes() {
-//                 return {
-//                     class: {
-//                         default: 'green-underline',
-//                         renderHTML: attributes => {
-//                             return {
-//                                 class: attributes.class,
-//                             }
-//                         }
-//                     }
-//                 }
-//             }
-//         })
-//     ],
-//     content: '',
-//     editorProps: {
-//         attributes: {
-//             spellcheck: "false"
-//         }
-//     },
-//     onUpdate: ({ editor }) => {
-//         let input = editor.getText()
-//         // let m = matching_clt(input, dim_store.allowed_clt_fields)
-//         // console.log('m----- ', m)
-
-
-
-//         // let html = editor.getHTML()
-//         // if (html !== box_input_html.value) {
-//         //     box_input_html.value = html
-//         // }
-//     },
-//     onBlur({ event }) {
-//         console.log('blur')
-//         // show_menu.value = false
-//     },
-//     onTransaction: ({ editor, transaction }) => {
-//         const { state } = editor;
-//         const selection = state.selection;
-//         const from = selection.from;
-
-//         const all = state.doc.textBetween(0, from, ' ');
-//         let last_word = all.match(/\b\w+$/);
-
-//         if (last_word != null & transaction.docChanged) {
-//             if (last_word[0] !== '' & last_word[0] !== ' ') {
-//                 last_index.value = last_word['index']
-//                 last_word = last_word[0]
-
-//                 let m = dim_store.allowed_clt_fields.filter(item => item['field'].toLowerCase().startsWith(last_word.toLowerCase()))
-
-//                 if (m.length > 0) {
-//                     menu_options.value = m
-//                     selected_option.value = m[0]
-//                     show_menu.value = true;
-//                     const coords = editor.view.coordsAtPos(from);
-//                     menuPosition.value = { top: coords.top + 20, left: coords.left };
-//                 } else {
-//                     show_menu.value = false;
-//                 }
-//             }
-//         }
-//     }
-// });
-
-const handleClickOutside = (event) => {
-    if (conv_menu.value && !conv_menu.value.contains(event.target)) {
-        show_menu.value = false;
-    }
-};
 
 const selectOption = (key, option) => {
     if (!editor) return;
@@ -321,11 +159,9 @@ onMounted(() => {
         }
     }, { immediate: true });
 
-    document.addEventListener('click', handleClickOutside);
 });
 
 onBeforeUnmount(() => {
-    document.removeEventListener('click', handleClickOutside);
     if (editor) {
         editor.value.destroy();
     }

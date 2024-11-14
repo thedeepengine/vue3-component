@@ -40,7 +40,6 @@ const checkElement = () => {
     }
 };
 
-
 watch(() => [dim_store.refresh_network, isElementPresent.value],
     ([refresh_network, old_data], [q, w]) => {
         if (isElementPresent.value === true) {
@@ -63,6 +62,11 @@ onActivated(() => {
 
 onDeactivated(() => {
     isElementPresent.value = false
+    if (dim_store.refresh_network === 'hierarchy') {
+        empty_static_tree()
+    } else if (dim_store.refresh_network === 'network') {
+        empty_force_tree()
+    }
 });
 
 const forcedNodeR = 5

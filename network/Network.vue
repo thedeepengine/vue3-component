@@ -27,20 +27,16 @@ onMounted(() => {
 })
 
 
-watch(() => [dim_store.w_data, dim_store.dimension],
-    ([new_data, new_dimension], [old_data, old_dimension]) => {
-        if (new_dimension === 'network') {
+watch(() => dim_store.refresh_network,
+    (refresh_network, old_data) => {
+        if (refresh_network === 'network') {
             empty_static_tree()
-            forcedTree(new_data)
-        } else if (new_dimension === 'hierarchy') {
-
+            forcedTree(dim_store.w_data)
+        } else if (refresh_network === 'hierarchy') {
             setTimeout(() => {
                 empty_force_tree()
                 displayStaticTree(dim_store)
-    
     }, 100);
-
-
         }
     });
 

@@ -18,6 +18,8 @@ export const dimStore = defineStore("dimStore", () => {
   const text_box_displayed = ref(false)
   const dim_force_network_bool = ref(false)
 
+  // network
+  const refresh_network = ref()
   // tiptap editor
   const html_content = ref('')
   const md_content = ref('')
@@ -401,6 +403,16 @@ watch(() => [data_table.value, dimension.value],
     // data_table.value.data.splice(0, data_table.value.data.length, data_table.value.data);
 });
 
+watch(() => [w_data.value, dimension.value],
+    ([new_data, new_dimension], [old_data, old_dimension]) => {
+        if (new_dimension === 'network') {
+          refresh_network.value = 'network'
+        } else if (new_dimension === 'hierarchy') {
+          refresh_network.value = 'hierarchy'
+        }
+    });
+
+
 
   const popUpBoxStyle = computed(() => ({
     position: 'fixed',
@@ -554,6 +566,9 @@ watch(() => [data_table.value, dimension.value],
 
     set_dimension,
 
+    // network
+    refresh_network,
+    
     //tiptap editor
     html_content,
     md_content,

@@ -9,7 +9,7 @@ import { drag as d3drag } from 'd3-drag'
 import { hierarchy } from 'd3-hierarchy'
 import { forceSimulation as d3forceSimulation, forceX, forceY, forceCollide } from 'd3-force'
 import { select as d3select, selectAll as d3selectAll } from 'd3-selection'
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, onActivated, onDeactivated } from "vue";
 import { defineProps } from 'vue';
 import { dimStore } from '@/components_shared/dimStore.js'
 import { displayStaticTree, empty_static_tree, empty_force_tree } from './network_utils.js';
@@ -20,32 +20,50 @@ const props = defineProps({
     is_mobile: false
 });
 
+const isElementPresent = ref(false);
+let maxRetries = 10;
+let retries = 0;
+
 
 onMounted(() => {
     initSVGBase()
     window.addEventListener("mousemove", updateButtonOpacity);
 })
 
+const checkElement = () => {
+    const element = document.querySelector('.network_class');
+    if (element) {
+        isElementPresent.value = true;
+    } else if (retries < maxRetries) {
+        retries++;
+        setTimeout(checkElement, 100); // Check again in 100ms
+    }
+};
 
-watch(() => dim_store.refresh_network,
-    (refresh_network, old_data) => {
-        if (refresh_network === 'network') {
-            empty_static_tree()
-            forcedTree(dim_store.w_data)
-        } else if (refresh_network === 'hierarchy') {
-            setTimeout(() => {
+
+watch(() => [dim_store.refresh_network, isElementPresent.value],
+    ([refresh_network, old_data], [q, w]) => {
+        if (isElementPresent.value === true) {
+            if (refresh_network === 'network') {
+                empty_static_tree()
+                forcedTree(dim_store.w_data)
+            } else if (refresh_network === 'hierarchy') {
                 empty_force_tree()
                 displayStaticTree(dim_store)
-    }, 100);
+            }
         }
     });
 
-// watch(() => dim_store.dim_force_network_bool, (newValue, oldValue) => {
-//     if (dim_store.dim_force_network_bool) {
-//         dim_force_network()
-//     }
-// });
 
+onActivated(() => {
+    maxRetries = 10;
+    retries = 0;
+    checkElement()
+});
+
+onDeactivated(() => {
+    isElementPresent.value = false
+});
 
 const forcedNodeR = 5
 const buttonOpacity = ref(0.2)

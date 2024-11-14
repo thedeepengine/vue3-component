@@ -405,6 +405,7 @@ watch(() => [data_table.value, dimension.value],
 
 watch(() => [w_data.value, dimension.value],
     ([new_data, new_dimension], [old_data, old_dimension]) => {
+      console.log('new_dimensionnew_dimensionnew_dimensionnew_dimension++++', new_dimension)
         if (new_dimension === 'network') {
           refresh_network.value = 'network'
         } else if (new_dimension === 'hierarchy') {
@@ -568,7 +569,7 @@ watch(() => [w_data.value, dimension.value],
 
     // network
     refresh_network,
-    
+
     //tiptap editor
     html_content,
     md_content,

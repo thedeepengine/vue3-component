@@ -152,7 +152,7 @@ function displayStaticTree(store, add_event_func=undefined) {
 }
 
 function updateNestedObjectByKey(obj, uuid, key, value) {
-    if (obj.uuid === uuid) {
+    if (obj.uuid_front === uuid) {
         obj[key] = value; 
         return true; 
     }
@@ -169,7 +169,7 @@ function updateNestedObjectByKey(obj, uuid, key, value) {
 
 function get_front_displayed_text(store,d3sel) {
     let rr = d3sel
-    .data(store.root_nodes, d => d.data.uuid); // Using a key function based on uuid
+    .data(store.root_nodes, d => d.data.uuid_front); // Using a key function based on uuid
 
         const enteredElements = rr.enter()
         .append('foreignObject')
@@ -179,7 +179,7 @@ function get_front_displayed_text(store,d3sel) {
                 .attr("transform", d => `translate(${d.y_start},${d.x-14})`)
                 .style('width', d=>{ return `${d.y_end-d.y_start}px`}) 
                 .attr('height', 13)
-                .attr('data-pathid', d => d.data.uuid)
+                .attr('data-pathid', d => d.data.uuid_front)
             .append('xhtml:body')
                 .style('margin', 0)
                 .style('padding', 0)  
@@ -205,21 +205,25 @@ function get_front_displayed_text(store,d3sel) {
                 .style('font-family', 'inherit')
                 // .attr('disabled', true) 
                 .on('input', function(event) {
-                    let uuid = event.srcElement.parentElement.parentElement.attributes['data-pathid'].value
-                    const specificElement = d3select(`#X${uuid}`).text(event.srcElement.value)
+                    let uuid_front = event.srcElement.parentElement.parentElement.attributes['data-pathid'].value
+                    // console.log('uuid_front', uuid_front)
+                    // console.log('d3select', d3select)
+                    // console.log('d3select(`#${uuid_front}`)', d3select(`#${uuid_front}`))
+                    console.log('event.srcElement.value', event.srcElement.value)
+                    const specificElement = d3select(`#${uuid_front}`).text(event.srcElement.value)
+                    
+                    
+                    console.log('specificElement', specificElement)
                 })
                 .on('keydown', function(event) {
                     if (event.key === 'Enter') {
-                        console.log('AAA')
-                        updateNestedObjectByKey(store.w_data, this.__data__.data.uuid, 'name', this.value)
+                        updateNestedObjectByKey(store.w_data, this.__data__.data.uuid_front, 'name', this.value)
                         compute_and_draw_tree(store)
                         displayStaticTree(store)
                     }
                 })
                 .on('click', function(event) {
-                    console.log('click', event)
                     event.preventDefault();  // Prevents the default click event which focuses the input
-                    // this.blur();
                     event.stopPropagation()
                 })
                 .on('dblclick', function() {
@@ -236,9 +240,9 @@ function get_front_displayed_text(store,d3sel) {
         rr
             .attr("transform", d => `translate(${d.y_start},${d.x-14})`)
             .style('width', d=>`${d.y_end-d.y_start}px`)
-            .attr('data-pathid', d => d.data.uuid)
+            // .attr('data-pathid', d => d.data.uuid_front)
             .select('input') // Select the input child of each existing .node_text div
-                .property('value', d => d.data.name) // Use property for input value
+                // .property('value', d => d.data.name) // Use property for input value
                 .style('width', d=> `${d.y_end-d.y_start}px`)
             // .each(function(d) { console.log('updating:', d); });  
 

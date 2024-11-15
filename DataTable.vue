@@ -21,7 +21,8 @@
 import { ref, reactive, onMounted, watch } from 'vue';
 import { TabulatorFull as Tabulator } from 'tabulator-tables'; //import Tabulator library
 import 'tabulator-tables/dist/css/tabulator.min.css';
-import 'tabulator-tables/dist/css/tabulator_semanticui.min.css'
+// import 'tabulator-tables/dist/css/tabulator_semanticui.min.css'
+// import 'tabulator-tables/dist/css/tabulator_materialize.min.css'
 import { dimStore } from '@/components_shared/dimStore.js'
 import { NButton, NIcon, NGrid, NGi, NSpace } from "naive-ui";
 import { Add24Regular, Subtract24Regular } from '@vicons/fluent'
@@ -99,6 +100,8 @@ onMounted(() => {
     tabulator.value = new Tabulator(table.value, {
         data: dim_store.data_table.data,
         reactiveData: true,
+        // frozenRows:1,
+        // headerVisible:false,
         layout: "fitColumns",
         columns: dim_store.data_table.column_meta
 

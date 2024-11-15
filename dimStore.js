@@ -20,6 +20,8 @@ export const dimStore = defineStore("dimStore", () => {
 
   // network
   const refresh_network = ref()
+  const d3_network_data = ref({})
+
   // tiptap editor
   const html_content = ref('')
   const md_content = ref('')
@@ -377,6 +379,14 @@ export const dimStore = defineStore("dimStore", () => {
   })
 
   watch(() => user_input.value, (newValue, oldValue) => {
+    newValue='name=test>>name,name,content,hasChildren:name,content,hasOntology:name,content'
+    fetch_data('NodeTest2', newValue)
+  })
+
+  watch(() => dimension.value, (newValue, oldValue) => {
+    // fetch_data('NodeTest2', user_input.value)
+
+    newValue='name=test>>name,name,content,hasChildren:name,content,hasOntology:name,content'
     fetch_data('NodeTest2', newValue)
   })
 
@@ -403,15 +413,20 @@ watch(() => [data_table.value, dimension.value],
     // data_table.value.data.splice(0, data_table.value.data.length, data_table.value.data);
 });
 
-watch(() => [w_data.value, dimension.value],
-    ([new_data, new_dimension], [old_data, old_dimension]) => {
-      console.log('new_dimensionnew_dimensionnew_dimensionnew_dimension++++', new_dimension)
-        if (new_dimension === 'network') {
-          refresh_network.value = 'network'
-        } else if (new_dimension === 'hierarchy') {
+watch(() => [w_data.value],
+    (new_data,old_data) => {
+      if (dimension.value === 'hierarchy') {
           refresh_network.value = 'hierarchy'
         }
     });
+
+
+watch(() => [d3_network_data.value],
+(new_data, old_data) => {
+    if (dimension.value === 'network') {
+      refresh_network.value = 'network'
+    } 
+});
 
 
 
@@ -443,18 +458,16 @@ watch(() => [w_data.value, dimension.value],
     apiClient
       .post("https://localhost:8002/v1/api/query/", { clt: clt, request: request, dimension: dimension.value })
       .then(response => {
-        w_data.value = response.data.d3
-        md_content.value = response.data.md
-        things_space_data.value = response.data.things_space
-        code.value = response.data.graphql
-        data_table.value = response.data.data_table
-        code.value = JSON.stringify(code.value, null, '\t')
-        // console.log('code.value: ', code.value)
-        // JSON.stringify(code.value)
-
-        // code.value = 
-
-        // console.log('code', code.value)
+        if (response.data?.d3) w_data.value = response.data.d3
+        if (response.data?.d3_network_data) d3_network_data.value = response.data.d3_network_data
+        if (response.data?.md) md_content.value = response.data.md
+        if (response.data?.things_space) things_space_data.value = response.data.things_space
+        if (response.data?.graphql) {
+          let graphql = response.data.graphql
+          code.value = JSON.stringify(graphql, null, '\t')
+        }
+        if (response.data?.data_table) data_table.value = response.data.data_table
+  
         return response
       })
   }
@@ -569,6 +582,7 @@ watch(() => [w_data.value, dimension.value],
 
     // network
     refresh_network,
+    d3_network_data,
 
     //tiptap editor
     html_content,

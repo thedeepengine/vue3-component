@@ -7,8 +7,10 @@
 
 import { drag as d3drag } from 'd3-drag'
 import { hierarchy } from 'd3-hierarchy'
-import { forceSimulation as d3forceSimulation, forceX, forceY, forceCollide } from 'd3-force'
+import { forceSimulation as d3forceSimulation, forceX, forceY, forceCollide, forceLink } from 'd3-force'
 import { select as d3select, selectAll as d3selectAll } from 'd3-selection'
+import { min, max } from "d3-array";
+import { scaleLinear } from "d3-scale";
 import { ref, onMounted, watch, onActivated, onDeactivated } from "vue";
 import { defineProps } from 'vue';
 import { dimStore } from '@/components_shared/dimStore.js'
@@ -45,7 +47,7 @@ watch(() => [dim_store.refresh_network, isElementPresent.value],
         if (isElementPresent.value === true) {
             if (refresh_network === 'network') {
                 empty_static_tree()
-                forcedTree(dim_store.w_data)
+                forcedTree(dim_store.d3_network_data, 'network')
             } else if (refresh_network === 'hierarchy') {
                 empty_force_tree()
                 displayStaticTree(dim_store)
@@ -174,11 +176,17 @@ function dim_force_network() {
     d3selectAll("circle.base_node").style('opacity', 0.2)
 }
 
-function forcedTree(data) {
-    const root = hierarchy(data);
-    console.log('root', root)
-    const links = root.links();
-    const nodes = root.descendants();
+function forcedTree(data, data_type='hierarchy') {
+    let links;
+    let nodes;
+    if (data_type === 'hierarchy') {
+        const root = hierarchy(data);
+        links = root.links();
+        nodes = root.descendants();
+    } else if (data_type === 'network') {
+        links = data.links
+        nodes = data.nodes
+    }
 
     const nodeColor = '#3A434A'
 
@@ -186,24 +194,26 @@ function forcedTree(data) {
         .nodes(nodes)
         .force("x", forceX())
         .force("y", forceY())
+        .force("link", forceLink(links).id(d => d.id))
         .force("collide", forceCollide().strength(0.3).radius(d => forcedNodeR + 12));
 
     const svg = d3select("#forcedtree")
         .attr("class", "onesvg2")
 
-    var text = svg.append("g").attr("class", "back_text_container")
-        .selectAll('.back_text')
-        .data(nodes, function (d) { return d ? d.data.name : this.id; })
-        .join('text')
-        .setAttrs({ 'class': 'back_text', 'opacity': 0, 'font-size': 10, 'text-anchor': () => 'middle' })
-        .text(d => { return d.data.name })
-
     const link = svg.append("g")
-        .setAttrs({ 'class': 'back_link_container', 'stroke': '#999', 'stroke-opacity': 0.6, 'stroke-width': 0.5 })
+        // .setAttrs({ 'class': 'back_link_container', 'stroke': '#999', 'stroke-opacity': 0.6, 'stroke-width': 0.5 })
+        .attr("stroke", "#999")
+        .attr("stroke-opacity", 0.6)
         .selectAll("line")
         .data(links)
         .join("line")
+        // .attr("stroke-width", d => 40);
         .attr('class', 'forcedlink');
+
+    const colorScale = scaleLinear()
+        .domain([min(nodes, d => d.weight), max(nodes, d => d.weight)])
+        .range(["rgb(63, 131, 201)", "rgb(255, 255, 255)"]);
+
 
     const node = svg.append("g")
         .setAttrs({ 'class': 'back_node_container', "fill": nodeColor, "stroke": nodeColor, "stroke-width": 0.3, "stroke": nodeColor })
@@ -211,12 +221,23 @@ function forcedTree(data) {
         .data(nodes)
         .join("circle")
         .setAttrs({
-            "fill": d => { return d.data.name === 'Genesis' ? '#d4af37' : nodeColor },
-            "stroke": d => { return d.data.name === 'Genesis' ? '#d4af37' : nodeColor },
+            "fill": d => colorScale(d.weight),
+            "stroke": 0.3,
+            // "stroke": d => { return d.name === 'Genesis' ? '#d4af37' : nodeColor },
+            "stroke-width": 0.3,
             'class': 'base_node',
-            "r": forcedNodeR
+            "r": d => Math.sqrt(d.weight*30)
+            // "r": forcedNodeR
         })
         .call(drag());
+
+    var text = svg.append("g").attr("class", "back_text_container")
+        .selectAll('.back_text')
+        .data(nodes, function (d) { return d ? d.name : this.id; })
+        .join('text')
+        .setAttrs({ 'class': 'back_text', 'color': '#b0b0b0',
+                        'opacity': function (d) {console.log('ddddd', d.depth);return d.depth < 1 ? 0.7: 0}, 'font-size': 10, 'text-anchor': () => 'middle' })
+        .text(d => { return d.name })
 
     var localThis = simulation.value
 
@@ -255,6 +276,11 @@ function forcedTree(data) {
         node
             .attr("cx", d => d.x)
             .attr("cy", d => d.y);
+
+        text
+            .attr("x", d => d.x)
+            .attr("y", d => d.y +17);
+
 
     });
     return svg.node();

@@ -38,7 +38,7 @@ const checkElement = () => {
         isElementPresent.value = true;
     } else if (retries < maxRetries) {
         retries++;
-        setTimeout(checkElement, 100); // Check again in 100ms
+        setTimeout(checkElement, 100);
     }
 };
 

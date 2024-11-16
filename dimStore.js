@@ -6,7 +6,8 @@ import { test_click_utils } from '@/components_shared/utils'
 import { marked } from "marked";
 
 export const dimStore = defineStore("dimStore", () => {
-  const dimension = ref('hierarchy')
+  const is_menu_open = ref(true)
+  const dimension = ref('menu')
   const root_nodes = ref(undefined)
   const root_links = ref(undefined)
   const deep_level = ref(0)
@@ -17,6 +18,8 @@ export const dimStore = defineStore("dimStore", () => {
   const ontology_name_selected = ref('')
   const text_box_displayed = ref(false)
   const dim_force_network_bool = ref(false)
+
+  const left_panel = ref('loading')
 
   // network
   const refresh_network = ref()
@@ -408,7 +411,6 @@ export const dimStore = defineStore("dimStore", () => {
 
 watch(() => [data_table.value, dimension.value],
 ([new_data, new_dimension], [old_data, old_dimension]) => {
-    console.log('ddddd', data_table.value)
     // Object.assign(tableData, dim_store.datatable);
     // data_table.value.data.splice(0, data_table.value.data.length, data_table.value.data);
 });
@@ -468,6 +470,7 @@ watch(() => [d3_network_data.value],
         }
         if (response.data?.data_table) data_table.value = response.data.data_table
   
+        
         return response
       })
   }
@@ -566,6 +569,7 @@ watch(() => [d3_network_data.value],
   });
 
   return {
+    is_menu_open,
     deep_level,
     root_nodes,
     root_links,
@@ -577,6 +581,7 @@ watch(() => [d3_network_data.value],
     text_box_displayed,
     dimension,
     dim_force_network_bool,
+    left_panel,
 
     set_dimension,
 
@@ -619,7 +624,11 @@ watch(() => [d3_network_data.value],
 
     // data table
     is_full_screen,
-    data_table
+    data_table,
+
+
+
+    fetch_data
   }
 
 })

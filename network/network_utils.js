@@ -87,6 +87,7 @@ function empty_static_tree() {
 function empty_force_tree() {
     d3selectAll("#forcedtree line").remove()
     d3selectAll("#forcedtree circle").remove()
+    d3selectAll("#forcedtree text").remove()
 }
 
 function displayStaticTree(store, add_event_func=undefined) {

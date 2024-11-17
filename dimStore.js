@@ -216,6 +216,20 @@ export const dimStore = defineStore("dimStore", () => {
   }
 
 
+  function create_new_map(input) {
+console.log('create_new_map: ', input)
+  } 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -582,6 +596,7 @@ watch(() => [d3_network_data.value],
     dimension,
     dim_force_network_bool,
     left_panel,
+    create_new_map,
 
     set_dimension,
 

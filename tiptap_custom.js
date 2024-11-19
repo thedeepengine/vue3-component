@@ -76,20 +76,21 @@ function getTrackHeadingsExtension(store, html_content) {
               transaction.steps.forEach(step => {
                 const stepMap = step.getMap();
                 stepMap.forEach((oldStart, oldEnd, newStart, newEnd) => {
+
                   const oldHeadings = getHeadingsInRange(oldState.doc, oldStart, oldEnd);
                   const newHeadings = getHeadingsInRange(newState.doc, newStart, newEnd);
 
                   if (newHeadings.length === 1 && oldHeadings.length === 1 && oldHeadings[0].content !== newHeadings[0].content) {
 
                     if (newHeadings[0]?.id !== null) {
-                      const updatedDataItem = { uuid: newHeadings[0].id, data: { name: newHeadings[0].content } };
-                      const specificElement = d3select(`[data-pathid="${updatedDataItem.uuid}"]`);
+                      const updatedDataItem = { uuid_front: newHeadings[0].id, data: { name: newHeadings[0].content } };
+                      const specificElement = d3select(`[data-pathid="${updatedDataItem.uuid_front}"]`);
                       let a = specificElement.select('input')
 
-                      a.property('value', updatedDataItem.data.name)
-                        .style('width', `400px`);
+                      // a.property('value', updatedDataItem.data.name)
+                        // .style('width', `400px`);
   
-                      updateNestedObjectByKey(store.w_data, updatedDataItem.uuid.substring(1), 'name', newHeadings[0].content)
+                      updateNestedObjectByKey(store.w_data, updatedDataItem.uuid_front, 'name', newHeadings[0].content)
                       displayStaticTree(store)
                     } else {
 
@@ -97,13 +98,6 @@ function getTrackHeadingsExtension(store, html_content) {
                         let md = store.turndownService.turndown(store.html_content)
                         store.md_to_hierarchy(md)
                         displayStaticTree(store)
-
-                        // const headers = getHeadings(newState.doc);
-                        // headers.forEach(item => {
-                        //   if (item.id === null) {
-                        //     item.id = `temp${Math.floor(Math.random() * 1e10)}`;
-                        //   }
-                        // });
 
                       }, 100);
                     }

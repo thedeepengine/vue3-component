@@ -92,6 +92,7 @@ function empty_force_tree() {
 
 function displayStaticTree(store, add_event_func=undefined) {
     let { root_nodes, root_links } = compute_and_draw_tree(store)
+
     store.root_nodes = root_nodes
     store.root_links = root_links
     var linkContainer = d3select(".link_container")
@@ -136,8 +137,6 @@ function displayStaticTree(store, add_event_func=undefined) {
                 .attr("class", "link")
                 .attr("d", d3linew),
             update => update
-                .transition()
-                .duration(300)
                 .attr("d", d3linew),
             exit => exit
                 .transition()
@@ -172,13 +171,15 @@ function get_front_displayed_text(store,d3sel) {
     let rr = d3sel
     .data(store.root_nodes, d => d.data.uuid_front); // Using a key function based on uuid
 
+    let node_width = d=>{ return `${Math.max(d.y_end-d.y_start, 100)}px`}
+
         const enteredElements = rr.enter()
         .append('foreignObject')
         .each(function(d) {
             d3select(this)
                 .attr('class', 'node_text')
                 .attr("transform", d => `translate(${d.y_start},${d.x-14})`)
-                .style('width', d=>{ return `${d.y_end-d.y_start}px`}) 
+                .style('width', node_width) 
                 .attr('height', 13)
                 .attr('data-pathid', d => d.data.uuid_front)
             .append('xhtml:body')
@@ -187,7 +188,7 @@ function get_front_displayed_text(store,d3sel) {
                 .style('font-size', '12px')
                 .style('line-height', '1') 
                 .style('background-color', 'transparent')
-                .style('width', d=>{ return `${d.y_end-d.y_start}px`}) 
+                .style('width', node_width) 
                 .style('background', 'transparent')
                 .style('font-family', 'inherit')
                 .on('click', function(event) {
@@ -200,7 +201,7 @@ function get_front_displayed_text(store,d3sel) {
                 .attr('value', d => {return d.data.name})
                 .attr('style', d=> {return `border: none; outline: none; font-size: 12px; padding: 0; font-family: inherit; box-sizing: border-box;`})
                 .attr('type', 'text')
-                .style('width', d=>{ return `${d.y_end-d.y_start}px`}) 
+                .style('width', node_width) 
                 .attr('background-color', 'transparent')
                 .attr('background', 'transparent')
                 .style('font-family', 'inherit')
@@ -218,6 +219,7 @@ function get_front_displayed_text(store,d3sel) {
                 })
                 .on('keydown', function(event) {
                     if (event.key === 'Enter') {
+                        console.log('store.w_data', store.w_data)
                         updateNestedObjectByKey(store.w_data, this.__data__.data.uuid_front, 'name', this.value)
                         compute_and_draw_tree(store)
                         displayStaticTree(store)
@@ -240,11 +242,11 @@ function get_front_displayed_text(store,d3sel) {
 
         rr
             .attr("transform", d => `translate(${d.y_start},${d.x-14})`)
-            .style('width', d=>`${d.y_end-d.y_start}px`)
+            .style('width', node_width)
             // .attr('data-pathid', d => d.data.uuid_front)
             .select('input') // Select the input child of each existing .node_text div
-                // .property('value', d => d.data.name) // Use property for input value
-                .style('width', d=> `${d.y_end-d.y_start}px`)
+                .property('value', d => d.data.name) // Use property for input value
+                .style('width', node_width)
             // .each(function(d) { console.log('updating:', d); });  
 
     rr.exit()
@@ -324,6 +326,7 @@ function draw_side_tree(store,root,side) {
     var SIDE_CONST = side === "right" ? 1 : -1
     var NODE_CLASS = "node_" + side
     const NODE_Y_SHIFT = 50
+    const NODE_MIN_WIDTH = 50
     const labels = root.descendants().map(d => d.data.name);
 
     // var side_container = d3select(".global_tree_container")
@@ -365,8 +368,8 @@ function draw_side_tree(store,root,side) {
 
         if (node.children !== undefined) {
             for (const child of node.children) {
-                child.y_start = (side === "right" ? child.parent.y_end:child.parent.y_start) + SIDE_CONST * NODE_Y_SHIFT + (side === "right" ? 0: -text_length[child.data.name])
-                child.y_end = (side === "right" ? child.parent.y_end:child.parent.y_start) + SIDE_CONST * (NODE_Y_SHIFT + (side === "right" ? text_length[child.data.name] : 0))
+                child.y_start = (side === "right" ? child.parent.y_end:child.parent.y_start) + SIDE_CONST * NODE_Y_SHIFT + (side === "right" ? 0: -Math.max(text_length[child.data.name], NODE_MIN_WIDTH))
+                child.y_end = (side === "right" ? child.parent.y_end:child.parent.y_start) + SIDE_CONST * (NODE_Y_SHIFT + (side === "right" ? Math.max(text_length[child.data.name], NODE_MIN_WIDTH) : 0))
                 rec_y_position(child)
             }
         }

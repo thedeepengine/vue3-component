@@ -6,8 +6,15 @@ import { test_click_utils } from '@/components_shared/utils'
 import { marked } from "marked";
 
 export const dimStore = defineStore("dimStore", () => {
-  const is_menu_open = ref(true)
-  const dimension = ref('menu')
+  // const is_menu_open = ref(true)
+  // const dimension = ref('menu')
+  // const left_panel = ref('loading')
+
+  const is_menu_open = ref(false)
+  const dimension = ref('hierarchy')
+  const left_panel = ref('markdown')
+
+  
   const root_nodes = ref(undefined)
   const root_links = ref(undefined)
   const deep_level = ref(0)
@@ -19,7 +26,7 @@ export const dimStore = defineStore("dimStore", () => {
   const text_box_displayed = ref(false)
   const dim_force_network_bool = ref(false)
 
-  const left_panel = ref('loading')
+  
 
   // network
   const refresh_network = ref()

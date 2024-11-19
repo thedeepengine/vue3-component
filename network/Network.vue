@@ -315,4 +315,10 @@ let updateButtonOpacity = function (event) {
 .v-leave-to {
     opacity: 0;
 }
+
+foreignObject body input {
+    background-color: transparent;
+    --color-background: transparent;
+    --vt-c-white: transparent;
+}
 </style>

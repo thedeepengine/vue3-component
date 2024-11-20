@@ -65,57 +65,61 @@ function getHeadings(doc) {
 }
 
 function getTrackHeadingsExtension(store, html_content) {
-  const TrackHeadingsExtension = 
-  Extension.create({
-    name: 'trackHeadings',
-    addProseMirrorPlugins() {
-      return [
-        new Plugin({
-          appendTransaction(transactions, oldState, newState) {
-            transactions.forEach(transaction => {
-              transaction.steps.forEach(step => {
-                const stepMap = step.getMap();
-                stepMap.forEach((oldStart, oldEnd, newStart, newEnd) => {
-
-                  const oldHeadings = getHeadingsInRange(oldState.doc, oldStart, oldEnd);
-                  const newHeadings = getHeadingsInRange(newState.doc, newStart, newEnd);
-
-                  if (newHeadings.length === 1 && oldHeadings.length === 1 && oldHeadings[0].content !== newHeadings[0].content) {
-
-                    if (newHeadings[0]?.id !== null) {
-                      const updatedDataItem = { uuid_front: newHeadings[0].id, data: { name: newHeadings[0].content } };
-                      const specificElement = d3select(`[data-pathid="${updatedDataItem.uuid_front}"]`);
-                      let a = specificElement.select('input')
-
-                      // a.property('value', updatedDataItem.data.name)
-                        // .style('width', `400px`);
+  const TrackHeadingsExtension =
+    Extension.create({
+      name: 'trackHeadings',
+      addProseMirrorPlugins() {
+        return [
+          new Plugin({
+            appendTransaction(transactions, oldState, newState) {
+              const { $head } = newState.selection;
+              const lineText = $head.nodeBefore?.textContent || '';
   
-                      updateNestedObjectByKey(store.w_data, updatedDataItem.uuid_front, 'name', newHeadings[0].content)
-                      displayStaticTree(store)
-                    } else {
+              // Check if the line starts with a '#'
+              if (!lineText.trim().startsWith('#')) {
+                return null; // Stop the transaction if it's not a markdown title
+              }
+              transactions.forEach(transaction => {
+                transaction.steps.forEach(step => {
+                  const stepMap = step.getMap();
+                  stepMap.forEach((oldStart, oldEnd, newStart, newEnd) => {
 
-                      setTimeout(()=> {
-                        let md = store.turndownService.turndown(store.html_content)
-                        store.md_to_hierarchy(md)
+                    const oldHeadings = getHeadingsInRange(oldState.doc, oldStart, oldEnd);
+                    const newHeadings = getHeadingsInRange(newState.doc, newStart, newEnd);
+
+                    if (newHeadings.length === 1 && oldHeadings.length === 1 && oldHeadings[0].content !== newHeadings[0].content) {
+
+                      if (newHeadings[0]?.id !== null) {
+                        const updatedDataItem = {
+                          uuid_front: newHeadings[0].id,
+                          data: { name: newHeadings[0].content }
+                        };
+                        updateNestedObjectByKey(store.w_data, updatedDataItem.uuid_front, 'name', newHeadings[0].content)
                         displayStaticTree(store)
+                      } else {
 
-                      }, 100);
+                        setTimeout(() => {
+                          let md = store.turndownService.turndown(store.html_content)
+                          store.md_to_hierarchy(md)
+                          displayStaticTree(store)
+
+                        }, 100);
+                      }
                     }
-                  }
+                  });
                 });
               });
-            });
-            return undefined;
-          }
-        })
-      ];
-    },
-  });  
+              return undefined;
+            }
+          })
+        ];
+      },
+    });
 
   return TrackHeadingsExtension
 }
 
 export {
-    CustomHeading,
-    getTrackHeadingsExtension
+  CustomHeading,
+  getTrackHeadingsExtension
 }

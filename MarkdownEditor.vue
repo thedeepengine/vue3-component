@@ -16,12 +16,15 @@ import { dimStore } from '@/components_shared/dimStore'
 import { markdownToHtml } from '@/components_shared/utils.js'
 // import { Markdown } from 'tiptap-markdown';
 import Link from '@tiptap/extension-link'
+import ButtonNode from '@/components_shared/ButtonExtension.js';
+// import InputRules from '@tiptap/extension-input-rules';
 
 const dim_store = dimStore()
 const lowlight = createLowlight(all)
 
 const editor = useEditor({
     extensions: [
+    ButtonNode,
     Link,
         StarterKit.configure({
             heading: false,
@@ -33,8 +36,9 @@ const editor = useEditor({
         CustomHeading,
         getTrackHeadingsExtension(dim_store, dim_store.html_content),
     ],
+    // content: 'fsf ds dsfdsfdfds',
+    // content: 'ss<button-node name="content"></button-node>',
     content: dim_store.html_content,
-
     onUpdate: ({ editor }) => {
         let html = editor.getHTML()
         if (html !== dim_store.html_content) {

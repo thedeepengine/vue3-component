@@ -35,6 +35,7 @@ export const dimStore = defineStore("dimStore", () => {
   // tiptap editor
   const html_content = ref('')
   const md_content = ref('')
+  const show_refs = ref(false)
 
   // thingsSpace
   const things_space_data = ref(undefined)
@@ -589,6 +590,9 @@ watch(() => [d3_network_data.value],
     }
   });
 
+
+
+
   return {
     is_menu_open,
     deep_level,
@@ -614,6 +618,7 @@ watch(() => [d3_network_data.value],
     //tiptap editor
     html_content,
     md_content,
+    show_refs,
 
     // thingsSpace
     things_space_option,

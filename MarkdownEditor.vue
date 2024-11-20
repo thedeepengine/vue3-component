@@ -17,14 +17,18 @@ import { markdownToHtml } from '@/components_shared/utils.js'
 // import { Markdown } from 'tiptap-markdown';
 import Link from '@tiptap/extension-link'
 import ButtonNode from '@/components_shared/ButtonExtension.js';
+import RefBadge from '@/components_shared/RefBadgeExtension.js';
 // import InputRules from '@tiptap/extension-input-rules';
+import { Plugin } from 'prosemirror-state';
 
 const dim_store = dimStore()
 const lowlight = createLowlight(all)
 
+
 const editor = useEditor({
     extensions: [
     ButtonNode,
+    RefBadge,
     Link,
         StarterKit.configure({
             heading: false,
@@ -62,6 +66,34 @@ onMounted(() => {
             editor.value.commands.setContent(dim_store.html_content);
         }
     }, { immediate: true });
+
+
+
+watch(() => dim_store.show_refs, () => {
+  console.log('ddd')
+  editor.value.commands.toggleButton();
+
+  // if (dim_store.show_refs) {
+  //   console.log('aaaa')
+  //   editor.value.commands.toggleButton();
+  // } else {
+  //   editor.value.commands.toggleButton({ showButton: false });
+  // }
+})
+
+
+
+
+// const addButtons = () => {
+//       editor.commands.toggleButton({ showButton: true });
+//     };
+
+//     const removeButtons = () => {
+//       editor.commands.toggleButton({ showButton: false });
+//     };
+
+
+
 });
 
 

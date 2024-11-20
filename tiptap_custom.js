@@ -245,14 +245,11 @@ function getTrackHeadingsExtension(store, html_content) {
           new Plugin({
             appendTransaction(transactions, oldState, newState) {
               const { $head } = newState.selection;
-              const lineText = $head.nodeBefore?.textContent || '';
+              const { $from } = newState.selection;
 
-              console.log('lineText', lineText)
-              console.log('transactions', transactions)
-              console.log('$head', $head)
+              const nodeAtPos = $from.node();
   
-              // Check if the line starts with a '#'
-              if (!lineText.trim().startsWith('#')) {
+              if (!nodeAtPos.type.name === 'heading') {
                 return null; // Stop the transaction if it's not a markdown title
               }
               transactions.forEach(transaction => {

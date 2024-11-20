@@ -73,26 +73,7 @@ watch(() => dim_store.show_refs, () => {
   console.log('ddd')
   editor.value.commands.toggleButton();
 
-  // if (dim_store.show_refs) {
-  //   console.log('aaaa')
-  //   editor.value.commands.toggleButton();
-  // } else {
-  //   editor.value.commands.toggleButton({ showButton: false });
-  // }
 })
-
-
-
-
-// const addButtons = () => {
-//       editor.commands.toggleButton({ showButton: true });
-//     };
-
-//     const removeButtons = () => {
-//       editor.commands.toggleButton({ showButton: false });
-//     };
-
-
 
 });
 

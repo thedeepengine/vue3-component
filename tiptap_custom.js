@@ -1,135 +1,10 @@
 import { Heading } from '@tiptap/extension-heading';
-import { Extension } from '@tiptap/core';
+import { Extension, mergeAttributes } from '@tiptap/core';
 import { Plugin } from 'prosemirror-state';
 import { select as d3select, selectAll as d3selectAll } from 'd3-selection'
+import { Mention } from '@tiptap/extension-mention';
 
 import { updateNestedObjectByKey, compute_and_draw_tree, displayStaticTree } from '@/components_shared/network/network_utils.js'
-
-// const CustomHeading = Heading.extend({
-//   addAttributes() {
-//     return {
-//       ...this.parent?.(),
-//       id: {
-//         default: null,
-//         rendered: true,
-//       },
-//     };
-//   },
-
-//   renderHTML({ node, HTMLAttributes }) {
-//     return [
-//       `h${node.attrs.level}`,
-//       {
-//         ...HTMLAttributes,
-//         id: node.attrs.id ? node.attrs.id : undefined,
-//       },
-//       0,
-//     ];
-//   },
-
-//   addCommands() {
-//     return {
-//       setCustomHeading: attributes => ({ commands }) => {
-//         return commands.setNode('heading', attributes);
-//       }
-//     };
-//   }
-// });
-
-
-
-
-// const CustomHeading = Heading.extend({
-//   addAttributes() {
-//     return {
-//       ...this.parent?.(),
-//       id: {
-//         default: null,
-//         rendered: true,
-//       },
-//     };
-//   },
-
-//   renderHTML({ node, HTMLAttributes }) {
-//     return [
-//       'div',
-//       { style: 'display: flex; align-items: baseline;' },
-//       [
-//         `h${node.attrs.level}`,
-//         {
-//           ...HTMLAttributes,
-//           id: node.attrs.id ? node.attrs.id : undefined,
-//         },
-//         0
-//       ],
-//       ['button', { type: 'button' }, 'Click Me']
-//     ];
-//   },
-
-//   addCommands() {
-//     return {
-//       setCustomHeading: attributes => ({ commands }) => {
-//         return commands.setNode('heading', attributes);
-//       }
-//     };
-//   }
-// });
-
-
-// const CustomHeading = Heading.extend({
-//   addAttributes() {
-//     return {
-//       ...this.parent?.(),
-//       id: {
-//         default: null,
-//         rendered: true,
-//       },
-//       showButton: {
-//         default: false,
-//         rendered: false
-//       }
-//     };
-//   },
-
-//   renderHTML({ node, HTMLAttributes }) {
-//     const elements = [
-//       'div',
-//       { style: 'display: flex; align-items: baseline;' },
-//       [
-//         `h${node.attrs.level}`,
-//         {
-//           ...HTMLAttributes,
-//           id: node.attrs.id ? node.attrs.id : undefined,
-//         },
-//         0
-//       ]
-//     ];
-
-//     if (node.attrs.showButton) {
-//       console.log('pusheddd')
-//       elements.push(['button', { type: 'button' }, 'Click Me']);
-//     }
-
-//     return elements;
-//   },
-
-//   addCommands() {
-//     return {
-//       toggleButton: attributes => ({ commands }) => {
-//         console.log('commands', commands)
-//         if (attributes.showButton) {
-//           console.log('attributes', attributes)
-//           return commands.updateAttributes('heading', { showButton: true });
-//         } else {
-//           return commands.updateAttributes('heading', { showButton: false });
-//         }
-//       },
-//       setCustomHeading: attributes => ({ commands }) => {
-//         return commands.setNode('heading', attributes);
-//       }
-//     };
-//   }
-// });
 
 const CustomHeading = Heading.extend({
   addAttributes() {
@@ -139,9 +14,17 @@ const CustomHeading = Heading.extend({
         default: null,
         rendered: true,
       },
+      'data-parent-ref': {
+        default: null,
+        rendered: true,
+      },
+      w_opp_ref: {
+        default: null,
+        rendered: true,
+      },
       showButton: {
         default: false,
-        rendered: false  // Ensure this attribute does not need to be rendered in HTML but does control behavior
+        rendered: false  
       }
     };
   },
@@ -160,9 +43,30 @@ const CustomHeading = Heading.extend({
       ]
     ];
 
-    // Conditionally append the button if showButton attribute is true
     if (node.attrs.showButton) {
-      elements.push(['button', { type: 'button' }, 'Click Me']);
+
+      if (node.attrs['data-parent-ref'] !== '') {
+        const mentionAttributes = {
+          id: '1', 
+          label: node.attrs['data-parent-ref'],
+        };
+  
+        const mentionElement = [
+          'span',
+          mergeAttributes(
+            {
+              class: 'mention',
+              contenteditable: 'false',
+            },
+            mentionAttributes
+          ),
+          `@${mentionAttributes.label}`,
+        ];
+  
+        elements.splice(elements.length - 1, 0, mentionElement);
+        // elements.push(mentionElement);
+        
+      }
     }
 
     return elements;
@@ -218,8 +122,6 @@ const CustomHeading = Heading.extend({
       }
     };
   }
-
-  
 });
 
 

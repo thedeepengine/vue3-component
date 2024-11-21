@@ -4,54 +4,27 @@ import customHeadingId from "marked-custom-heading-id";
 marked.use(customHeadingId());
 marked.use(markedKatex({throwOnError: false,displayMode: true}));
 
+const renderer = {
+  heading({ tokens, depth }) {
+    // let split_text_uuid = tokens[0].text.split('{#X')
+    let split_text_uuid = tokens[0].text.split('{#')
+    let text = split_text_uuid[0]
+    let uuid = split_text_uuid[1]
+    let parent_ref = split_text_uuid[2]
+    return `<h${depth} class="custom-heading" id="${uuid}" data-parent-ref="${parent_ref}">${text}</h${depth}>`;
+  },
+  paragraph(token) {
+    console.log('token', token)
 
+    if (token.text.startsWith('<button-node')) {
+      return token.text; 
+    }
+    return `<p>${token.text}</p>`; 
 
-const renderer = new marked.Renderer();
-
-// Override the rendering for specific elements
-renderer.title = function(text) {
-  console.log("Paragraph detected:", text);  // Notify when paragraph is detected
-  const result = `<p>${text}</p>`;
-  console.log("Finished rendering paragraph");  // Notify when paragraph rendering is finished
-  return result;
+  }
 };
 
-renderer.heading = function(text, level) {
-  console.log('texttexttext', JSON.stringify(text, null, 2))
-  console.log('level',JSON.stringify(level, null, 2))
-  console.log(`Heading detected: Level ${level} - ${String(text)}`);  // Ensure text is a string
-
-  console.log(`Heading detected: Level ${level} - ${text}`);  // Log when a heading is detected
-  // You can customize the HTML here. For example, adding a class based on the level.
-  const result = `<h${level} class="custom-heading">${text}</h${level}>`;
-  console.log("Finished rendering heading");  // Log when the heading rendering is finished
-  return result;
-};
-
-
-renderer.paragraph = function(text) {
-  console.log("Paragraph detected:", text);  // Notify when paragraph is detected
-  const result = `<p>${text}</p>`;
-  console.log("Finished rendering paragraph");  // Notify when paragraph rendering is finished
-  return result;
-};
-
-renderer.list = function(body, ordered) {
-  console.log("List detected:", body);  // Notify when list is detected
-  console.log("List detected ordered:", ordered);  // Notify when list is detected
-  const result = `<ul>${body}</ul>`;
-  console.log('body---- ', body)
-  console.log("Finished rendering list");  // Notify when list rendering is finished
-  return result;
-};
-
-renderer.listitem = function(text) {
-  console.log("List item detected:", text);  // Notify when list item is detected
-  const result = `<li>${text}</li>`;
-  console.log("Finished rendering list item");  // Notify when list item rendering is finished
-  return result;
-};
-
+marked.use({ renderer });
 
 
 function test_click_utils() {
@@ -77,23 +50,19 @@ This is a paragraph with a [link](https://example.com).
 
 }
 
-function translate(data) {
-    marked.setOptions({
-      // renderer: renderer,
-      highlight: function (code, lang) {
-        const hljs = highlight.HighlightJS;
-        const language = lang;
-        return hljs.highlight(code, { language }).value;
-      },
-      langPrefix: "hljs language-",
-    });
-    return marked(data);
-  }
 
   
 function markdownToHtml(rawMarkdown) {  
-    let html_content = translate(rawMarkdown)
-    return html_content
+  marked.setOptions({
+    // renderer: renderer,
+    highlight: function (code, lang) {
+      const hljs = highlight.HighlightJS;
+      const language = lang;
+      return hljs.highlight(code, { language }).value;
+    },
+    langPrefix: "hljs language-",
+  });
+  return marked.parse(rawMarkdown);
   }
   
 

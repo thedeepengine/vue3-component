@@ -33,18 +33,6 @@ export default Node.create({
     return VueNodeViewRenderer(Component)
   },
 
-//   addInputRules() {
-//     return [
-//       nodeInputRule({
-//         find: /::(\w+)$/, // Match syntax like "::componentName"
-//         type: this.type,
-//         getAttributes: match => ({
-//           name: match[1], // Extract "componentName" and set it as content
-//         }),
-//       }),
-//     ];
-//   },
-
 addKeyboardShortcuts() {
     return {
       Enter: ({ editor }) => {
@@ -66,14 +54,6 @@ addKeyboardShortcuts() {
                     this.type.create({ name: match[1] }) 
                   );
             
-
-                //   const insertedNodePos = tr.doc.resolve(start);
-                //   const afterNodePos = insertedNodePos.end(); // Get the end position of the inserted block
-          
-                //   // Move the cursor to the position after the inserted node
-                //   const nextPos = tr.doc.resolve(afterNodePos).after(); // Find the position right after the inserted block node
-                //   tr.setSelection(TextSelection.create(tr.doc, nextPos));
-          
                   view.dispatch(tr);
                   return true; 
                 }

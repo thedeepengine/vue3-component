@@ -17,7 +17,11 @@ import { markdownToHtml } from '@/components_shared/utils.js'
 // import { Markdown } from 'tiptap-markdown';
 import Link from '@tiptap/extension-link'
 import ButtonNode from '@/components_shared/ButtonExtension.js';
-import RefBadge from '@/components_shared/RefBadgeExtension.js';
+import Mention from '@tiptap/extension-mention'
+import suggestion from '@/components_shared/suggestion.js'
+
+
+
 // import InputRules from '@tiptap/extension-input-rules';
 import { Plugin } from 'prosemirror-state';
 
@@ -27,8 +31,13 @@ const lowlight = createLowlight(all)
 
 const editor = useEditor({
     extensions: [
+    Mention.configure({
+          HTMLAttributes: {
+            class: 'mention',
+          },
+          suggestion,
+        }),
     ButtonNode,
-    RefBadge,
     Link,
         StarterKit.configure({
             heading: false,
@@ -40,18 +49,19 @@ const editor = useEditor({
         CustomHeading,
         getTrackHeadingsExtension(dim_store, dim_store.html_content),
     ],
-    // content: 'fsf ds dsfdsfdfds',
-    // content: 'ss<button-node name="content"></button-node>',
-    content: dim_store.html_content,
-    onUpdate: ({ editor }) => {
-        let html = editor.getHTML()
-        if (html !== dim_store.html_content) {
-            dim_store.html_content = html
-        }
-    },
+    content: 'fsf ds <p><button-node name="contenthhjjjjjh"></button-node></p> <button-node name="contenthhh"></button-node>dsfdsfdfds<span data-type="mention" data-id="Jennifer Grey"></span>kk',
+    // content: '\fdsf io fosd fidsof dss <span class="ref-badge">badges</span>.</p>',
+    // content: dim_store.html_content,
+    // onUpdate: ({ editor }) => {
+    //     let html = editor.getHTML()
+    //     if (html !== dim_store.html_content) {
+    //         dim_store.html_content = html
+    //     }
+    // },
     editorProps: {
     handlePaste(view, event, slice) {
         const markdownContent = event.clipboardData.getData('text/plain');
+        console.log('markdownContent', markdownContent)
         const htmlContent = markdownToHtml(markdownContent) 
         editor.value.commands.insertContent(htmlContent);
         return true; 
@@ -62,16 +72,18 @@ const editor = useEditor({
 onMounted(() => {
     watch(() => dim_store.md_content, (newValue) => {
         if (editor.value && editor.value.getHTML() !== newValue) {
+          console.log('md_content: ', newValue)
             dim_store.html_content = markdownToHtml(newValue)
+            console.log('dim_store.html_content: ', dim_store.html_content)
             editor.value.commands.setContent(dim_store.html_content);
         }
     }, { immediate: true });
 
-
-
 watch(() => dim_store.show_refs, () => {
   console.log('ddd')
   editor.value.commands.toggleButton();
+
+  console.log('dim_store.html_content:\n', dim_store.html_content)
 
 })
 
@@ -173,78 +185,18 @@ onBeforeUnmount(() => {
     }
   }
 }
-</style>
 
 
+.tiptap .mention {
+  // :first-child {
+  //   margin-top: 0;
+  // }
 
-
-
-
-
-
-
-<!-- Markdown.configure({
-  html: true,                  // Allow HTML input/output
-  tightLists: true,            // No <p> inside <li> in markdown output
-  tightListClass: 'tight',     // Add class to <ul> allowing you to remove <p> margins when tight
-  bulletListMarker: '-',       // <li> prefix in markdown output
-  linkify: true,              // Create links from "https://..." text
-  breaks: true,               // New lines (\n) in markdown input are converted to <br>
-  transformPastedText: true,  // Allow to paste markdown text in the editor
-  transformCopiedText: true,  // Copied text is transformed to markdown
-})
-
-
-import { Extension } from "@tiptap/core";
-import { Plugin, PluginKey } from '@tiptap/pm/state';
-import { DOMParser } from '@tiptap/pm/model';
-
-const MarkdownClipboard = Extension.create({
-    name: 'markdownClipboard',
-    addOptions() {
-        return {
-            transformPastedText: true,
-            transformCopiedText: true,
-        }
-    },
-    addProseMirrorPlugins() {
-
-      function elementFromString(value) {
-    // add a wrapper to preserve leading and trailing whitespace
-    const wrappedValue = `<body>${value}</body>`
-
-    return new window.DOMParser().parseFromString(wrappedValue, 'text/html').body
+    background-color: #F1E6FF;
+    border-radius: 0.4rem;
+    box-decoration-break: clone;
+    color: #420099;
+    padding: 0.1rem 0.3rem;
+  
 }
-
-      return [
-            new Plugin({
-                key: new PluginKey('markdownClipboard'),
-                props: {
-                    clipboardTextParser: (text, context, plainText) => {
-                      console.log('JJJJJ')
-                        // if(plainText || !this.options.transformPastedText) {
-                        //     return null; // pasting with shift key prevents formatting
-                        // }
-                        const parsed = this.editor.storage.markdown.parser.parse(text, { inline: true });
-                        return DOMParser.fromSchema(this.editor.schema)
-                            .parseSlice(elementFromString(parsed), {
-                                preserveWhitespace: true,
-                                context,
-                            });
-                    },
-                    /**
-                     * @param {import('prosemirror-model').Slice} slice
-                     */
-                    clipboardTextSerializer: (slice) => {
-                        // if(!this.options.transformCopiedText) {
-                        //   console.log()
-                        //     return null;
-                        // }
-                        console.log('slice.content', slice.content)
-                        return this.editor.storage.markdown.serializer.serialize(slice.content);
-                    },
-                },
-            })
-        ]
-    }
-}) -->
+</style>

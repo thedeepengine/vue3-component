@@ -1,8 +1,7 @@
 <template>
-    <div 
-        style="z-index:10;padding-top:12vh;padding-left:3vh">
-        <editor-content id="dimension_tiptap" :editor="editor" />
-    </div>
+  <div style="z-index:10;padding-top:12vh;padding-left:3vh">
+    <editor-content id="dimension_tiptap" :editor="editor" />
+  </div>
 </template>
 
 <script setup>
@@ -14,96 +13,105 @@ import { all, createLowlight } from 'lowlight'
 import { CustomHeading, getTrackHeadingsExtension } from '@/components_shared/tiptap_custom.js'
 import { dimStore } from '@/components_shared/dimStore'
 import { markdownToHtml } from '@/components_shared/utils.js'
-// import { Markdown } from 'tiptap-markdown';
 import Link from '@tiptap/extension-link'
 import ButtonNode from '@/components_shared/ButtonExtension.js';
 import Mention from '@tiptap/extension-mention'
 import suggestion from '@/components_shared/suggestion.js'
 
-
-
-// import InputRules from '@tiptap/extension-input-rules';
-import { Plugin } from 'prosemirror-state';
-
 const dim_store = dimStore()
 const lowlight = createLowlight(all)
 
 
+const debounceTimer = ref(null);
+
+const findNearestHeading = (editor) => {
+  let position = editor.state.selection.$from.pos;
+
+  while (position > 0) {
+    const $pos = editor.state.doc.resolve(position);
+    const node = $pos.nodeBefore;
+    if (node && node.type.name === 'vueComponent') {
+    }
+    if (node && node.type.name === 'heading') {
+      return;
+    }
+    position--;
+  }
+};
+
+
 const editor = useEditor({
-    extensions: [
+  extensions: [
     Mention.configure({
-          HTMLAttributes: {
-            class: 'mention',
-          },
-          suggestion,
-        }),
+      HTMLAttributes: {
+        class: 'mention',
+      },
+      suggestion,
+    }),
     ButtonNode,
     Link,
-        StarterKit.configure({
-            heading: false,
-            codeBlock: false
-        }),
-        CodeBlockLowlight.configure({
-          lowlight,
-        }),
-        CustomHeading,
-        getTrackHeadingsExtension(dim_store, dim_store.html_content),
-    ],
-    content: 'fsf ds <p><button-node name="contenthhjjjjjh"></button-node></p> <button-node name="contenthhh"></button-node>dsfdsfdfds<span data-type="mention" data-id="Jennifer Grey"></span>kk',
-    // content: '\fdsf io fosd fidsof dss <span class="ref-badge">badges</span>.</p>',
-    // content: dim_store.html_content,
-    // onUpdate: ({ editor }) => {
-    //     let html = editor.getHTML()
-    //     if (html !== dim_store.html_content) {
-    //         dim_store.html_content = html
-    //     }
-    // },
-    editorProps: {
+    StarterKit.configure({
+      heading: false,
+      codeBlock: false
+    }),
+    CodeBlockLowlight.configure({
+      lowlight,
+    }),
+    CustomHeading,
+    getTrackHeadingsExtension(dim_store, dim_store.html_content),
+  ],
+  content: dim_store.html_content,
+  onUpdate: ({ editor }) => {
+    let html = editor.getHTML()
+    if (html !== dim_store.html_content) {
+      console.log("HTMLLLLLLLLLLLLLL")
+      dim_store.html_content = html
+    }
+
+    if (debounceTimer.value) {
+      clearTimeout(debounceTimer.value);
+    }
+    debounceTimer.value = setTimeout(() => findNearestHeading(editor), 300);
+  },
+  editorProps: {
     handlePaste(view, event, slice) {
-        const markdownContent = event.clipboardData.getData('text/plain');
-        console.log('markdownContent', markdownContent)
-        const htmlContent = markdownToHtml(markdownContent) 
-        editor.value.commands.insertContent(htmlContent);
-        return true; 
+      const markdownContent = event.clipboardData.getData('text/plain');
+      const htmlContent = markdownToHtml(markdownContent)
+      editor.value.commands.insertContent(htmlContent);
+      return true;
     }
   }
 });
 
 onMounted(() => {
-    watch(() => dim_store.md_content, (newValue) => {
-        if (editor.value && editor.value.getHTML() !== newValue) {
-          console.log('md_content: ', newValue)
-            dim_store.html_content = markdownToHtml(newValue)
-            console.log('dim_store.html_content: ', dim_store.html_content)
-            editor.value.commands.setContent(dim_store.html_content);
-        }
-    }, { immediate: true });
+  watch(() => dim_store.md_content, (newValue) => {
+    if (editor.value && editor.value.getHTML() !== newValue) {
+      dim_store.html_content = markdownToHtml(newValue)
+      editor.value.commands.setContent(dim_store.html_content);
+    }
+  }, { immediate: true });
 
-watch(() => dim_store.show_refs, () => {
-  console.log('ddd')
-  editor.value.commands.toggleButton();
-
-  console.log('dim_store.html_content:\n', dim_store.html_content)
-
-})
+  watch(() => dim_store.show_refs, () => {
+    editor.value.commands.toggleButton();
+  })
 
 });
 
 
 onBeforeUnmount(() => {
-    if (editor) {
-        editor.value.destroy();
-    }
+  if (editor) {
+    editor.value.destroy();
+  }
 });
 </script>
 
 <style>
 #dimension_tiptap .tiptap {
-    height: 100vh;
+  height: 100vh;
 }
 
 #dimension_tiptap .tiptap:focus {
-    outline: none !important;
+  outline: none !important;
 }
 </style>
 
@@ -192,11 +200,11 @@ onBeforeUnmount(() => {
   //   margin-top: 0;
   // }
 
-    background-color: #F1E6FF;
-    border-radius: 0.4rem;
-    box-decoration-break: clone;
-    color: #420099;
-    padding: 0.1rem 0.3rem;
-  
+  background-color: #F1E6FF;
+  border-radius: 0.4rem;
+  box-decoration-break: clone;
+  color: #420099;
+  padding: 0.1rem 0.3rem;
+
 }
 </style>

@@ -294,30 +294,15 @@ console.log('create_new_map: ', input)
     let idx = 0;
     const tokens = marked.lexer(markdown);
     const stored_ids = { value: [] };
-    // text_tracker.value = []
-
-
     const processTokens = (tokens) => {
       tokens.forEach((token) => {
-        console.log('token', token)
-        // Assign unique ID and to_stream field, then clear text
 
         if (['heading', 'paragraph', 'strong', 'em'].includes(token.type)) {
           token.id = `${token.type}-${idx}`;
           stored_ids.value.push(token.id);
-
-          // if (text_tracker.value[idx] !== undefined) {
-            // token.text = text_tracker.value[idx]
-          // } else {
-            token.text=''
-          // }
-          
+            token.text=''          
           idx += 1;
         }
-
-        // if (token.type === 'text') {
-        //   token.text=''
-        // }
         if (token.type !== 'space') {
           token.to_stream = token?.text.trim().split(' ') || '';
           token.to_stream = token.to_stream.map((item, index) => index === 0 ? item : ` ${item}`);  
@@ -328,8 +313,6 @@ console.log('create_new_map: ', input)
         }
       });
     };
-
-    // tokens[tokens.length-1].
 
     processTokens(tokens);
     return tokens;
@@ -356,8 +339,6 @@ console.log('create_new_map: ', input)
       langPrefix: "hljs language-",
       renderer: renderer
     });
-
-    console.log('marked', marked)
 
   }
 
@@ -464,12 +445,12 @@ watch(() => [d3_network_data.value],
   }));
 
 
-  function md_to_hierarchy(md) {
+  function html_to_hierarchy(html) {
     apiClient
-      .post("https://localhost:8002/v1/api/md_to_hierarchy/", { md: md })
+      .post("https://localhost:8002/v1/api/html_to_hierarchy/", { html: html })
       .then(response => {
-        console.log('md_to_hierarchy', response.data)
-        w_data.value = response.data.hierarchy
+        console.log('md_to_hierarchy', response.data.hierarchy[0])
+        w_data.value = response.data.hierarchy[0]
       })
   }
 
@@ -488,6 +469,7 @@ watch(() => [d3_network_data.value],
         if (response.data?.things_space) things_space_data.value = response.data.things_space
         if (response.data?.graphql) {
           let graphql = response.data.graphql
+          let header_prop_name = response.data.header_prop_name
           code.value = JSON.stringify(graphql, null, '\t')
         }
         if (response.data?.data_table) data_table.value = response.data.data_table
@@ -642,7 +624,7 @@ watch(() => [d3_network_data.value],
 
 
     turndownService,
-    md_to_hierarchy,
+    html_to_hierarchy,
 
     allowed_clt_fields,
 

@@ -14,7 +14,6 @@ const renderer = {
     return `<h${depth} class="custom-heading" id="${uuid}" data-parent-ref="${parent_ref}">${text}</h${depth}>`;
   },
   paragraph(token) {
-    console.log('token', token)
 
     if (token.text.startsWith('<button-node')) {
       return token.text; 
@@ -33,9 +32,8 @@ function test_click_utils() {
   
   lexer.lex = function (src) {
     const tokens = originalLex.call(this, src);    
-    tokens.forEach(token => {
-      console.log('Token:', token);
-    });
+    // tokens.forEach(token => {
+    // });
     
     return tokens;
   };
@@ -46,7 +44,6 @@ function test_click_utils() {
 This is a paragraph with a [link](https://example.com).
 `;
   const tokens = lexer.lex(markdown);
-  console.log('tokens ', tokens)
 
 }
 

@@ -42,13 +42,13 @@ const checkElement = () => {
     }
 };
 
-watch(() => [dim_store.refresh_network, isElementPresent.value],
+watch(() => [dim_store.w_data, isElementPresent.value],
     ([refresh_network, old_data], [q, w]) => {
         if (isElementPresent.value === true) {
-            if (refresh_network === 'network') {
+            if (dim_store.dimension === 'network') {
                 empty_static_tree()
                 forcedTree(dim_store.d3_network_data, 'network')
-            } else if (refresh_network === 'hierarchy') {
+            } else if (dim_store.dimension === 'hierarchy') {
                 empty_force_tree()
                 displayStaticTree(dim_store)
             }

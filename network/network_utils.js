@@ -243,7 +243,7 @@ function get_front_displayed_text(store,d3sel) {
         rr
             .attr("transform", d => `translate(${d.y_start},${d.x-14})`)
             .style('width', node_width)
-            // .attr('data-pathid', d => d.data.uuid_front)
+            .attr('data-pathid', d => d.data.uuid_front)
             .select('input') // Select the input child of each existing .node_text div
                 .property('value', d => d.data.name) // Use property for input value
                 .style('width', node_width)

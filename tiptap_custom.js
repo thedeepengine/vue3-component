@@ -24,20 +24,27 @@ const CustomHeading = Heading.extend({
       },
       showButton: {
         default: false,
-        rendered: false  
+        rendered: false
       }
     };
   },
 
   renderHTML({ node, HTMLAttributes }) {
+
+    if (!node.attrs.id) {
+      node.attrs.id = `X_TEM_${Math.random().toString(36).substr(2, 9)}`;
+    }
+    HTMLAttributes.id = node.attrs.id;
+
     const elements = [
       'div',
-      { style: 'display: flex; align-items: baseline;' },
+      { style: 'display: flex; align-items: baseline;', class: 'fmw-title' },
       [
         `h${node.attrs.level}`,
         {
           ...HTMLAttributes,
-          id: node.attrs.id ? node.attrs.id : undefined,
+          // id: node.attrs.id || `X_TEM_${Math.random().toString(36).substr(2, 9)}`
+          // id: node.attrs.id ? node.attrs.id : || X_TEM_${Math.random().toString(36).substr(2, 9)},
         },
         0
       ]
@@ -47,10 +54,10 @@ const CustomHeading = Heading.extend({
 
       if (node.attrs['data-parent-ref'] !== '') {
         const mentionAttributes = {
-          id: '1', 
+          id: '1',
           label: node.attrs['data-parent-ref'],
         };
-  
+
         const mentionElement = [
           'span',
           mergeAttributes(
@@ -62,10 +69,10 @@ const CustomHeading = Heading.extend({
           ),
           `@${mentionAttributes.label}`,
         ];
-  
+
         elements.splice(elements.length - 1, 0, mentionElement);
         // elements.push(mentionElement);
-        
+
       }
     }
 
@@ -125,9 +132,6 @@ const CustomHeading = Heading.extend({
 });
 
 
-
-
-
 function getHeadingsInRange(doc, from, to) {
   let headings = [];
   doc.nodesBetween(from, to, (node, pos) => {
@@ -150,12 +154,13 @@ function getTrackHeadingsExtension(store, html_content) {
               const { $from } = newState.selection;
 
               const nodeAtPos = $from.node();
-  
+
               if (!nodeAtPos.type.name === 'heading') {
                 return null; // Stop the transaction if it's not a markdown title
               }
               transactions.forEach(transaction => {
                 transaction.steps.forEach(step => {
+                  console.log('ddd')
                   const stepMap = step.getMap();
                   stepMap.forEach((oldStart, oldEnd, newStart, newEnd) => {
 
@@ -163,21 +168,21 @@ function getTrackHeadingsExtension(store, html_content) {
                     const newHeadings = getHeadingsInRange(newState.doc, newStart, newEnd);
 
                     if (newHeadings.length === 1 && oldHeadings.length === 1 && oldHeadings[0].content !== newHeadings[0].content) {
-
                       if (newHeadings[0]?.id !== null) {
                         const updatedDataItem = {
                           uuid_front: newHeadings[0].id,
                           data: { name: newHeadings[0].content }
                         };
-                        updateNestedObjectByKey(store.w_data, updatedDataItem.uuid_front, 'name', newHeadings[0].content)
-                        displayStaticTree(store)
+                        let is_uuid_existing = updateNestedObjectByKey(store.w_data, updatedDataItem.uuid_front, 'name', newHeadings[0].content)
+                        if (!is_uuid_existing) {
+                          store.html_to_hierarchy(store.html_content)
+                        } else {
+                          displayStaticTree(store)
+                        }
                       } else {
 
                         setTimeout(() => {
-                          let md = store.turndownService.turndown(store.html_content)
-                          store.md_to_hierarchy(md)
-                          displayStaticTree(store)
-
+                          store.html_to_hierarchy(store.html_content)
                         }, 100);
                       }
                     }

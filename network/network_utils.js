@@ -91,9 +91,7 @@ function empty_force_tree() {
 }
 
 function displayStaticTree(store, add_event_func=undefined) {
-    console.log('aaaaa', store.w_data)
     if (Object.keys(store.w_data).length > 0) {
-        console.log('aaaaa', store.w_data.value)
         let { root_nodes, root_links } = compute_and_draw_tree(store)
 
         store.root_nodes = root_nodes

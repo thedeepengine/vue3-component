@@ -11,7 +11,7 @@ export const dimStore = defineStore("dimStore", () => {
   // const left_panel = ref('loading')
 
   const is_menu_open = ref(false)
-  const dimension = ref('hierarchy')
+  const dimension = ref('network')
   const left_panel = ref('markdown')
 
   
@@ -351,6 +351,9 @@ console.log('create_new_map: ', input)
 
 
 
+    let newValue='name=test>>name,name,content,hasChildren:name,content,hasOntology:name,content'
+    fetch_data('NodeTest2', newValue)
+
 
     turndownService.value.escape = function (text) {
       return text.replace(/([\\`*{}[\]()#+.!-])/g, '\\$1'); // Keep only necessary escapes
@@ -460,8 +463,11 @@ watch(() => [d3_network_data.value],
       request = 'name,vector,hasChildren:name'
     }
 
+    let bundle = { clt: clt, request: request, dimension: dimension.value }
+    bundle.legacy_data = (dimension === 'network' ? w_data.value : undefined)
+
     apiClient
-      .post("https://localhost:8002/v1/api/query/", { clt: clt, request: request, dimension: dimension.value })
+      .post("https://localhost:8002/v1/api/query/", bundle)
       .then(response => {
         if (response.data?.d3) w_data.value = response.data.d3
         if (response.data?.d3_network_data) d3_network_data.value = response.data.d3_network_data

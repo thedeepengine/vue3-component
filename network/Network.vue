@@ -7,7 +7,7 @@
 
 import { drag as d3drag } from 'd3-drag'
 import { hierarchy } from 'd3-hierarchy'
-import { forceSimulation as d3forceSimulation, forceX, forceY, forceCollide, forceLink } from 'd3-force'
+import { forceSimulation as d3forceSimulation, forceX, forceY, forceCollide, forceLink, forceManyBody } from 'd3-force'
 import { select as d3select, selectAll as d3selectAll } from 'd3-selection'
 import { min, max } from "d3-array";
 import { scaleLinear } from "d3-scale";
@@ -42,8 +42,8 @@ const checkElement = () => {
     }
 };
 
-watch(() => [dim_store.w_data, isElementPresent.value],
-    ([refresh_network, old_data], [q, w]) => {
+watch(() => [dim_store.w_data, dim_store.d3_network_data, isElementPresent.value],
+    ([refresh_network, s, old_data], [q, h, w]) => {
         if (isElementPresent.value === true) {
             if (dim_store.dimension === 'network') {
                 empty_static_tree()
@@ -176,114 +176,163 @@ function dim_force_network() {
     d3selectAll("circle.base_node").style('opacity', 0.2)
 }
 
-function forcedTree(data, data_type='hierarchy') {
-    let links;
-    let nodes;
-    if (data_type === 'hierarchy') {
-        const root = hierarchy(data);
-        links = root.links();
-        nodes = root.descendants();
-    } else if (data_type === 'network') {
-        links = data.links
-        nodes = data.nodes
+function forcedTree(data, data_type = 'hierarchy') {
+    if (Object.keys(data).length > 0) {
+        let links;
+        let nodes;
+        
+        if (data_type === 'hierarchy') {
+            const root = hierarchy(data);
+            links = root.links();
+            nodes = root.descendants();
+        } else if (data_type === 'network') {
+            links = data.links
+            nodes = data.nodes
+        }
+
+        console.log('nodes', nodes)
+        
+        const nodeColor = '#3A434A'
+
+        simulation.value = d3forceSimulation()
+            .nodes(nodes)
+            .force("x", forceX())
+            .force("y", forceY())
+            .force("charge", forceManyBody())
+            .force("link", forceLink(links).id(d => d.id))
+            .force("collide", forceCollide().strength(0.3).radius(d => forcedNodeR + 12));
+
+        const svg = d3select("#forcedtree")
+            .attr("class", "onesvg2")
+
+        const link = svg.append("g")
+            // .setAttrs({ 'class': 'back_link_container', 'stroke': '#999', 'stroke-opacity': 0.6, 'stroke-width': 0.5 })
+            .attr("stroke", "#4c5467")
+            .attr("stroke-opacity", 0.6)
+            // .attr("fill", '#3f83c9')
+            .selectAll("line")
+            .data(links)
+            .join("line")
+            // .attr("stroke-width", d => 40);
+            .attr('class', 'forcedlink');
+
+        const colorScale = scaleLinear()
+            .domain([min(nodes, d => d.weight), max(nodes, d => d.weight)])
+            .range(["rgb(63, 131, 201)", "rgb(255, 255, 255)"]);
+
+
+        // const node = svg.append("g")
+        //     .setAttrs({ 'class': 'back_node_container', "fill": nodeColor, "stroke": nodeColor, "stroke-width": 0.3, "stroke": nodeColor })
+        //     .selectAll("circle")
+        //     .data(nodes)
+        //     .join("circle")
+        //     .setAttrs({
+        //         "fill": '#4c5467',
+        //         "stroke": 'none',
+        //         'class': 'base_node',
+        //         "r": d => Math.max(5, Math.sqrt(d.weight * 50))
+        //         // "r": forcedNodeR
+        //     })
+        //     .call(drag());
+
+        const nodet = svg.append("g")
+            .attr('class', 'back_node_container')
+            .attr("fill", 'none')
+            .attr("stroke", 'none')
+            .attr("stroke-width", 0.3)
+            .selectAll("circle")
+            .data(nodes)
+            .join("g")
+            .attr('class', 'base_node')
+            .call(drag())
+
+            // visible circles
+            nodet.append("circle")
+            .attr('class', 'visible_circle')
+            .attr("fill", '#4c5467')
+            .attr("data-circle-uuid", d => {console.log('dd', d); return d.uuid_front})
+            .attr("stroke", 'none')
+            .attr("r", d => Math.max(5, Math.sqrt(d.weight * 50)));
+
+
+            // Invisible hover circle
+            nodet.append("circle")
+                .attr("r", d => Math.max(10, Math.sqrt(d.weight * 50) + 5))
+                .attr("fill", "none")
+                .attr("pointer-events", "all")
+                .on("mouseover", function(event, d) {
+                    d3select(this.parentNode).select(".visible_circle").attr("fill", "red");
+                })
+                .on("mouseout", function(event, d) {
+                    d3select(this.parentNode).select(".visible_circle").attr("fill", "#4c5467");
+                });
+
+
+
+
+        const node = svg.selectAll("circle");
+
+
+
+
+        var text = svg.append("g").attr("class", "back_text_container")
+            .selectAll('.back_text')
+            .data(nodes, function (d) { return d ? d.name : this.id; })
+            .join('text')
+            .setAttrs({
+                'class': 'back_text', 'color': '#b0b0b0',
+                'opacity': function (d) { console.log('ddddd', d.depth); return d.depth < 1 ? 0.7 : 0 }, 'font-size': 10, 'text-anchor': () => 'middle'
+            })
+            .text(d => { return d.name })
+            .style('opacity', 0)
+            .attr("display", "none"); 
+
+        var localThis = simulation.value
+
+        function drag() {
+
+            function dragstarted(event, d) {
+                if (!event.active) localThis.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+
+            function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+
+            function dragended(event, d) {
+                if (!event.active) localThis.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+
+            return d3drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended);
+        }
+
+        localThis.on("tick", () => {
+            link
+                .attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+
+            node
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y);
+
+            text
+                .attr("x", d => d.x)
+                .attr("y", d => d.y + 17);
+
+
+        });
+        return svg.node();
     }
-
-    const nodeColor = '#3A434A'
-
-    simulation.value = d3forceSimulation()
-        .nodes(nodes)
-        .force("x", forceX())
-        .force("y", forceY())
-        .force("link", forceLink(links).id(d => d.id))
-        .force("collide", forceCollide().strength(0.3).radius(d => forcedNodeR + 12));
-
-    const svg = d3select("#forcedtree")
-        .attr("class", "onesvg2")
-
-    const link = svg.append("g")
-        // .setAttrs({ 'class': 'back_link_container', 'stroke': '#999', 'stroke-opacity': 0.6, 'stroke-width': 0.5 })
-        .attr("stroke", "#999")
-        .attr("stroke-opacity", 0.6)
-        .selectAll("line")
-        .data(links)
-        .join("line")
-        // .attr("stroke-width", d => 40);
-        .attr('class', 'forcedlink');
-
-    const colorScale = scaleLinear()
-        .domain([min(nodes, d => d.weight), max(nodes, d => d.weight)])
-        .range(["rgb(63, 131, 201)", "rgb(255, 255, 255)"]);
-
-
-    const node = svg.append("g")
-        .setAttrs({ 'class': 'back_node_container', "fill": nodeColor, "stroke": nodeColor, "stroke-width": 0.3, "stroke": nodeColor })
-        .selectAll("circle")
-        .data(nodes)
-        .join("circle")
-        .setAttrs({
-            "fill": d => colorScale(d.weight),
-            "stroke": 0.3,
-            // "stroke": d => { return d.name === 'Genesis' ? '#d4af37' : nodeColor },
-            "stroke-width": 0.3,
-            'class': 'base_node',
-            "r": d => Math.sqrt(d.weight*30)
-            // "r": forcedNodeR
-        })
-        .call(drag());
-
-    var text = svg.append("g").attr("class", "back_text_container")
-        .selectAll('.back_text')
-        .data(nodes, function (d) { return d ? d.name : this.id; })
-        .join('text')
-        .setAttrs({ 'class': 'back_text', 'color': '#b0b0b0',
-                        'opacity': function (d) {console.log('ddddd', d.depth);return d.depth < 1 ? 0.7: 0}, 'font-size': 10, 'text-anchor': () => 'middle' })
-        .text(d => { return d.name })
-
-    var localThis = simulation.value
-
-    function drag() {
-
-        function dragstarted(event, d) {
-            if (!event.active) localThis.alphaTarget(0.3).restart();
-            d.fx = d.x;
-            d.fy = d.y;
-        }
-
-        function dragged(event, d) {
-            d.fx = event.x;
-            d.fy = event.y;
-        }
-
-        function dragended(event, d) {
-            if (!event.active) localThis.alphaTarget(0);
-            d.fx = null;
-            d.fy = null;
-        }
-
-        return d3drag()
-            .on("start", dragstarted)
-            .on("drag", dragged)
-            .on("end", dragended);
-    }
-
-    localThis.on("tick", () => {
-        link
-            .attr("x1", d => d.source.x)
-            .attr("y1", d => d.source.y)
-            .attr("x2", d => d.target.x)
-            .attr("y2", d => d.target.y);
-
-        node
-            .attr("cx", d => d.x)
-            .attr("cy", d => d.y);
-
-        text
-            .attr("x", d => d.x)
-            .attr("y", d => d.y +17);
-
-
-    });
-    return svg.node();
 }
 
 let updateButtonOpacity = function (event) {

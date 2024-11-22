@@ -11,8 +11,11 @@ export const dimStore = defineStore("dimStore", () => {
   // const left_panel = ref('loading')
 
   const is_menu_open = ref(false)
-  const dimension = ref('network')
+  const dimension = ref('hierarchy')
   const left_panel = ref('markdown')
+
+  const legacy_data = ref()
+  const header_prop_name = ref()
 
   
   const root_nodes = ref(undefined)
@@ -463,19 +466,19 @@ watch(() => [d3_network_data.value],
       request = 'name,vector,hasChildren:name'
     }
 
-    let bundle = { clt: clt, request: request, dimension: dimension.value }
-    bundle.legacy_data = (dimension === 'network' ? w_data.value : undefined)
+    let bundle = { clt: clt, request: request, dimension: dimension.value, legacy_data: legacy_data.value }
 
     apiClient
       .post("https://localhost:8002/v1/api/query/", bundle)
       .then(response => {
+        if (response.data?.legacy_data) legacy_data.value = response.data.legacy_data
         if (response.data?.d3) w_data.value = response.data.d3
+        if (response.data?.header_prop_name) header_prop_name.value = response.data.header_prop_name
         if (response.data?.d3_network_data) d3_network_data.value = response.data.d3_network_data
         if (response.data?.md) md_content.value = response.data.md
         if (response.data?.things_space) things_space_data.value = response.data.things_space
         if (response.data?.graphql) {
           let graphql = response.data.graphql
-          let header_prop_name = response.data.header_prop_name
           code.value = JSON.stringify(graphql, null, '\t')
         }
         if (response.data?.data_table) data_table.value = response.data.data_table
@@ -640,6 +643,7 @@ watch(() => [d3_network_data.value],
     // data table
     is_full_screen,
     data_table,
+    header_prop_name,
 
 
 

@@ -1,6 +1,16 @@
 <!-- TEMPLATE MUST HAVE A SINGLE CHILD EVEN COMMENT NOT ACCEPTED -->
 <template>
-    <div class="network_class"></div>
+    <!-- <n-grid x-gap="12" :cols="4">
+        <n-gi> -->
+            <div>
+            <div class="network_class"></div>
+            <div style="position: fixed;bottom:0;padding-bottom: 28px;">
+<div style="font-weight: bold;">{{ hovered_data?.title }}</div>
+<div style="font-weight: 200;">{{ hovered_data?.subs }}</div>
+            </div>
+        </div>
+        <!-- </n-gi>
+    </n-grid> -->
 </template>
 
 <script setup>
@@ -82,6 +92,7 @@ const isDragging = ref(false)
 const longClickTimer = ref(null);
 const longClickLength = ref(null)
 
+const hovered_data = ref()
 
 function dragStart(event) {
     isDragging.value = false
@@ -176,11 +187,44 @@ function dim_force_network() {
     d3selectAll("circle.base_node").style('opacity', 0.2)
 }
 
+function find_object_by_front_UUID(objects, uuid_front) {
+    if (!objects || objects.length === 0) {
+        return null;
+    }
+
+    for (let obj of objects) {
+        if (obj.uuid_front === uuid_front) {
+            return obj;
+        }
+        
+        if (obj.children && obj.children.length > 0) {
+            const result = find_object_by_front_UUID(obj.children, uuid_front);
+            if (result) {
+                return result; // Return the found object
+            }
+        }
+    }
+    return null;
+}
+
+
+function groupByField(array, group, value) {
+    return array.reduce((result, item) => {
+        const key = item[group];
+        if (!result[key]) {
+            result[key] = [];
+        }
+        result[key].push(item[value]);
+        return result;
+    }, {});
+}
+
+
 function forcedTree(data, data_type = 'hierarchy') {
     if (Object.keys(data).length > 0) {
         let links;
         let nodes;
-        
+
         if (data_type === 'hierarchy') {
             const root = hierarchy(data);
             links = root.links();
@@ -220,21 +264,6 @@ function forcedTree(data, data_type = 'hierarchy') {
             .domain([min(nodes, d => d.weight), max(nodes, d => d.weight)])
             .range(["rgb(63, 131, 201)", "rgb(255, 255, 255)"]);
 
-
-        // const node = svg.append("g")
-        //     .setAttrs({ 'class': 'back_node_container', "fill": nodeColor, "stroke": nodeColor, "stroke-width": 0.3, "stroke": nodeColor })
-        //     .selectAll("circle")
-        //     .data(nodes)
-        //     .join("circle")
-        //     .setAttrs({
-        //         "fill": '#4c5467',
-        //         "stroke": 'none',
-        //         'class': 'base_node',
-        //         "r": d => Math.max(5, Math.sqrt(d.weight * 50))
-        //         // "r": forcedNodeR
-        //     })
-        //     .call(drag());
-
         const nodet = svg.append("g")
             .attr('class', 'back_node_container')
             .attr("fill", 'none')
@@ -246,29 +275,33 @@ function forcedTree(data, data_type = 'hierarchy') {
             .attr('class', 'base_node')
             .call(drag())
 
-            // visible circles
-            nodet.append("circle")
+        // visible circles
+        nodet.append("circle")
             .attr('class', 'visible_circle')
             .attr("fill", '#4c5467')
-            .attr("data-circle-uuid", d => {console.log('dd', d); return d.uuid_front})
+            .attr("data-circle-uuid", d => { console.log('dd', d); return d.uuid_front })
             .attr("stroke", 'none')
             .attr("r", d => Math.max(5, Math.sqrt(d.weight * 50)));
 
 
-            // Invisible hover circle
-            nodet.append("circle")
-                .attr("r", d => Math.max(10, Math.sqrt(d.weight * 50) + 5))
-                .attr("fill", "none")
-                .attr("pointer-events", "all")
-                .on("mouseover", function(event, d) {
-                    d3select(this.parentNode).select(".visible_circle").attr("fill", "red");
-                    var front_uuid = d3select(this.parentNode).select(".visible_circle").attr("data-circle-uuid");
-                    console.log('front_uuid', front_uuid)
+        // Invisible hover circle
+        nodet.append("circle")
+            .attr("r", d => Math.max(10, Math.sqrt(d.weight * 50) + 5))
+            .attr("fill", "none")
+            .attr("pointer-events", "all")
+            .on("mouseover", function (event, d) {
+                var front_uuid = d3select(this.parentNode).select(".visible_circle").attr("data-circle-uuid");
+                let obj = find_object_by_front_UUID([dim_store.w_data], front_uuid)
+                console.log('dim_store.header_prop_name', dim_store.header_prop_name)
+                hovered_data.value = {title: obj[dim_store.header_prop_name]}
 
-                })
-                .on("mouseout", function(event, d) {
-                    d3select(this.parentNode).select(".visible_circle").attr("fill", "#4c5467");
-                });
+                if (obj?.children) {
+                    hovered_data.value.subs = groupByField(obj.children, 'parent_ref', 'name')
+                }
+            })
+            .on("mouseout", function (event, d) {
+                d3select(this.parentNode).select(".visible_circle").attr("fill", "#4c5467");
+            });
 
 
 
@@ -288,7 +321,7 @@ function forcedTree(data, data_type = 'hierarchy') {
             })
             .text(d => { return d.name })
             .style('opacity', 0)
-            .attr("display", "none"); 
+            .attr("display", "none");
 
         var localThis = simulation.value
 

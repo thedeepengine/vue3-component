@@ -191,7 +191,7 @@ function forcedTree(data, data_type = 'hierarchy') {
         }
 
         console.log('nodes', nodes)
-        
+
         const nodeColor = '#3A434A'
 
         simulation.value = d3forceSimulation()
@@ -262,6 +262,9 @@ function forcedTree(data, data_type = 'hierarchy') {
                 .attr("pointer-events", "all")
                 .on("mouseover", function(event, d) {
                     d3select(this.parentNode).select(".visible_circle").attr("fill", "red");
+                    var front_uuid = d3select(this.parentNode).select(".visible_circle").attr("data-circle-uuid");
+                    console.log('front_uuid', front_uuid)
+
                 })
                 .on("mouseout", function(event, d) {
                     d3select(this.parentNode).select(".visible_circle").attr("fill", "#4c5467");

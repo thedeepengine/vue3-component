@@ -91,64 +91,68 @@ function empty_force_tree() {
 }
 
 function displayStaticTree(store, add_event_func=undefined) {
-    let { root_nodes, root_links } = compute_and_draw_tree(store)
+    console.log('aaaaa', store.w_data)
+    if (Object.keys(store.w_data).length > 0) {
+        console.log('aaaaa', store.w_data.value)
+        let { root_nodes, root_links } = compute_and_draw_tree(store)
 
-    store.root_nodes = root_nodes
-    store.root_links = root_links
-    var linkContainer = d3select(".link_container")
-    var underlinedPath = d3select(".underlined_path_container")
-    var frontText = d3select(".front_text_container").selectAll(".node_text")
-
-    linkContainer
-        .setAttrs({fill:"none",stroke:stroke, "stroke-opacity":strokeOpacity,"stroke-linecap":null,"stroke-linejoin": null,"stroke-width": strokeWidth})
-        .selectAll(".link")
-        .data(store.root_links)
-        .join("path")
-        .attr("d", linkHorizontal()
-            .source(d => ({ ...d.source, 'type': 'source' }))
-            .target(d => ({ ...d.target, 'type': 'target' }))
-            .x(d => {
-                if (d.type === 'source' & d.side === 'right' & d.depth === 0) {
-                    return d.y_end
-                } else if (d.type === 'target' & d.side === 'right' & d.depth > 0) {
-                    return d.y_start
-                } else if (d.type === 'source' & d.side === 'left') {
-                    return d.y_start
-                } else {
-                    return d.y_end
-                }
-            })
-            .y(d => d.x))
-        .attr("class", "link")
-        .style('opacity', 1);
-
-        const d3linew = d3line()
-    .x(d => d[0])
-    .y(d => d[1]);
-
-        underlinedPath
-            .attr("stroke", stroke)
-            .attr("stroke-opacity", strokeOpacity)
-            .attr("stroke-width", strokeWidth)
-        .selectAll(".link")
-            .data(store.root_nodes.map(x => ([[x.y_end, x.x], [x.y_start, x.x]])))  // Updated data binding
-            .join(
-                enter => enter.append("path")
-                .attr("class", "link")
-                .attr("d", d3linew),
-            update => update
-                .attr("d", d3linew),
-            exit => exit
-                .transition()
-                .duration(300)
-                .remove()
-            );
-
-    get_front_displayed_text(store,frontText)
-    if (add_event_func !== undefined) {
-        add_event_func(frontText)
+        store.root_nodes = root_nodes
+        store.root_links = root_links
+        var linkContainer = d3select(".link_container")
+        var underlinedPath = d3select(".underlined_path_container")
+        var frontText = d3select(".front_text_container").selectAll(".node_text")
+    
+        linkContainer
+            .setAttrs({fill:"none",stroke:stroke, "stroke-opacity":strokeOpacity,"stroke-linecap":null,"stroke-linejoin": null,"stroke-width": strokeWidth})
+            .selectAll(".link")
+            .data(store.root_links)
+            .join("path")
+            .attr("d", linkHorizontal()
+                .source(d => ({ ...d.source, 'type': 'source' }))
+                .target(d => ({ ...d.target, 'type': 'target' }))
+                .x(d => {
+                    if (d.type === 'source' & d.side === 'right' & d.depth === 0) {
+                        return d.y_end
+                    } else if (d.type === 'target' & d.side === 'right' & d.depth > 0) {
+                        return d.y_start
+                    } else if (d.type === 'source' & d.side === 'left') {
+                        return d.y_start
+                    } else {
+                        return d.y_end
+                    }
+                })
+                .y(d => d.x))
+            .attr("class", "link")
+            .style('opacity', 1);
+    
+            const d3linew = d3line()
+        .x(d => d[0])
+        .y(d => d[1]);
+    
+            underlinedPath
+                .attr("stroke", stroke)
+                .attr("stroke-opacity", strokeOpacity)
+                .attr("stroke-width", strokeWidth)
+            .selectAll(".link")
+                .data(store.root_nodes.map(x => ([[x.y_end, x.x], [x.y_start, x.x]])))  // Updated data binding
+                .join(
+                    enter => enter.append("path")
+                    .attr("class", "link")
+                    .attr("d", d3linew),
+                update => update
+                    .attr("d", d3linew),
+                exit => exit
+                    .transition()
+                    .duration(300)
+                    .remove()
+                );
+    
+        get_front_displayed_text(store,frontText)
+        if (add_event_func !== undefined) {
+            add_event_func(frontText)
+        }
+        return frontText
     }
-    return frontText
 }
 
 function updateNestedObjectByKey(obj, uuid, key, value) {
@@ -208,14 +212,7 @@ function get_front_displayed_text(store,d3sel) {
                 // .attr('disabled', true) 
                 .on('input', function(event) {
                     let uuid_front = event.srcElement.parentElement.parentElement.attributes['data-pathid'].value
-                    // console.log('uuid_front', uuid_front)
-                    // console.log('d3select', d3select)
-                    // console.log('d3select(`#${uuid_front}`)', d3select(`#${uuid_front}`))
-                    console.log('event.srcElement.value', event.srcElement.value)
-                    const specificElement = d3select(`#${uuid_front}`).text(event.srcElement.value)
-                    
-                    
-                    console.log('specificElement', specificElement)
+                    const specificElement = d3select(`#${uuid_front}`).text(event.srcElement.value)    
                 })
                 .on('keydown', function(event) {
                     if (event.key === 'Enter') {

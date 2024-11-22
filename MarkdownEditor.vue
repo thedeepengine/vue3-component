@@ -64,7 +64,6 @@ const editor = useEditor({
   onUpdate: ({ editor }) => {
     let html = editor.getHTML()
     if (html !== dim_store.html_content) {
-      console.log("HTMLLLLLLLLLLLLLL")
       dim_store.html_content = html
     }
 

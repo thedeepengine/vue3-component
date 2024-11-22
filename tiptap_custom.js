@@ -160,7 +160,6 @@ function getTrackHeadingsExtension(store, html_content) {
               }
               transactions.forEach(transaction => {
                 transaction.steps.forEach(step => {
-                  console.log('ddd')
                   const stepMap = step.getMap();
                   stepMap.forEach((oldStart, oldEnd, newStart, newEnd) => {
 

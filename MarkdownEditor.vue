@@ -66,122 +66,6 @@ const editor = useEditor({
   content: dim_store.html_content,
   onUpdate: ({ editor }) => {
 
-
-    // dim_store.w_data.children.push({uuid: 'ffff', uuid_front: 'X_GHA_ffff', name: 'ddd'}) 
-    // displayStaticTree(dim_store)
-
-
-
-
-    // function find_path(headings, target) {
-    //   const path = [];
-    //   let currentDepth = 0;
-
-    //   for (const heading of headings) {
-    //     const depth = heading.lastIndexOf('#') + 1;
-
-    //     if (depth <= currentDepth) {
-    //       path.splice(depth);
-    //     }
-
-    //     currentDepth = depth;
-    //     console.log('heading', heading)
-    //     const headingText = heading.slice(depth + 1).trim();
-    //     path[depth - 1] = headingText;
-
-        
-    //     if (headingText === target) {
-    //       return path
-    //     }
-    //   }
-
-    //   return 'Title not found';
-    // }
-
-//     headings = [
-//   '# Introduction',
-//   '## Overview',
-//   '### Goals',
-//   '### ',
-//   '## Background',
-//   '# Main Content',
-//   '## Section 1',
-//   '### Overview',
-//   '#### Details',
-//   '##### Specifics',
-//   '##### Specifics2',
-//   '## h',
-//   '##### Specifics3',
-//   '##### Specifics4',
-//   '#### Further Details',
-//   '### Conclusion',
-//   '## Section 2',
-//   '### Introduction', 
-//   '### Analysis',
-//   '#### Deep Dive',
-//   '## Final Thoughts',
-//   '# Conclusion',
-//   '## Summary',
-//   '## Future Work'
-// ];
-//     find_path(headings, 'NEW')
-
-//     function addObjectAtPath(root, path, newObj) {
-
-//         function findAndUpdate(current, pathIndex) {
-//             if (pathIndex < path.length) {
-//                 let nextNode = current.children.find(child => child.uuid_front === path[pathIndex]);
-//                 findAndUpdate(nextNode, pathIndex + 1); 
-//             } else {
-//                 if (!current.children) {
-//                     current.children = []; 
-//                 }
-//                 current.children.push(newObj);
-//                 return true
-//             }
-//         }
-        
-//       let pathIndex = 0
-//       if (root.uuid_front === path[pathIndex]) {
-//           return findAndUpdate(root, pathIndex+1); 
-//       }
-//       return false
-// }
-
-
-
-    // function getCustomText(editor) {
-    //   let text = []      
-    //   editor.state.doc.descendants((node, pos) => {
-    //     if (node.type.name === 'heading') {
-    //       text.push(`${'#'.repeat(node.attrs.level)} ${node.attrs.id}`)
-    //     }
-
-    //     const hashMatch = node.textContent.match(/^(#+)/);
-    //     if (node.type.name === 'paragraph' && hashMatch) {
-    //       let target = hashMatch[0] + ' ' + '!TEMP_TARGET_FMW_FRONT_!'
-    //       text.push(target)
-    //     }
-    //   });
-
-    //   return text;
-    // }
-
-    // let headings = getCustomText(editor)
-    // console.log('headings', headings)
-
-    
-    // let path = find_path(headings, '!TEMP_TARGET_FMW_FRONT_!')
-    // console.log('FOUND PATH: ', path)
-    // let is_updated = addObjectAtPath(dim_store.w_data, path.slice(0,-1), {uuid: 'ffff', uuid_front: 'X_GHA_ffff', name: 'ddd'})
-    // console.log('dim_store.w_ddddata', dim_store.w_data)
-    // console.log('is_updated', is_updated)
-    // if (is_updated) {
-    //   displayStaticTree(dim_store)
-    // }
-
-
-
     let html = editor.getHTML()
     if (html !== dim_store.html_content) {
       dim_store.html_content = html
@@ -190,6 +74,8 @@ const editor = useEditor({
     if (debounceTimer.value) {
       clearTimeout(debounceTimer.value);
     }
+
+    if (editor.state.doc.content.leg)
     debounceTimer.value = setTimeout(() => findNearestHeading(editor), 300);
   },
   editorProps: {
@@ -327,3 +213,102 @@ onBeforeUnmount(() => {
 
 }
 </style>
+
+
+<!-- 
+// dim_store.w_data.children.push({uuid: 'ffff', uuid_front: 'X_GHA_ffff', name: 'ddd'}) 
+// displayStaticTree(dim_store)
+
+
+
+
+// function find_path(headings, target) {
+//   const path = [];
+//   let currentDepth = 0;
+
+//   for (const heading of headings) {
+//     const depth = heading.lastIndexOf('#') + 1;
+
+//     if (depth <= currentDepth) {
+//       path.splice(depth);
+//     }
+
+//     currentDepth = depth;
+//     console.log('heading', heading)
+//     const headingText = heading.slice(depth + 1).trim();
+//     path[depth - 1] = headingText;
+
+    
+//     if (headingText === target) {
+//       return path
+//     }
+//   }
+
+//   return 'Title not found';
+// }
+
+//     headings = [
+//   '# Introduction',
+//   '## Overview',
+//   '### Goals',
+//   '### ',
+//   '## Background',
+//   '# Main Content',
+//   '## Section 1',
+//   '### Overview',
+//   '#### Details',
+//   '##### Specifics',
+//   '##### Specifics2',
+//   '## h',
+//   '##### Specifics3',
+//   '##### Specifics4',
+//   '#### Further Details',
+//   '### Conclusion',
+//   '## Section 2',
+//   '### Introduction', 
+//   '### Analysis',
+//   '#### Deep Dive',
+//   '## Final Thoughts',
+//   '# Conclusion',
+//   '## Summary',
+//   '## Future Work'
+// ];
+//     find_path(headings, 'NEW')
+
+//     function addObjectAtPath(root, path, newObj) {
+
+//         function findAndUpdate(current, pathIndex) {
+//             if (pathIndex < path.length) {
+//                 let nextNode = current.children.find(child => child.uuid_front === path[pathIndex]);
+//                 findAndUpdate(nextNode, pathIndex + 1); 
+//             } else {
+//                 if (!current.children) {
+//                     current.children = []; 
+//                 }
+//                 current.children.push(newObj);
+//                 return true
+//             }
+//         }
+    
+//       let pathIndex = 0
+//       if (root.uuid_front === path[pathIndex]) {
+//           return findAndUpdate(root, pathIndex+1); 
+//       }
+//       return false
+// }
+
+
+
+
+// console.log('headings', headings)
+
+
+// let path = find_path(headings, '!TEMP_TARGET_FMW_FRONT_!')
+// console.log('FOUND PATH: ', path)
+// let is_updated = addObjectAtPath(dim_store.w_data, path.slice(0,-1), {uuid: 'ffff', uuid_front: 'X_GHA_ffff', name: 'ddd'})
+// console.log('dim_store.w_ddddata', dim_store.w_data)
+// console.log('is_updated', is_updated)
+// if (is_updated) {
+//   displayStaticTree(dim_store)
+// }
+ -->

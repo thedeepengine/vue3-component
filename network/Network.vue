@@ -54,6 +54,7 @@ const checkElement = () => {
 
 watch(() => [dim_store.w_data, dim_store.d3_network_data, isElementPresent.value],
     ([refresh_network, s, old_data], [q, h, w]) => {
+        console.log('WATCHHHH')
         if (isElementPresent.value === true) {
             if (dim_store.dimension === 'network') {
                 empty_static_tree()

@@ -6,6 +6,7 @@ import { transition } from 'd3-transition'
 import { toRaw } from 'vue';
 import { hierarchy, tree } from 'd3-hierarchy'
 
+const NODE_MIN_WIDTH = 50
 const stroke = "#555";
 const strokeWidth = 1.5;
 const strokeOpacity = 1;
@@ -91,6 +92,7 @@ function empty_force_tree() {
 }
 
 function displayStaticTree(store, add_event_func=undefined) {
+    console.log('UPDATED store.w_data----', store.w_data)
     if (Object.keys(store.w_data).length > 0) {
         let { root_nodes, root_links } = compute_and_draw_tree(store)
 
@@ -173,7 +175,7 @@ function get_front_displayed_text(store,d3sel) {
     let rr = d3sel
     .data(store.root_nodes, d => d.data.uuid_front); // Using a key function based on uuid
 
-    let node_width = d=>{ return `${Math.max(d.y_end-d.y_start, 100)}px`}
+    let node_width = d=>{ return `${Math.max(d.y_end-d.y_start, NODE_MIN_WIDTH)}px`}
 
         const enteredElements = rr.enter()
         .append('foreignObject')
@@ -318,7 +320,6 @@ function draw_side_tree(store,root,side) {
     var SIDE_CONST = side === "right" ? 1 : -1
     var NODE_CLASS = "node_" + side
     const NODE_Y_SHIFT = 50
-    const NODE_MIN_WIDTH = 50
     const labels = root.descendants().map(d => d.data.name);
     let side_container = d3select(".global_tree_container ." + side + "_tree_container .node_container");
 
@@ -345,6 +346,7 @@ function draw_side_tree(store,root,side) {
     var text_length = node_text.nodes().reduce((prev, cur) => ({ ...prev, [cur.__data__.data.name]: cur.getComputedTextLength() || 0 }), {})
     node_container.selectAll("text").remove();
 
+    console.log('text_length', text_length)
     // set position y_start and y_end of each node.
     var rec_y_position = function (node) {
         if (node.depth === 0) { // initialisation for root node

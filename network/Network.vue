@@ -54,7 +54,6 @@ const checkElement = () => {
 
 watch(() => [dim_store.w_data, dim_store.d3_network_data, isElementPresent.value],
     ([refresh_network, s, old_data], [q, h, w]) => {
-        console.log('WATCHHHH')
         if (isElementPresent.value === true) {
             if (dim_store.dimension === 'network') {
                 empty_static_tree()
@@ -280,7 +279,7 @@ function forcedTree(data, data_type = 'hierarchy') {
         nodet.append("circle")
             .attr('class', 'visible_circle')
             .attr("fill", '#4c5467')
-            .attr("data-circle-uuid", d => { console.log('dd', d); return d.uuid_front })
+            .attr("data-circle-uuid", d => { return d.uuid_front })
             .attr("stroke", 'none')
             .attr("r", d => Math.max(5, Math.sqrt(d.weight * 50)));
 
@@ -318,7 +317,7 @@ function forcedTree(data, data_type = 'hierarchy') {
             .join('text')
             .setAttrs({
                 'class': 'back_text', 'color': '#b0b0b0',
-                'opacity': function (d) { console.log('ddddd', d.depth); return d.depth < 1 ? 0.7 : 0 }, 'font-size': 10, 'text-anchor': () => 'middle'
+                'opacity': function (d) { return d.depth < 1 ? 0.7 : 0 }, 'font-size': 10, 'text-anchor': () => 'middle'
             })
             .text(d => { return d.name })
             .style('opacity', 0)

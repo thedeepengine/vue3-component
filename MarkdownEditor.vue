@@ -71,6 +71,12 @@ const editor = useEditor({
       dim_store.html_content = html
     }
 
+    console.log('dim_store.refresh_map', dim_store.refresh_map)
+    if (dim_store.refresh_map) {
+      dim_store.html_to_hierarchy(html)
+      dim_store.refresh_map = false
+    }
+
     if (debounceTimer.value) {
       clearTimeout(debounceTimer.value);
     }

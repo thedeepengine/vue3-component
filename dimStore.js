@@ -39,6 +39,7 @@ export const dimStore = defineStore("dimStore", () => {
   const html_content = ref('')
   const md_content = ref('')
   const show_refs = ref(false)
+  const refresh_map = ref(false)
 
   // thingsSpace
   const things_space_data = ref(undefined)
@@ -452,6 +453,7 @@ watch(() => [d3_network_data.value],
 
 
   function html_to_hierarchy(html) {
+    console.log('html', html)
     apiClient
       .post("https://localhost:8002/v1/api/html_to_hierarchy/", { html: html })
       .then(response => {

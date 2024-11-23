@@ -18,7 +18,7 @@ import ButtonNode from '@/components_shared/ButtonExtension.js';
 import Mention from '@tiptap/extension-mention'
 import suggestion from '@/components_shared/suggestion.js'
 
-// import { updateNestedObjectByKey, compute_and_draw_tree, displayStaticTree } from '@/components_shared/network/network_utils.js'
+// import { update_node_property, compute_and_draw_tree, displayStaticTree } from '@/components_shared/network/network_utils.js'
 
 
 const dim_store = dimStore()

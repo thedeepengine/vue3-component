@@ -153,7 +153,7 @@ function displayStaticTree(store, add_event_func=undefined) {
     }
 }
 
-function updateNestedObjectByKey(obj, uuid, key, value) {
+function update_node_property(obj, uuid, key, value) {
     if (obj.uuid_front === uuid) {
         obj[key] = value; 
         return true; 
@@ -161,7 +161,7 @@ function updateNestedObjectByKey(obj, uuid, key, value) {
 
     if (Array.isArray(obj.children)) {
         for (let child of obj.children) {
-            if (updateNestedObjectByKey(child, uuid, key, value)) {
+            if (update_node_property(child, uuid, key, value)) {
                 return true; 
             }
         }
@@ -209,14 +209,12 @@ function get_front_displayed_text(store,d3sel) {
                 .style('font-family', 'inherit')
                 // .attr('disabled', true) 
                 .on('input', function(event) {
-                    let uuid_front = event.srcElement.parentElement.parentElement.attributes['data-pathid'].value
-                    const specificElement = d3select(`#${uuid_front}`).text(event.srcElement.value)    
+                    update_node_property(store.w_data, this.__data__.data.uuid_front, 'name', event.srcElement.value) 
+                    displayStaticTree(store) 
                 })
                 .on('keydown', function(event) {
                     if (event.key === 'Enter') {
-                        console.log('store.w_data', store.w_data)
-                        updateNestedObjectByKey(store.w_data, this.__data__.data.uuid_front, 'name', this.value)
-                        compute_and_draw_tree(store)
+                        update_node_property(store.w_data, this.__data__.data.uuid_front, 'name', this.value)
                         displayStaticTree(store)
                     }
                 })
@@ -516,7 +514,7 @@ export {
     d3selection,
     compute_tree,
     compute_and_draw_tree,
-    updateNestedObjectByKey,
+    update_node_property,
     empty_static_tree,
     empty_force_tree
 }

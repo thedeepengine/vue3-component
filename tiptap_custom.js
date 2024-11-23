@@ -4,7 +4,7 @@ import { Plugin } from 'prosemirror-state';
 import { select as d3select, selectAll as d3selectAll } from 'd3-selection'
 import { Mention } from '@tiptap/extension-mention';
 
-import { updateNestedObjectByKey, compute_and_draw_tree, displayStaticTree } from '@/components_shared/network/network_utils.js'
+import { update_node_property, compute_and_draw_tree, displayStaticTree } from '@/components_shared/network/network_utils.js'
 
 const CustomHeading = Heading.extend({
   addAttributes() {
@@ -173,29 +173,28 @@ function getTrackHeadingsExtension(store, html_content) {
               const { $from } = newState.selection;
               const nodeAtPos = $from.node();
 
-              console.log('newStatenewStatenewState', newState)
-              let new_heading = get_all_heading(newState)
               let old_heading = get_all_heading(oldState)
-                console.log('old', old_heading)
-                console.log('new', new_heading)
-
-                console.log('new_heading.length < old_heading.length', new_heading.length < old_heading.length)
-                console.log('new_heading.length < old_heading.length', new_heading.length < old_heading.length && old_heading.length > 0 && new_heading.length > 0)
-                if (new_heading.length < old_heading.length && old_heading.length > 0 && new_heading.length > 0) {
-                  console.log('DIFF')
-                  console.log('store.html_content+++++++', store.html_content)
-                  setTimeout(() => {
-                  store.html_to_hierarchy(store.html_content)
-                  displayStaticTree(store)
-                })
-                }
-
 
               if (nodeAtPos.type.name === 'heading') {
 
+                let new_heading = get_all_heading(newState)
+                console.log('old length', old_heading.length)
+                console.log('new length', new_heading.length)
+                console.log('new_heading.length < old_heading.length', new_heading.length < old_heading.length)
+                console.log('new_heading.length < old_heading.length', new_heading.length < old_heading.length && old_heading.length > 0 && new_heading.length > 0)
+                  if (new_heading.length < old_heading.length && old_heading.length > 0 && new_heading.length > 0) {
+                    console.log('DIFF')
+                    console.log('store.html_content+++++++', store.html_content)
+                    setTimeout(() => {
+                    store.html_to_hierarchy(store.html_content)
+                    displayStaticTree(store)
+                  },400)
+                  }
+
+                  
                 if (new_heading.length >= old_heading.length) {
                   console.log('nodeAtPos.attrs.id', nodeAtPos.attrs.id)
-                  let is_uuid_existing = updateNestedObjectByKey(store.w_data, nodeAtPos.attrs.id, 'name', nodeAtPos.textContent)
+                  let is_uuid_existing = update_node_property(store.w_data, nodeAtPos.attrs.id, 'name', nodeAtPos.textContent)
                   console.log('is_uuid_existing', is_uuid_existing)
                   if (!is_uuid_existing) {
                     store.html_to_hierarchy(store.html_content)
@@ -255,7 +254,7 @@ function getTrackHeadingsExtension(store, html_content) {
                 //             uuid_front: newHeadings[0].id,
                 //             data: { name: newHeadings[0].content }
                 //           };
-                //           let is_uuid_existing = updateNestedObjectByKey(store.w_data, updatedDataItem.uuid_front, 'name', newHeadings[0].content)
+                //           let is_uuid_existing = update_node_property(store.w_data, updatedDataItem.uuid_front, 'name', newHeadings[0].content)
                 //           if (!is_uuid_existing) {
                 //             store.html_to_hierarchy(store.html_content)
                 //           } else {

@@ -249,8 +249,7 @@ function get_front_displayed_text(store,d3sel) {
     .remove()
 }
 
-function compute_tree(store) {
-    let d = store.w_data
+function compute_tree(d) {
     let data_right = {}
     let data_left = {}
     if (d.children === undefined) {
@@ -306,7 +305,7 @@ function draw_tree(store,root_right,root_left) {
 }
 
 function compute_and_draw_tree(store) {
-    let {root_right, root_left}= compute_tree(store)
+    let {root_right, root_left} = compute_tree(store.w_data)
     draw_tree(store,root_right, root_left)
     const root_nodes =[...root_right.descendants(), ...root_left.descendants()]
     const root_links = [...root_right.links(), ...root_left.links()]
@@ -323,11 +322,6 @@ function draw_side_tree(store,root,side) {
     const NODE_Y_SHIFT = 50
     const NODE_MIN_WIDTH = 50
     const labels = root.descendants().map(d => d.data.name);
-
-    // var side_container = d3select(".global_tree_container")
-    //     .append("g").attr("class", side + "_tree_container")
-
-    // let side_container = d3select(".global_tree_container ."+side+"_tree_container");
     let side_container = d3select(".global_tree_container ." + side + "_tree_container .node_container");
 
     var node_container = side_container
@@ -336,7 +330,6 @@ function draw_side_tree(store,root,side) {
         .join("a")
         .attr('class', NODE_CLASS)
 
-    // Add text to node_container
     var node_text = node_container
         .append("text")
         // .attr("dy", "-0.2em")
@@ -382,30 +375,6 @@ function draw_side_tree(store,root,side) {
     }
     return root
 }
-
-function scrollToTitleFromNetwork(store, event) {
-    const bbox = event.target.getBoundingClientRect();
-    const middleX = bbox.x + bbox.width / 2;
-    const mouseX = event.clientX
-    let eventSide = event.target.__data__.side
-    let switchHoover = store.switchHoover
-
-    if ((eventSide === 'right') && (mouseX >= middleX) && (switchHoover === 'left' || switchHoover === '')) {
-        switchHoover = 'right'
-    } else if ((eventSide === 'left') && (mouseX <= middleX) && (switchHoover === 'right' || switchHoover === '')) {
-        switchHoover = 'left'
-    }
-    // scrollToTitle(thisRef, event)
-}
-
-function staticTreeOpacity(opacity) {
-    d3select(".global_tree_container")
-    .transition()
-    .duration(100)
-    .style("opacity", opacity);
-}
-
-
 
 function calculateStrokeDashArray(width, height) {
     let widthGapRatio = 70/100
@@ -540,7 +509,6 @@ export {
     adjust_tree_x,
     adjust_tree_y_graph,
     displayStaticTree,
-    staticTreeOpacity,
     getCorneredRectangle,
     deepEngineSpinner,
     getFloatingTextBox,

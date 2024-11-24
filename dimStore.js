@@ -40,6 +40,7 @@ export const dimStore = defineStore("dimStore", () => {
   const md_content = ref('')
   const show_refs = ref(false)
   const refresh_map = ref(false)
+  const content_type = ref('tiptap')
 
   // thingsSpace
   const things_space_data = ref(undefined)
@@ -612,6 +613,7 @@ watch(() => [d3_network_data.value],
     html_content,
     md_content,
     show_refs,
+    content_type,
 
     // thingsSpace
     things_space_option,

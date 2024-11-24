@@ -172,6 +172,10 @@ function getTrackHeadingsExtension(store, html_content) {
             appendTransaction(transactions, oldState, newState) {
               const { $from } = newState.selection;
               const nodeAtPos = $from.node();
+              // this is most likely what should be useed to check to make it ontologically sound
+              // const { $to } = oldState.selection;
+              // const nodePrev = $to.node();
+              // console.log('nodePrev', nodePrev)
 
               let old_heading = get_all_heading(oldState)
               let new_heading = get_all_heading(newState)

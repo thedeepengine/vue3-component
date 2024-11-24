@@ -14,13 +14,13 @@
             <div id="fmw-datatable" ref="table" :class="[{ 'full-screen': dim_store.is_full_screen }]"></div>
         </n-gi>
     </n-grid>
-
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue';
 import { TabulatorFull as Tabulator } from 'tabulator-tables'; //import Tabulator library
-import 'tabulator-tables/dist/css/tabulator.min.css';
+// import 'tabulator-tables/dist/css/tabulator.min.css';
+import 'tabulator-tables/dist/css/tabulator_simple.min.css'
 // import 'tabulator-tables/dist/css/tabulator_semanticui.min.css'
 // import 'tabulator-tables/dist/css/tabulator_materialize.min.css'
 import { dimStore } from '@/components_shared/dimStore.js'
@@ -119,6 +119,44 @@ onMounted(() => {
 
 
 <style>
+
+#fmw-datatable .tabulator-col,
+#fmw-datatable .tabulator-header,
+#fmw-datatable .tabulator-row {
+    background-color: #eeeae6;
+}
+
+#fmw-datatable .tabulator-row-even {
+    background-color: #eeeae6;
+}
+
+/* 
+#fmw-datatable .tabulator {
+    border: 2px solid #999;
+    box-sizing: border-box; 
+    border-right: none!important;
+} */
+
+/* #fmw-datatable .tabulator-cell:last-child {
+    border-right: 1px solid ; 
+} */
+
+/* #fmw-datatable .tabulator-row .tabulator-cell {
+    border-bottom: 1px solid;
+} */
+
+/* #fmw-datatable .tabulator-row .tabulator-cell:last-child {
+    border-right: none!important;
+} */
+
+
+
+
+#fmw-datatable .tabulator-row:hover {
+  background-color: grey;
+}
+
+
 #fmw-datatable .tabulator-col-sorter {
     display: none;
 }

@@ -1,16 +1,12 @@
 <!-- TEMPLATE MUST HAVE A SINGLE CHILD EVEN COMMENT NOT ACCEPTED -->
 <template>
-    <!-- <n-grid x-gap="12" :cols="4">
-        <n-gi> -->
-            <div>
-            <div class="network_class"></div>
-            <div style="position: fixed;bottom:0;padding-bottom: 28px;">
-<div style="font-weight: bold;">{{ hovered_data?.title }}</div>
-<div style="font-weight: 200;">{{ hovered_data?.subs }}</div>
-            </div>
+    <div>
+        <div class="network_class"></div>
+        <div style="position: fixed;bottom:0;padding-bottom: 28px;">
+            <div style="font-weight: bold;">{{ hovered_data?.title }}</div>
+            <div style="font-weight: 200;">{{ hovered_data?.subs }}</div>
         </div>
-        <!-- </n-gi>
-    </n-grid> -->
+    </div>
 </template>
 
 <script setup>
@@ -196,7 +192,7 @@ function find_object_by_front_UUID(objects, uuid_front) {
         if (obj.uuid_front === uuid_front) {
             return obj;
         }
-        
+
         if (obj.children && obj.children.length > 0) {
             const result = find_object_by_front_UUID(obj.children, uuid_front);
             if (result) {
@@ -293,7 +289,7 @@ function forcedTree(data, data_type = 'hierarchy') {
                 var front_uuid = d3select(this.parentNode).select(".visible_circle").attr("data-circle-uuid");
                 let obj = find_object_by_front_UUID([dim_store.w_data], front_uuid)
                 console.log('dim_store.header_prop_name', dim_store.header_prop_name)
-                hovered_data.value = {title: obj[dim_store.header_prop_name]}
+                hovered_data.value = { title: obj[dim_store.header_prop_name] }
 
                 if (obj?.children) {
                     hovered_data.value.subs = groupByField(obj.children, 'parent_ref', 'name')

@@ -11,7 +11,11 @@
             </n-space>
         </n-gi>
         <n-gi>
-            <div id="fmw-datatable" ref="table" :class="[{ 'full-screen': dim_store.is_full_screen }]"></div>
+            <div ref="table_wrapper"
+             style="border-radius: 10px;background-color: #eeeae6;padding:5px" 
+            :class="[{ 'full-screen': dim_store.is_full_screen }]">
+            <div id="fmw-datatable" ref="table" ></div>
+            </div>
         </n-gi>
     </n-grid>
 </template>
@@ -31,6 +35,7 @@ const dim_store = dimStore()
 import { shallowRef } from 'vue'
 
 const table = ref(null); //reference to your table element
+const table_wrapper = ref(null); //reference to your table element
 const tabulator = ref(null); //variable to hold your table
 const tableData = reactive([
     { id: 1, name: "Oli Bob", age: "12", col: "red", dob: "" },
@@ -59,7 +64,6 @@ const expand = () => {
     full_mode.value = full_mode.value ? false : true
 
     expand_button.value.addEventListener('animationend', () => {
-        console.log('END')
         if (full_mode.value) {
             icon.value = Subtract24Regular
         } else {
@@ -71,7 +75,7 @@ const expand = () => {
 
     }, { once: true });
 
-    const rect = table.value.getBoundingClientRect();  
+    const rect = table_wrapper.value.getBoundingClientRect();  
 
     if (initial_table.value === undefined) {
         initial_table.value = { 'width': rect.width, 'height': rect.height, 'left': rect.left }
@@ -80,18 +84,18 @@ const expand = () => {
     const height = window.innerHeight;
 
     if (!full_mode.value) {
-        table.value.style.transition = 'transform 0.5s ease, height 0.5s ease, width 0.5s ease';
-        table.value.style.height = `${initial_table.value.height}px`;
-        table.value.style.width = `${initial_table.value.width}px`;
-        table.value.style.transform = `none`;
+        table_wrapper.value.style.transition = 'transform 0.5s ease, height 0.5s ease, width 0.5s ease';
+        table_wrapper.value.style.height = `${initial_table.value.height}px`;
+        table_wrapper.value.style.width = `${initial_table.value.width}px`;
+        table_wrapper.value.style.transform = `none`;
     } else {
-        table.value.style.height = initial_table.value.height
-        table.value.style.width = initial_table.value.width
+        table_wrapper.value.style.height = initial_table.value.height
+        table_wrapper.value.style.width = initial_table.value.width
         setTimeout(() => {
-            table.value.style.transition = 'transform 0.5s ease, height 0.5s ease, width 0.5s ease';
-            table.value.style.height = `${height - 130}px`;
-            table.value.style.width = `${width - 100}px`;
-            table.value.style.transform = `translate(${-initial_table.value.left + emToPx(3)}px, 0)`;
+            table_wrapper.value.style.transition = 'transform 0.5s ease, height 0.5s ease, width 0.5s ease';
+            table_wrapper.value.style.height = `${height - 130}px`;
+            table_wrapper.value.style.width = `${width - 100}px`;
+            table_wrapper.value.style.transform = `translate(${-initial_table.value.left + emToPx(3)}px, 0)`;
         }, 0)
     }
 };
@@ -153,7 +157,7 @@ onMounted(() => {
 
 
 #fmw-datatable .tabulator-row:hover {
-  background-color: grey;
+  background-color: #DDDDDD;
 }
 
 
@@ -174,7 +178,17 @@ onMounted(() => {
 
 #fmw-datatable {
     transition: transform 0.5s ease;
+    font-family: monospace;
+    font-size: 12px;
+    align-content: center;
 }
+
+#fmw-datatable .tabulator-cell {
+    align-content: center;
+}
+
+
+
 
 .fm-button {
     background-color: transparent;

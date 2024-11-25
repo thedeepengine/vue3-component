@@ -92,7 +92,6 @@ function empty_force_tree() {
 }
 
 function displayStaticTree(store, add_event_func=undefined) {
-    console.log('UPDATED store.w_data----', store.w_data)
     if (Object.keys(store.w_data).length > 0) {
         let { root_nodes, root_links } = compute_and_draw_tree(store)
 
@@ -213,6 +212,7 @@ function get_front_displayed_text(store,d3sel) {
                 .on('input', function(event) {
                     update_node_property(store.w_data, this.__data__.data.uuid_front, 'name', event.srcElement.value) 
                     displayStaticTree(store) 
+                    d3select(`#${this.__data__.data.uuid_front}`).text(event.srcElement.value)    
                 })
                 .on('keydown', function(event) {
                     if (event.key === 'Enter') {
@@ -346,7 +346,6 @@ function draw_side_tree(store,root,side) {
     var text_length = node_text.nodes().reduce((prev, cur) => ({ ...prev, [cur.__data__.data.name]: cur.getComputedTextLength() || 0 }), {})
     node_container.selectAll("text").remove();
 
-    console.log('text_length', text_length)
     // set position y_start and y_end of each node.
     var rec_y_position = function (node) {
         if (node.depth === 0) { // initialisation for root node
@@ -449,7 +448,6 @@ function getFloatingTextBox(x, y, action_func = undefined, width = 200, content=
             svgText.text(this.value);
             let textWidth = svgText.node().getComputedTextLength();
 
-            console.log('textWidth: ', textWidth)
             if (textWidth > 195) {
                 console.log('limit')
                 // textWidth = max(textWidth, 200)

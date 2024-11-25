@@ -134,7 +134,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
   if (editor) {
     editor.value.destroy();
-
   }
 });
 

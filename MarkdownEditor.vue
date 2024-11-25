@@ -19,7 +19,11 @@
         </span>
       </div>
     </div>
-    <editor-content id="dimension_tiptap" :editor="editor" />
+    <Transition name="component-fade" mode="out-in">
+      <editor-content v-if="dim_store.content_type === 'tiptap'" id="dimension_tiptap" :editor="editor" key="tiptap-editor" />
+      <Graphql v-else-if="dim_store.content_type === 'html'" key="html"></Graphql>
+      <Graphql v-else-if="dim_store.content_type === 'graphql'" key="graphql"></Graphql>
+    </Transition>
   </div>
 </template>
 
@@ -38,9 +42,7 @@ import Mention from '@tiptap/extension-mention'
 import suggestion from '@/components_shared/suggestion.js'
 import { NIcon } from 'naive-ui'
 import { DocumentChevronDouble24Regular, DrinkToGo24Regular } from '@vicons/fluent'
-
-// import { update_node_property, compute_and_draw_tree, displayStaticTree } from '@/components_shared/network/network_utils.js'
-
+import Graphql from '@/components_shared/Graphql.vue'
 
 const dim_store = dimStore()
 const lowlight = createLowlight(all)
@@ -92,7 +94,6 @@ const editor = useEditor({
       dim_store.html_content = html
     }
 
-    console.log('dim_store.refresh_map', dim_store.refresh_map)
     if (dim_store.refresh_map) {
       dim_store.html_to_hierarchy(html)
       dim_store.refresh_map = false
@@ -133,8 +134,18 @@ onMounted(() => {
 onBeforeUnmount(() => {
   if (editor) {
     editor.value.destroy();
+
   }
 });
+
+watch(() => dim_store.content_type, () => {
+  if (dim_store.content_type === 'html') {
+    dim_store.code = dim_store.html_content
+  } else if (dim_store.content_type === 'graphql') {
+    dim_store.code = dim_store.graphql
+  }
+})
+
 </script>
 
 <style>
@@ -246,6 +257,7 @@ onBeforeUnmount(() => {
   padding-right: 8px;
   padding-left: 8px;
   opacity: 0.1;
+  transition: opacity 0.25s;
 }
 
 .fmw-button-icon.selected {
@@ -260,6 +272,10 @@ onBeforeUnmount(() => {
 }
 
 .editor-content-type:hover {
+  opacity: 1;
+}
+
+.fmw-button-icon:hover {
   opacity: 1;
 }
 

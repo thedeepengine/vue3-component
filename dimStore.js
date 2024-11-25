@@ -53,6 +53,7 @@ export const dimStore = defineStore("dimStore", () => {
 
   // graphql
   const code = ref()
+  const graphql = ref()
 
   //popup box
   const isVisible = ref(false);
@@ -481,8 +482,7 @@ watch(() => [d3_network_data.value],
         if (response.data?.md) md_content.value = response.data.md
         if (response.data?.things_space) things_space_data.value = response.data.things_space
         if (response.data?.graphql) {
-          let graphql = response.data.graphql
-          code.value = JSON.stringify(graphql, null, '\t')
+          graphql.value = JSON.stringify(response.data.graphql, null, '\t')
         }
         if (response.data?.data_table) data_table.value = response.data.data_table
   
@@ -626,6 +626,7 @@ watch(() => [d3_network_data.value],
 
     // graphql
     code,
+    graphql,
 
     //popup box
     isVisible,

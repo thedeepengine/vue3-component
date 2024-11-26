@@ -382,7 +382,7 @@ background-color: transparent; */
 }
 
 .parent {
-    z-index: 999999999999999999999;
+    z-index: 999;
     width: 50%;
     left: 25vw;
     position: fixed;

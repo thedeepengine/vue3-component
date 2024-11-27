@@ -75,6 +75,7 @@ import suggestion from '@/components_shared/suggestion.js'
 import { NIcon, NPopover, NButton } from 'naive-ui'
 import { DocumentChevronDouble24Regular, DrinkToGo24Regular } from '@vicons/fluent'
 import Graphql from '@/components_shared/Graphql.vue'
+import { DOMSerializer } from 'prosemirror-model';
 
 const dim_store = dimStore()
 const lowlight = createLowlight(all)
@@ -121,6 +122,10 @@ const editor = useEditor({
   content: dim_store.html_content,
   onUpdate: ({ editor }) => {
 
+    if (dim_store.is_dirty === false) {
+      dim_store.is_dirty = true
+    }
+
     let html = editor.getHTML()
     if (html !== dim_store.html_content) {
       dim_store.html_content = html
@@ -141,27 +146,62 @@ const editor = useEditor({
   editorProps: {
     handlePaste(view, event, slice) {
       const markdownContent = event.clipboardData.getData('text/plain');
-      const htmlContent = markdownToHtml(markdownContent)
+      const htmlContent = markdownToHtml(markdownContent);
       editor.value.commands.insertContent(htmlContent);
       return true;
     }
   }
 });
 
+
 onMounted(() => {
   watch(() => dim_store.md_content, (newValue) => {
-    if (editor.value && editor.value.getHTML() !== newValue) {
+    if (!dim_store.is_dirty && editor.value && editor.value.getHTML() !== newValue) {
       dim_store.html_content = markdownToHtml(newValue)
+      // show_refs.value = true
       editor.value.commands.setContent(dim_store.html_content);
+      dim_store.html_content_original = toggleDisplayRefsAndGetHtml()
     }
   }, { immediate: true });
 
   watch(() => dim_store.show_refs, () => {
-    editor.value.commands.toggleButton();
+    editor.value.commands.toggle_display_refs();
+  })
+
+  watch(() => dim_store.bus_event, (new_value, old_value) => {
+    if (new_value.id === 'get_html_with_ref') {
+      dim_store.bus_event = {id: 'html_with_ref', payload: toggleDisplayRefsAndGetHtml()}
+    }
   })
 
 });
 
+
+function toggleDisplayRefsAndGetHtml() {
+  editor.value.state.doc.descendants((node, pos) => {
+    if (node.type.name === 'heading') {
+      const newAttrs = {
+        ...node.attrs,
+        showButton: !node.attrs.showButton
+      };
+      editor.value.state.tr.setNodeMarkup(pos, null, newAttrs);
+    }
+  });
+
+
+  function getHtmlFromState(state) {
+    const div = document.createElement('div');
+    const serializer = DOMSerializer.fromSchema(editor.value.schema);
+    const fragment = serializer.serializeFragment(state.doc.content);
+    div.appendChild(fragment);
+    return div.innerHTML;
+  }
+
+  const newState = editor.value.state.apply(editor.value.state.tr);
+  const newHtml = getHtmlFromState(newState);
+
+  return newHtml;
+}
 
 onBeforeUnmount(() => {
   if (editor) {

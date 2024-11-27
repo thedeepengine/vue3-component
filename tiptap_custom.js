@@ -85,7 +85,7 @@ const CustomHeading = Heading.extend({
 
   addCommands() {
     return {
-      toggleButton: () => ({ tr, dispatch }) => {
+      toggle_display_refs: () => ({ tr, dispatch }) => {
         if (dispatch) {
           const { doc } = tr;
           let updated = false;
@@ -101,25 +101,6 @@ const CustomHeading = Heading.extend({
             }
           });
 
-          if (updated) {
-            dispatch(tr);
-          }
-          return updated;
-        }
-        return false;
-      },
-      removeAllButtons: () => ({ tr, dispatch }) => {
-        if (dispatch) {
-          const { doc } = tr;
-          let updated = false;
-
-          doc.descendants((node, pos) => {
-            if (node.type.name === 'heading' && node.attrs.showButton) {
-              const newAttrs = { ...node.attrs, showButton: false };
-              tr.setNodeMarkup(pos, null, newAttrs);
-              updated = true;
-            }
-          });
 
           if (updated) {
             dispatch(tr);

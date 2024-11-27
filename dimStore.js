@@ -10,6 +10,8 @@ export const dimStore = defineStore("dimStore", () => {
   // const dimension = ref('menu')
   // const left_panel = ref('loading')
 
+  const bus_event = ref()
+
   const is_menu_open = ref(false)
   const dimension = ref('hierarchy')
   const left_panel = ref('markdown')
@@ -41,6 +43,9 @@ export const dimStore = defineStore("dimStore", () => {
   const show_refs = ref(false)
   const refresh_map = ref(false)
   const content_type = ref('tiptap')
+  const html_content_original = ref()
+  const modif_stack = ref([])
+  const is_dirty = ref(false)
 
   // thingsSpace
   const things_space_data = ref(undefined)
@@ -483,7 +488,9 @@ watch(() => [d3_network_data.value],
       .post("https://localhost:8002/v1/api/query/", bundle)
       .then(response => {
         if (response.data?.legacy_data) legacy_data.value = response.data.legacy_data
-        if (response.data?.d3) w_data.value = response.data.d3
+        if (response.data?.d3) {
+          w_data.value = response.data.d3
+        }
         if (response.data?.header_prop_name) header_prop_name.value = response.data.header_prop_name
         if (response.data?.d3_network_data) d3_network_data.value = response.data.d3_network_data
         if (response.data?.md) md_content.value = response.data.md
@@ -494,9 +501,33 @@ watch(() => [d3_network_data.value],
         if (response.data?.data_table) data_table.value = response.data.data_table
   
         
+        
         return response
       })
   }
+
+  function save_dry_run() {
+    bus_event.value = {'id': 'get_html_with_ref'}    
+  }
+
+  watch(() => bus_event.value, (new_value, old_value) => {
+    console.log('bus_event.value', bus_event.value)
+    if (new_value.id === 'html_with_ref') {
+
+      console.log('html_content_original.value', html_content_original.value)
+      let payload = bus_event.value.payload
+
+      console.log('payload', payload)
+      let bundle = {old_html: html_content_original.value, new_html: payload, header_prop_name: header_prop_name.value, dry_run: true}
+
+      apiClient
+      .post("https://localhost:8002/v1/api/save_dry_run/", bundle)
+      .then(response => {
+        console.log('response', response)
+      })
+    }
+  })
+
 
   function getThingSpace(response) {
     let nNeighbors = 15
@@ -621,6 +652,8 @@ watch(() => [d3_network_data.value],
     md_content,
     show_refs,
     content_type,
+    is_dirty,
+    html_content_original,
 
     // thingsSpace
     things_space_option,
@@ -659,7 +692,9 @@ watch(() => [d3_network_data.value],
 
 
 
-    fetch_data
+    fetch_data,
+    save_dry_run,
+    bus_event
   }
 
 })

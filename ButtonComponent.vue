@@ -1,10 +1,10 @@
 <template>
-    <node-view-wrapper>
-        <div class="content">
+    <node-view-wrapper as="span">
+        <span class="content">
             <button class="field-indicator" @click="increase">
                 {{ node.attrs.name }}
             </button>
-        </div>
+        </span>
     </node-view-wrapper>
 </template>
 

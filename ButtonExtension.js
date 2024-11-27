@@ -7,7 +7,8 @@ import { TextSelection } from 'prosemirror-state';
 
 export default Node.create({
   name: 'vueComponent',
-  group: 'block',
+  inline: true,
+  group: 'inline', 
   atom: true,
   addAttributes() {
     return {

@@ -18,6 +18,10 @@ const CustomHeading = Heading.extend({
         default: null,
         rendered: true,
       },
+      'data-clt-name': {
+        default: null,
+        rendered: true,
+      },
       w_opp_ref: {
         default: null,
         rendered: true,
@@ -38,7 +42,7 @@ const CustomHeading = Heading.extend({
 
     const elements = [
       'div',
-      { style: 'display: flex; align-items: baseline;', class: 'fmw-title' },
+      { style: 'display: flex; align-items: baseline;', class: 'fmw-title', 'data-clt-name': node.attrs.clt_name },
       [
         `h${node.attrs.level}`,
         {

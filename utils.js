@@ -11,7 +11,8 @@ const renderer = {
     let text = split_text_uuid[0]
     let uuid = split_text_uuid[1]
     let parent_ref = split_text_uuid[2]
-    return `<h${depth} class="custom-heading" id="${uuid}" data-parent-ref="${parent_ref}">${text}</h${depth}>`;
+    let clt_name = split_text_uuid[3]
+    return `<h${depth} class="custom-heading" id="${uuid}" data-parent-ref="${parent_ref}" data-clt-name="${clt_name}">${text}</h${depth}>`;
   },
   paragraph(token) {
 

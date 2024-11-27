@@ -78,7 +78,7 @@ export const dimStore = defineStore("dimStore", () => {
 
   // data table
   const data_table = ref()
-  const is_full_screen = ref(false);
+  const full_mode = ref(false);
 
   
   function streamText() {
@@ -132,6 +132,13 @@ export const dimStore = defineStore("dimStore", () => {
     stream_accumulated.value += text_chunk.value + ' '
   })
 
+  watch(()=> full_mode.value, (n,o) =>{
+    if (full_mode.value) {
+      left_panel.value = 'loading'
+    } else {
+      left_panel.value = 'markdown'
+    }
+  })
 
   watch(() => stream_queue.value[0], (n, o) => {
     console.log('stream_queue.value[0]', stream_queue.value[0])
@@ -646,7 +653,7 @@ watch(() => [d3_network_data.value],
     click_test2,
 
     // data table
-    is_full_screen,
+    full_mode,
     data_table,
     header_prop_name,
 

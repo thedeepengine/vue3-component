@@ -49,7 +49,6 @@ const tableData = reactive([
 const icon = shallowRef(Add24Regular);
 const is_shrunk = ref(false);
 const expand_button = ref(null);
-const full_mode = ref(false)
 const initial_table = ref(undefined)
 
 function emToPx(em) {
@@ -61,10 +60,10 @@ const expand = () => {
     console.log('expand')
 
     is_shrunk.value = true
-    full_mode.value = full_mode.value ? false : true
+    dim_store.full_mode = dim_store.full_mode ? false : true
 
     expand_button.value.addEventListener('animationend', () => {
-        if (full_mode.value) {
+        if (dim_store.full_mode) {
             icon.value = Subtract24Regular
         } else {
             icon.value = Add24Regular
@@ -83,7 +82,7 @@ const expand = () => {
     const width = window.innerWidth;
     const height = window.innerHeight;
 
-    if (!full_mode.value) {
+    if (!dim_store.full_mode) {
         table_wrapper.value.style.transition = 'transform 0.5s ease, height 0.5s ease, width 0.5s ease';
         table_wrapper.value.style.height = `${initial_table.value.height}px`;
         table_wrapper.value.style.width = `${initial_table.value.width}px`;
@@ -198,6 +197,7 @@ onMounted(() => {
     align-items: center;
     height: 30px;
     transition: height 0.3s ease;
+    cursor: pointer;
 }
 
 .fm-button.shrink {

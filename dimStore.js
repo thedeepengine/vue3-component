@@ -469,7 +469,7 @@ watch(() => [d3_network_data.value],
   function html_to_hierarchy(html) {
     console.log('html', html)
     apiClient
-      .post("https://localhost:8002/v1/api/html_to_hierarchy/", { html: html })
+      .post("https://localhost:8002/v1/api/html_to_hierarchy/", { html: html, header_prop_name: header_prop_name })
       .then(response => {
         console.log('md_to_hierarchy', response.data.hierarchy[0])
         w_data.value = response.data.hierarchy[0]

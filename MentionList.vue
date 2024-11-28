@@ -85,35 +85,39 @@
   }
   </script>
   
-  <style lang="scss">
+  <style>
   .dropdown-menu {
     background: white;
     border: 1px solid gray;
     border-radius: 0.7rem;
-    // box-shadow: var(--shadow);
+    box-shadow: 0px 12px 33px 0px rgba(0, 0, 0, .06), 0px 3.618px 9.949px 0px rgba(0, 0, 0, .04);
     display: flex;
     flex-direction: column;
     gap: 0.1rem;
     overflow: auto;
     padding: 0.4rem;
     position: relative;
-  
-    button {
-      align-items: center;
-      background-color: transparent;
-      display: flex;
-      gap: 0.25rem;
-      text-align: left;
-      width: 100%;
-  
-      &:hover,
-      &:hover.is-selected {
-        background-color: grey;
-      }
-  
-      &.is-selected {
-        background-color: lightgrey
-      }
-    }
+    border: none;
+  }
+
+  .dropdown-menu button {
+    align-items: center;
+    background-color: transparent;
+    display: flex;
+    gap: 0.25rem;
+    text-align: left;
+    width: 100%;
+    border-radius: 0.5rem;
+    border: none;
+    padding: .375rem .625rem;
+  }
+
+  .dropdown-menu button:hover,
+  .dropdown-menu button:hover.is-selected {
+    background-color: #EEEAE6;
+  }
+
+  .dropdown-menu button.is-selected {
+    background-color: #EEEAE6;
   }
   </style>

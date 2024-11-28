@@ -469,10 +469,10 @@ watch(() => [d3_network_data.value],
   function html_to_hierarchy(html) {
     console.log('html', html)
     apiClient
-      .post("https://localhost:8002/v1/api/html_to_hierarchy/", { html: html, header_prop_name: header_prop_name })
+      .post("https://localhost:8002/v1/api/html_to_hierarchy/", { html: html, header_prop_name: header_prop_name.value })
       .then(response => {
-        console.log('md_to_hierarchy', response.data.hierarchy[0])
-        w_data.value = response.data.hierarchy[0]
+        console.log('md_to_hierarchy', response.data)
+        w_data.value = response.data.hierarchy
       })
   }
 
@@ -654,6 +654,7 @@ watch(() => [d3_network_data.value],
     content_type,
     is_dirty,
     html_content_original,
+    refresh_map,
 
     // thingsSpace
     things_space_option,

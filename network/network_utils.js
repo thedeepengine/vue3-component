@@ -10,24 +10,33 @@ const NODE_MIN_WIDTH = 50
 const stroke = "#555";
 const strokeWidth = 1.5;
 const strokeOpacity = 1;
+const SPACE_WIDTH = 16
+const SPACE_HEIGHT = 16
+
+
+let arrow_filled_up = '<g><circle cx="256" cy="256" r="256" fill="#f9f7f5"></circle><path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM377 271c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-87-87-87 87c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9L239 167c9.4-9.4 24.6-9.4 33.9 0L377 271z" fill="#1f2937"/></g>'
+let arrow_filled_down = '<g><circle cx="256" cy="256" r="256" fill="#f9f7f5"></circle><path d="M256 0a256 256 0 1 0 0 512A256 256 0 1 0 256 0zM135 241c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l87 87 87-87c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9L273 345c-9.4 9.4-24.6 9.4-33.9 0L135 241z" fill="#1f2937"/></g>'
+let arrow_filled_right = '<g><circle cx="256" cy="256" r="256" fill="#f9f7f5"></circle><path d="M0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM241 377c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l87-87-87-87c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L345 239c9.4 9.4 9.4 24.6 0 33.9L241 377z" fill="#1f2937"/></g>'
+let arrow_filled_left = '<g><circle cx="256" cy="256" r="256" fill="#f9f7f5"></circle><path d="M512 256A256 256 0 1 0 0 256a256 256 0 1 0 512 0zM271 135c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-87 87 87 87c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0L167 273c-9.4-9.4-9.4-24.6 0-33.9L271 135z" fill="#1f2937"/></g>'
+let add_icon = '<svg width="16" height="16" viewBox="0 0 24 24"><path d="M5 6a1 1 0 0 1 1-1h2a1 1 0 0 0 0-2H6a3 3 0 0 0-3 3v2a1 1 0 0 0 2 0V6ZM5 18a1 1 0 0 0 1 1h2a1 1 0 1 1 0 2H6a3 3 0 0 1-3-3v-2a1 1 0 1 1 2 0v2ZM18 5a1 1 0 0 1 1 1v2a1 1 0 1 0 2 0V6a3 3 0 0 0-3-3h-2a1 1 0 1 0 0 2h2ZM19 18a1 1 0 0 1-1 1h-2a1 1 0 1 0 0 2h2a3 3 0 0 0 3-3v-2a1 1 0 1 0-2 0v2Z" fill="#222F3D"/></svg>'
 
 let timeoutId;
 
 function splitOddEven(n) {
     let odds = [];
     let evens = [];
-  
+
     for (let i = 0; i < n; i++) {
-      if (i % 2 === 0) {
-        evens.push(i);
-      } else {
-        odds.push(i);
-      }
+        if (i % 2 === 0) {
+            evens.push(i);
+        } else {
+            odds.push(i);
+        }
     }
-  
+
     return [odds, evens];
-  }
-  
+}
+
 d3selection.prototype.setAttrs = function (attrs) {
     Object.entries(attrs).forEach(([key, value]) => {
         this.attr(key, value);
@@ -91,7 +100,7 @@ function empty_force_tree() {
     d3selectAll("#forcedtree text").remove()
 }
 
-function displayStaticTree(store, add_event_func=undefined) {
+function displayStaticTree(store, add_event_func = undefined) {
     if (Object.keys(store.w_data).length > 0) {
         let { root_nodes, root_links } = compute_and_draw_tree(store)
 
@@ -100,9 +109,9 @@ function displayStaticTree(store, add_event_func=undefined) {
         var linkContainer = d3select(".link_container")
         var underlinedPath = d3select(".underlined_path_container")
         var frontText = d3select(".front_text_container").selectAll(".node_text")
-    
+
         linkContainer
-            .setAttrs({fill:"none",stroke:stroke, "stroke-opacity":strokeOpacity,"stroke-linecap":null,"stroke-linejoin": null,"stroke-width": strokeWidth})
+            .setAttrs({ fill: "none", stroke: stroke, "stroke-opacity": strokeOpacity, "stroke-linecap": null, "stroke-linejoin": null, "stroke-width": strokeWidth })
             .selectAll(".link")
             .data(store.root_links)
             .join("path")
@@ -123,19 +132,19 @@ function displayStaticTree(store, add_event_func=undefined) {
                 .y(d => d.x))
             .attr("class", "link")
             .style('opacity', 1);
-    
-            const d3linew = d3line()
-        .x(d => d[0])
-        .y(d => d[1]);
-    
-            underlinedPath
-                .attr("stroke", stroke)
-                .attr("stroke-opacity", strokeOpacity)
-                .attr("stroke-width", strokeWidth)
+
+        const d3linew = d3line()
+            .x(d => d[0])
+            .y(d => d[1]);
+
+        underlinedPath
+            .attr("stroke", stroke)
+            .attr("stroke-opacity", strokeOpacity)
+            .attr("stroke-width", strokeWidth)
             .selectAll(".link")
-                .data(store.root_nodes.map(x => ([[x.y_end, x.x], [x.y_start, x.x]])))  // Updated data binding
-                .join(
-                    enter => enter.append("path")
+            .data(store.root_nodes.map(x => ([[x.y_end, x.x], [x.y_start, x.x]])))  // Updated data binding
+            .join(
+                enter => enter.append("path")
                     .attr("class", "link")
                     .attr("d", d3linew),
                 update => update
@@ -144,9 +153,9 @@ function displayStaticTree(store, add_event_func=undefined) {
                     .transition()
                     .duration(300)
                     .remove()
-                );
-    
-        get_front_displayed_text(store,frontText)
+            );
+
+        get_front_displayed_text(store, frontText)
         if (add_event_func !== undefined) {
             add_event_func(frontText)
         }
@@ -156,97 +165,243 @@ function displayStaticTree(store, add_event_func=undefined) {
 
 function update_node_property(obj, uuid, key, value) {
     if (obj.uuid_front === uuid) {
-        obj[key] = value; 
-        return true; 
+        obj[key] = value;
+        return true;
     }
 
     if (Array.isArray(obj.children)) {
         for (let child of obj.children) {
             if (update_node_property(child, uuid, key, value)) {
-                return true; 
+                return true;
             }
         }
     }
-    return false;  
+    return false;
 }
 
-function get_front_displayed_text(store,d3sel) {
+function get_front_displayed_text(store, d3sel) {
     let rr = d3sel
-    .data(store.root_nodes, d => d.data.uuid_front); // Using a key function based on uuid
+        .data(store.root_nodes, d => d.data.uuid_front); // Using a key function based on uuid
 
-    let node_width = d=>{ return `${Math.max(d.y_end-d.y_start, NODE_MIN_WIDTH)}px`}
+    let node_width = d => { return `${Math.max(d.y_end - d.y_start, NODE_MIN_WIDTH)}px` }
+    let node_width2 = d => { return `${Math.max(d.y_end - d.y_start, NODE_MIN_WIDTH)}px` }
 
-        const enteredElements = rr.enter()
+    const enteredElements = rr.enter()
         .append('foreignObject')
-        .each(function(d) {
+        .each(function (d) {
             d3select(this)
-                .attr('class', 'node_text')
-                .attr("transform", d => `translate(${d.y_start},${d.x-14})`)
-                .style('width', node_width) 
-                .attr('height', 13)
-                .attr('data-pathid', d => d.data.uuid_front)
-            .append('xhtml:body')
-                .style('margin', 0)
-                .style('padding', 0)  
-                .style('font-size', '12px')
-                .style('line-height', '1') 
-                .style('background-color', 'transparent')
-                .style('width', node_width) 
-                .style('background', 'transparent')
-                .style('font-family', 'inherit')
-                .on('click', function(event) {
-                    console.log('click', event)
-                    event.preventDefault();  // Prevents the default click event which focuses the input
-                    // this.blur();
+                .setAttrs({ class: 'node_text', height: 13, 'data-pathid': d => d.data.uuid_front })
+                .attr("transform", d => { console.log(d); return `translate(${d.y_start},${d.x - 14})` })
+                .style('width', node_width)
+                .append('xhtml:body')
+                .attr('class', 'ooppp')
+                .setStyles({ margin: 0, padding: 0, 'font-size': '12px', 'line-height': '1', 'min-height': '10px', 'background-color': 'transparent', 'width': node_width, 'background': 'transparent', 'font-family': 'inherit' })
+                .on('click', function (event) {
+                    event.preventDefault();
                     event.stopPropagation()
                 })
-            .append('input')
-                .attr('value', d => {return d.data.name})
-                .attr('style', d=> {return `border: none; outline: none; font-size: 12px; padding: 0; font-family: inherit; box-sizing: border-box;`})
-                .attr('type', 'text')
-                .style('width', node_width) 
-                .attr('background-color', 'transparent')
-                .attr('background', 'transparent')
+                .append('input')
+                .setAttrs({ value: d => { return d.data.name }, type: 'text', 'background-color': 'transparent', background: 'transparent' })
+                .attr('style', d => { return `border: none; outline: none; font-size: 12px; padding: 0; font-family: inherit; box-sizing: border-box;` })
+                .style('width', node_width2)
                 .style('font-family', 'inherit')
-                // .attr('disabled', true) 
-                .on('input', function(event) {
-                    update_node_property(store.w_data, this.__data__.data.uuid_front, 'name', event.srcElement.value) 
-                    displayStaticTree(store) 
-                    d3select(`#${this.__data__.data.uuid_front}`).text(event.srcElement.value)    
+                .on('input', function (event) {
+                    let uuid_front = this.__data__.data.uuid_front
+                    let value = event.srcElement.value
+                    update_node_property(store.w_data, uuid_front, 'name', value)
+                    displayStaticTree(store)
+                    d3select(`#${uuid_front}`).text(value)
                 })
-                .on('keydown', function(event) {
+                .on('keydown', function (event) {
                     if (event.key === 'Enter') {
                         update_node_property(store.w_data, this.__data__.data.uuid_front, 'name', this.value)
                         displayStaticTree(store)
                     }
                 })
-                .on('click', function(event) {
-                    event.preventDefault();  // Prevents the default click event which focuses the input
+                .on('click', function (event) {
+                    event.preventDefault();
                     event.stopPropagation()
                 })
-                .on('dblclick', function() {
-                    this.disabled = false;  // Enable the input on double-click
-                    this.focus();  // Manually sets focus on the element when double-clicked
+                .on('dblclick', function () {
+                    this.disabled = false;
+                    this.focus();
                 })
-                // .on('blur', function() {
-                //     this.disabled = true;  // Disable the input when it loses focus
-                // });
         })
-        // .each(function(d) { console.log('Entering:', d); });  
 
 
-        rr
-            .attr("transform", d => `translate(${d.y_start},${d.x-14})`)
-            .style('width', node_width)
-            .attr('data-pathid', d => d.data.uuid_front)
-            .select('input') // Select the input child of each existing .node_text div
-                .property('value', d => d.data.name) // Use property for input value
-                .style('width', node_width)
-            // .each(function(d) { console.log('updating:', d); });  
+
+    d3sel
+        .data(store.root_nodes, d => d.data.uuid_front)
+        .enter()
+        .filter(d => d.depth > 0)
+        .append('g')
+        .attr('class', 'menu-hover-rect')
+        .attr('width', SPACE_WIDTH)
+        .attr('height', SPACE_HEIGHT)
+        .append('rect')
+        .attr('width', SPACE_WIDTH)
+        .attr('height', SPACE_HEIGHT)
+        .attr("transform", d => {
+            if (d.depth === 0) return
+            else if (d.side === 'left') return `translate(${d.y_end + 5},${d.x - 14})`
+            else if (d.side === 'right') return `translate(${d.y_start - SPACE_WIDTH - 3},${d.x - 14})`
+        })
+        .attr('class', 'hoverspace')
+        .attr('fill', 'transparent')
+
+
+
+        .on('mouseover', function (event, data) {
+            show_icon_for_menu(event)
+        })
+        .on('click', (event, data) => { console.log('ckckc'); show_map_menu(data); })
+        .on('mouseout', function () {
+
+            // d3select(this)
+            // .transition()
+            // .duration(1000)
+            // .style("opacity", 0);
+
+
+            // d3selectAll('.new-node-icon')
+            // .transition()
+            // .duration(1000).remove();
+
+            d3selectAll('.menu-icon')
+                .transition()
+                .duration(500)
+                .style("opacity", 0);
+
+
+            //             let a = d3selectAll('.network_class svg')
+            //   .selectAll('input')
+            //   .style('background-color', 'transparent')
+            //     .style('color', 'black');
+
+
+        })
+
+
+
+
+
+
+    rr
+        .attr("transform", d => `translate(${d.y_start},${d.x - 14})`)
+        .style('width', node_width)
+        .attr('data-pathid', d => d.data.uuid_front)
+        .select('input') // Select the input child of each existing .node_text div
+        .property('value', d => d.data.name) // Use property for input value
+        .style('width', node_width)
+    // .each(function(d) { console.log('updating:', d); });  
 
     rr.exit()
-    // .each(function(d) { console.log('Exiting:', d); })
-    .remove()
+        // .each(function(d) { console.log('Exiting:', d); })
+        .remove()
+}
+
+
+function show_icon_for_menu(event) {
+    d3select('.menu-hover-rect').append('g')
+        .attr('class', 'menu-icon')
+        .html(add_icon)
+        .attr('transform', event.target.attributes.transform.nodeValue)
+        .style('opacity', 0)
+        .transition()
+        .duration(2000)
+        .style("opacity", 1)
+}
+
+
+
+function show_map_menu(data) {
+    d3selectAll('.new-node-icon')
+        .transition()
+        .duration(100)
+        .attr('opacity', 0)
+
+    const icon_svg = d3select('.network_class svg').append('svg')
+        .attr('x', data.side === 'right' ? data.y_start + (+data.y_end - data.y_start) / 2 - SPACE_WIDTH / 2 : data.y_end + (data.y_start - data.y_end) / 2 - SPACE_WIDTH / 2)
+        .attr('y', data.x + 5)
+        .attr('class', 'new-node-icon')
+        .attr('width', 24)
+        .attr('height', 24)
+        .attr('viewBox', "0 0 512 512")
+
+    icon_svg.transition()
+        .duration(300)
+        .attr('opacity', 1)
+
+
+    icon_svg.on('click', function () {
+        handle_click_new_node(data)
+    })
+
+    icon_svg.append('rect')
+        .attr('width', 24)
+        .attr('height', 24)
+        .attr('fill', '#f9f7f5')
+
+    icon_svg.html(arrow_filled_down);
+
+    // const icon_svg2 = d3select('.network_class svg').append('svg')
+    //     .attr('x', data.side === 'right' ? data.y_start + (+data.y_end - data.y_start) / 2 - SPACE_WIDTH / 2 : data.y_end + (data.y_start - data.y_end) / 2 - SPACE_WIDTH / 2)
+    //     .attr('y', data.x - 24 - 12 - 5)
+    //     .attr('class', 'new-node-icon')
+    //     .attr('width', 24)
+    //     .attr('height', 24)
+    //     .attr('viewBox', "0 0 512 512")
+
+    // icon_svg2.html(arrow_filled_up)
+
+    if (data.side === 'right') {
+        const icon_svg = d3select('.network_class svg').append('svg')
+            .attr('x', data.y_end + 10)
+            .attr('y', data.x - 24 + 7)
+            .attr('class', 'new-node-icon')
+            .attr('width', 24)
+            .attr('height', 24)
+            .attr('viewBox', "0 0 512 512")
+
+        icon_svg.on('click', function () {
+            handle_click_new_node(data)
+        })
+
+        icon_svg.transition()
+            .duration(300)
+            .attr('opacity', 1)
+
+        icon_svg.html(arrow_filled_right)
+    } else {
+        const icon_svg = d3select('.network_class svg').append('svg')
+            .attr('x', data.y_start - 24 - 10)
+            .attr('y', data.x - 24 + 7)
+            .attr('class', 'new-node-icon')
+            .attr('width', 24)
+            .attr('height', 24)
+            .attr('viewBox', "0 0 512 512")
+
+        icon_svg.on('click', function () {
+            handle_click_new_node(data)
+        })
+
+        icon_svg.transition()
+            .duration(300)
+            .attr('opacity', 1)
+
+        icon_svg.html(arrow_filled_left)
+    }
+
+
+    //     let a = d3select('.network_class svg')
+    // .select(`[data-pathid="${data.data.uuid_front}"]`)
+    // .select('input')
+    // .style('color', '#4a3d12')
+}
+
+
+function handle_click_new_node(data) {
+    console.log(data)
 }
 
 function compute_tree(d) {
@@ -268,7 +423,7 @@ function compute_tree(d) {
 
     let root_right = compute_side(data_right, "right")
     let root_left = compute_side(data_left, "left")
-    return {root_right, root_left}
+    return { root_right, root_left }
 }
 
 function compute_side(data, side) {
@@ -297,24 +452,24 @@ function compute_side(data, side) {
     return root
 }
 
-function draw_tree(store,root_right,root_left) {
-    root_right=draw_side_tree(store,root_right, "right")
-    root_left=draw_side_tree(store,root_left, "left")
+function draw_tree(store, root_right, root_left) {
+    root_right = draw_side_tree(store, root_right, "right")
+    root_left = draw_side_tree(store, root_left, "left")
     adjust_tree_x(root_left, root_right)
-    return {root_right, root_left}
+    return { root_right, root_left }
 }
 
 function compute_and_draw_tree(store) {
-    let {root_right, root_left} = compute_tree(store.w_data)
-    draw_tree(store,root_right, root_left)
-    const root_nodes =[...root_right.descendants(), ...root_left.descendants()]
+    let { root_right, root_left } = compute_tree(store.w_data)
+    draw_tree(store, root_right, root_left)
+    const root_nodes = [...root_right.descendants(), ...root_left.descendants()]
     const root_links = [...root_right.links(), ...root_left.links()]
-    store.root_nodes=root_nodes
-    store.root_links=root_links
-    return {root_nodes,root_links}
+    store.root_nodes = root_nodes
+    store.root_links = root_links
+    return { root_nodes, root_links }
 }
 
-function draw_side_tree(store,root,side) {
+function draw_side_tree(store, root, side) {
     if (Object.keys(root.data).length === 0) return hierarchy({});
 
     var SIDE_CONST = side === "right" ? 1 : -1
@@ -333,12 +488,12 @@ function draw_side_tree(store,root,side) {
         .append("text")
         // .attr("dy", "-0.2em")
         // .attr('class', 'node_text')
-        .style('line-height', '1') 
+        .style('line-height', '1')
         .style('font-size', '12px')
         .style('font-family', 'inherit')
         .style("opacity", 0)
         .style('margin', 0)
-        .style('padding', 0)  
+        .style('padding', 0)
         .attr('height', 3)
         .text((d, i) => labels[i])
 
@@ -355,8 +510,8 @@ function draw_side_tree(store,root,side) {
 
         if (node.children !== undefined) {
             for (const child of node.children) {
-                child.y_start = (side === "right" ? child.parent.y_end:child.parent.y_start) + SIDE_CONST * NODE_Y_SHIFT + (side === "right" ? 0: -Math.max(text_length[child.data.name], NODE_MIN_WIDTH))
-                child.y_end = (side === "right" ? child.parent.y_end:child.parent.y_start) + SIDE_CONST * (NODE_Y_SHIFT + (side === "right" ? Math.max(text_length[child.data.name], NODE_MIN_WIDTH) : 0))
+                child.y_start = (side === "right" ? child.parent.y_end : child.parent.y_start) + SIDE_CONST * NODE_Y_SHIFT + (side === "right" ? 0 : -Math.max(text_length[child.data.name], NODE_MIN_WIDTH))
+                child.y_end = (side === "right" ? child.parent.y_end : child.parent.y_start) + SIDE_CONST * (NODE_Y_SHIFT + (side === "right" ? Math.max(text_length[child.data.name], NODE_MIN_WIDTH) : 0))
                 rec_y_position(child)
             }
         }
@@ -376,42 +531,44 @@ function draw_side_tree(store,root,side) {
 }
 
 function calculateStrokeDashArray(width, height) {
-    let widthGapRatio = 70/100
-    const widthGap =width * widthGapRatio;
-    const widthFull = (width * (1-widthGapRatio))/2;
-    let verticalGapRatio = 60/100
+    let widthGapRatio = 70 / 100
+    const widthGap = width * widthGapRatio;
+    const widthFull = (width * (1 - widthGapRatio)) / 2;
+    let verticalGapRatio = 60 / 100
     const verticalGap = height * verticalGapRatio
-    const verticalFull = (height * (1-verticalGapRatio))/2;
+    const verticalFull = (height * (1 - verticalGapRatio)) / 2;
 
-    return `${widthFull},${widthGap},${widthFull+verticalFull},${verticalGap},${verticalFull+widthFull},${widthGap},${widthFull+verticalFull},${verticalGap},${verticalFull}`;
+    return `${widthFull},${widthGap},${widthFull + verticalFull},${verticalGap},${verticalFull + widthFull},${widthGap},${widthFull + verticalFull},${verticalGap},${verticalFull}`;
 }
 
-function getCorneredRectangle(x, y, width=200, height=50, strokeWidth = 2) {
+function getCorneredRectangle(x, y, width = 200, height = 50, strokeWidth = 2) {
 
     const strokeDashArray = calculateStrokeDashArray(width, height);
 
     var svgContainer = d3select("#popupbox").append("div")
-    .setStyles({left:x+"px", top:y+"px", position: "fixed",opacity:0,"z-index":999999999})
-    .attr("class", "svg-container-corner-rect")
+        .setStyles({ left: x + "px", top: y + "px", position: "fixed", opacity: 0, "z-index": 999999999 })
+        .attr("class", "svg-container-corner-rect")
 
     var svg = svgContainer.append("svg")
-    .setAttrs({id:'corneredRectId', width:width+strokeWidth, height:height+strokeWidth})
+        .setAttrs({ id: 'corneredRectId', width: width + strokeWidth, height: height + strokeWidth })
 
     svg.append("rect")
-        .setAttrs({x:1,y:1,fill:"none",
-            width: width, height: height, 
-            stroke: "black","stroke-width": strokeWidth, "stroke-dasharray": strokeDashArray})
+        .setAttrs({
+            x: 1, y: 1, fill: "none",
+            width: width, height: height,
+            stroke: "black", "stroke-width": strokeWidth, "stroke-dasharray": strokeDashArray
+        })
         .style("position", "fixed")
 
     svg.append('text')
-    .attr("class", "to-compute-text-length")
-    .style("opacity", 0)
-    .style("font-size", `12px`)
-    
+        .attr("class", "to-compute-text-length")
+        .style("opacity", 0)
+        .style("font-size", `12px`)
+
     svgContainer.transition().duration(300).style("opacity", 1);
 }
 
-function getFloatingTextBox(x, y, action_func = undefined, width = 200, content='') {
+function getFloatingTextBox(x, y, action_func = undefined, width = 200, content = '') {
     let strokeWidth = 2
     let fontSize = 12
     let height = fontSize + fontSize
@@ -423,15 +580,15 @@ function getFloatingTextBox(x, y, action_func = undefined, width = 200, content=
         .attr("type", "text")
         .style("position", "fixed")
         .style("font-size", `${fontSize}px`)
-        .style("left", `${x+2*strokeWidth}px`)
-        .style("top", `${y+strokeWidth}px`)
-        .style("width", `${width-3*strokeWidth}px`)
-        .style("height", `${height-2*strokeWidth}px`)
+        .style("left", `${x + 2 * strokeWidth}px`)
+        .style("top", `${y + strokeWidth}px`)
+        .style("width", `${width - 3 * strokeWidth}px`)
+        .style("height", `${height - 2 * strokeWidth}px`)
         .style("border", "none")
         .style("padding", "0")
         .style("outline", "none")
         .property("value", content)
-        .on("keydown", function(event) {
+        .on("keydown", function (event) {
             if (event.key === "Enter" || event.keyCode === 13) {
                 console.log("Enter pressed! Value: ", this.value);
                 if (action_func !== undefined) {
@@ -444,24 +601,24 @@ function getFloatingTextBox(x, y, action_func = undefined, width = 200, content=
 
     var svgText = d3select('.to-compute-text-length')
 
-    input.on('input', function() {
-            svgText.text(this.value);
-            let textWidth = svgText.node().getComputedTextLength();
+    input.on('input', function () {
+        svgText.text(this.value);
+        let textWidth = svgText.node().getComputedTextLength();
 
-            if (textWidth > 195) {
-                console.log('limit')
-                // textWidth = max(textWidth, 200)
-                var extraAntiStutter = 5 // random value to make sure the most inner input text is always more than the text length to avoid hidden
-                var internal = textWidth+extraAntiStutter
-                var external = internal+2*strokeWidth
+        if (textWidth > 195) {
+            console.log('limit')
+            // textWidth = max(textWidth, 200)
+            var extraAntiStutter = 5 // random value to make sure the most inner input text is always more than the text length to avoid hidden
+            var internal = textWidth + extraAntiStutter
+            var external = internal + 2 * strokeWidth
 
-                height=2*height
-                d3select(".svg-container-corner-rect input").style("width", `${internal}px`).attr("height", height);
-                d3select("#corneredRectId").attr("width", external+strokeWidth).attr("height", height);
-                
-                
-                const strokeDashArray = calculateStrokeDashArray(external,height);
-                d3select("#corneredRectId rect")
+            height = 2 * height
+            d3select(".svg-container-corner-rect input").style("width", `${internal}px`).attr("height", height);
+            d3select("#corneredRectId").attr("width", external + strokeWidth).attr("height", height);
+
+
+            const strokeDashArray = calculateStrokeDashArray(external, height);
+            d3select("#corneredRectId rect")
                 .attr("stroke-dasharray", strokeDashArray)
                 .attr("width", external)
                 .attr("height", height);
@@ -473,17 +630,17 @@ function getFloatingTextBox(x, y, action_func = undefined, width = 200, content=
 function removeContainerCornerRect() {
     console.log('d3select(".svg-container-corner-rect")', d3select(".svg-container-corner-rect"))
     d3select(".svg-container-corner-rect")
-    .transition()
-    .duration(500)
-    .style("opacity", 0)
-    .remove();
+        .transition()
+        .duration(500)
+        .style("opacity", 0)
+        .remove();
 }
 
 function deepEngineSpinner(store) {
     let strokeWidth = 2
     let width = 150
     let height = 30
-    getCorneredRectangle(window.innerWidth*50/100-75, window.innerHeight*70/100, width, height, strokeWidth)
+    getCorneredRectangle(window.innerWidth * 50 / 100 - 75, window.innerHeight * 70 / 100, width, height, strokeWidth)
 
     d3select("#corneredRectId")
         .append("rect")
@@ -491,7 +648,7 @@ function deepEngineSpinner(store) {
         .attr("y", strokeWidth + 1)
         .style("position", "fixed")
         .attr("width", `0px`)
-        .attr("height", `${height - 2*strokeWidth}px`)
+        .attr("height", `${height - 2 * strokeWidth}px`)
         .attr("fill", "#222222")
         .transition()
         .duration(2000)

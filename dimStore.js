@@ -85,6 +85,42 @@ export const dimStore = defineStore("dimStore", () => {
   const data_table = ref()
   const full_mode = ref(false);
 
+
+
+
+  function fetch_data(clt, request) {
+
+    if (request === '') {
+      request = 'name,vector,hasChildren:name'
+    }
+
+    let bundle = { clt: clt, request: request, dimension: dimension.value, legacy_data: legacy_data.value }
+
+    apiClient
+      .post("https://localhost:8002/v1/api/query/", bundle)
+      .then(response => {
+        if (response.data?.legacy_data) legacy_data.value = response.data.legacy_data
+        if (response.data?.d3) {
+          w_data.value = response.data.d3
+        }
+        if (response.data?.header_prop_name) header_prop_name.value = response.data.header_prop_name
+        if (response.data?.d3_network_data) d3_network_data.value = response.data.d3_network_data
+        if (response.data?.md) md_content.value = response.data.md
+        if (response.data?.things_space) things_space_data.value = response.data.things_space
+        if (response.data?.graphql) {
+          graphql.value = JSON.stringify(response.data.graphql, null, '\t')
+        }
+        if (response.data?.data_table) data_table.value = response.data.data_table
+  
+        
+        
+        return response
+      })
+  }
+
+
+
+
   
   function streamText() {
     // const markdown = '# Main Heading\n\nthis is a paragraph\n## Subheading with **bold** text\n\nThis is a paragraph with a [link](https://example.com).';
@@ -476,35 +512,7 @@ watch(() => [d3_network_data.value],
       })
   }
 
-  function fetch_data(clt, request) {
 
-    if (request === '') {
-      request = 'name,vector,hasChildren:name'
-    }
-
-    let bundle = { clt: clt, request: request, dimension: dimension.value, legacy_data: legacy_data.value }
-
-    apiClient
-      .post("https://localhost:8002/v1/api/query/", bundle)
-      .then(response => {
-        if (response.data?.legacy_data) legacy_data.value = response.data.legacy_data
-        if (response.data?.d3) {
-          w_data.value = response.data.d3
-        }
-        if (response.data?.header_prop_name) header_prop_name.value = response.data.header_prop_name
-        if (response.data?.d3_network_data) d3_network_data.value = response.data.d3_network_data
-        if (response.data?.md) md_content.value = response.data.md
-        if (response.data?.things_space) things_space_data.value = response.data.things_space
-        if (response.data?.graphql) {
-          graphql.value = JSON.stringify(response.data.graphql, null, '\t')
-        }
-        if (response.data?.data_table) data_table.value = response.data.data_table
-  
-        
-        
-        return response
-      })
-  }
 
   function save_dry_run() {
     bus_event.value = {'id': 'get_html_with_ref'}    
@@ -625,7 +633,22 @@ watch(() => [d3_network_data.value],
 
 
 
+  function test_network() {
+    console.log('w_data.value: ', w_data.value)
+    w_data.value.children.push({uuid: 'ddfhdsfiuds', uuid: 'X_AAA_ddfhdsfiuds', name: 'new added node'})
+    console.log('w_data.value: ', w_data.value)
+    let temp = w_data.value
+    w_data.value = {}
+    
+    setTimeout(() => {
+      w_data.value = temp
+    }, 1000);
+  }
+
+
   return {
+    test_network,
+
     is_menu_open,
     deep_level,
     root_nodes,

@@ -100,15 +100,15 @@ function empty_force_tree() {
     d3selectAll("#forcedtree text").remove()
 }
 
-function displayStaticTree(store, add_event_func = undefined) {
+function displayStaticTree(store) {
     if (Object.keys(store.w_data).length > 0) {
-        let { root_nodes, root_links } = compute_and_draw_tree(store)
+        let { root_nodes, root_links } = compute_tree(store)
 
         store.root_nodes = root_nodes
         store.root_links = root_links
         var linkContainer = d3select(".link_container")
         var underlinedPath = d3select(".underlined_path_container")
-        var frontText = d3select(".front_text_container").selectAll(".node_text")
+        
 
         linkContainer
             .setAttrs({ fill: "none", stroke: stroke, "stroke-opacity": strokeOpacity, "stroke-linecap": null, "stroke-linejoin": null, "stroke-width": strokeWidth })
@@ -155,11 +155,8 @@ function displayStaticTree(store, add_event_func = undefined) {
                     .remove()
             );
 
-        get_front_displayed_text(store, frontText)
-        if (add_event_func !== undefined) {
-            add_event_func(frontText)
-        }
-        return frontText
+        get_front_displayed_text(store)
+
     }
 }
 
@@ -179,7 +176,8 @@ function update_node_property(obj, uuid, key, value) {
     return false;
 }
 
-function get_front_displayed_text(store, d3sel) {
+function get_front_displayed_text(store) {
+    let d3sel = d3select(".front_text_container").selectAll(".node_text")
     let rr = d3sel
         .data(store.root_nodes, d => d.data.uuid_front); // Using a key function based on uuid
 
@@ -404,7 +402,7 @@ function handle_click_new_node(data) {
     console.log(data)
 }
 
-function compute_tree(d) {
+function compute_base_tree(d) {
     let data_right = {}
     let data_left = {}
     if (d.children === undefined) {
@@ -452,16 +450,16 @@ function compute_side(data, side) {
     return root
 }
 
-function draw_tree(store, root_right, root_left) {
+function compute_text_length(store, root_right, root_left) {
     root_right = draw_side_tree(store, root_right, "right")
     root_left = draw_side_tree(store, root_left, "left")
     adjust_tree_x(root_left, root_right)
     return { root_right, root_left }
 }
 
-function compute_and_draw_tree(store) {
-    let { root_right, root_left } = compute_tree(store.w_data)
-    draw_tree(store, root_right, root_left)
+function compute_tree(store) {
+    let { root_right, root_left } = compute_base_tree(store.w_data)
+    compute_text_length(store, root_right, root_left)
     const root_nodes = [...root_right.descendants(), ...root_left.descendants()]
     const root_links = [...root_right.links(), ...root_left.links()]
     store.root_nodes = root_nodes
@@ -486,8 +484,6 @@ function draw_side_tree(store, root, side) {
 
     var node_text = node_container
         .append("text")
-        // .attr("dy", "-0.2em")
-        // .attr('class', 'node_text')
         .style('line-height', '1')
         .style('font-size', '12px')
         .style('font-family', 'inherit')
@@ -670,7 +666,7 @@ export {
     removeContainerCornerRect,
     d3selection,
     compute_tree,
-    compute_and_draw_tree,
+    compute_base_tree,
     update_node_property,
     empty_static_tree,
     empty_force_tree

@@ -4,7 +4,7 @@ import { Plugin } from 'prosemirror-state';
 import { select as d3select, selectAll as d3selectAll } from 'd3-selection'
 import { Mention } from '@tiptap/extension-mention';
 
-import { update_node_property, compute_and_draw_tree, displayStaticTree } from '@/components_shared/network/network_utils.js'
+import { update_node_property, compute_tree, displayStaticTree } from '@/components_shared/network/network_utils.js'
 
 const CustomHeading = Heading.extend({
   addAttributes() {

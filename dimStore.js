@@ -101,7 +101,10 @@ export const dimStore = defineStore("dimStore", () => {
       .then(response => {
         if (response.data?.legacy_data) legacy_data.value = response.data.legacy_data
         if (response.data?.d3) {
+
+          
           w_data.value = response.data.d3
+          console.log('w_data.value', w_data.value)
         }
         if (response.data?.header_prop_name) header_prop_name.value = response.data.header_prop_name
         if (response.data?.d3_network_data) d3_network_data.value = response.data.d3_network_data
@@ -635,14 +638,15 @@ watch(() => [d3_network_data.value],
 
   function test_network() {
     console.log('w_data.value: ', w_data.value)
-    w_data.value.children.push({uuid: 'ddfhdsfiuds', uuid: 'X_AAA_ddfhdsfiuds', name: 'new added node'})
+    let rr = Math.random().toString(36).substring(2, 7)
+    w_data.value.children.push({uuid: rr, uuid_front: 'X_AAA_'+rr, name: 'new added node'})
     console.log('w_data.value: ', w_data.value)
     let temp = w_data.value
     w_data.value = {}
     
     setTimeout(() => {
       w_data.value = temp
-    }, 1000);
+    }, 300);
   }
 
 

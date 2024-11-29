@@ -1,3 +1,4 @@
+import axios from 'axios'
 import { drag as d3drag } from 'd3-drag'
 import { forceSimulation as d3forceSimulation, forceLink, forceManyBody, forceCenter, forceCollide } from 'd3-force'
 import { select as d3select, selectAll as d3selectAll, selection as d3selection } from 'd3-selection'
@@ -20,6 +21,15 @@ function set_store(val) {
     console.log('set store: ', val)
    store = val
 }
+
+const apiClient = axios.create({
+    baseURL: 'https://localhost:8002/',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+
 
 let arrow_filled_up = '<g><circle cx="256" cy="256" r="256" fill="#f9f7f5"></circle><path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM377 271c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-87-87-87 87c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9L239 167c9.4-9.4 24.6-9.4 33.9 0L377 271z" fill="#1f2937"/></g>'
 let arrow_filled_down = '<g><circle cx="256" cy="256" r="256" fill="#f9f7f5"></circle><path d="M256 0a256 256 0 1 0 0 512A256 256 0 1 0 256 0zM135 241c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l87 87 87-87c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9L273 345c-9.4 9.4-24.6 9.4-33.9 0L135 241z" fill="#1f2937"/></g>'
@@ -161,25 +171,25 @@ function draw_path_tree(root_nodes, root_links) {
         .attr("stroke-width", strokeWidth)
         .selectAll(".link")
         .data(r,
-            function (d) { console.log('aaaa', d.uuid_front); return d.uuid_front })
+            function (d) { return d.uuid_front })
         .join(
             enter => enter.append("path")
                 .attr("class", "link")
-                .attr("d", d => d3linew(d.coord))
-                .each(function (d) {
-                    console.log("Entering:", d); // Logs data for entering elements
-                }),
+                .attr("d", d => d3linew(d.coord)),
+                // .each(function (d) {
+                //     console.log("Entering:", d); // Logs data for entering elements
+                // }),
             update => update
                 .transition()  // Start a transition for update selection
                 .duration(300)
-                .attr("d", d => d3linew(d.coord))
-                .each(function (d) {
-                    console.log("Updating:", d); // Logs data for updating elements
-                }),
+                .attr("d", d => d3linew(d.coord)),
+                // .each(function (d) {
+                //     console.log("Updating:", d); // Logs data for updating elements
+                // }),
             exit => exit
-                .each(function (d) {
-                    console.log("Exiting:", d); // Logs data for exiting elements
-                })
+                // .each(function (d) {
+                //     console.log("Exiting:", d); // Logs data for exiting elements
+                // })
                 .transition()
                 .duration(300)
                 .remove()
@@ -420,18 +430,23 @@ function show_map_menu(hierarchy, data) {
 function handle_click_new_node(hierarchy, node_data, position) {
     console.log(node_data)
     let rr = Math.random().toString(36).substring(2, 7)
-    insert_object_at_uuid({uuid: rr, uuid_front: 'X_AAA_'+rr, name: 'new added node'}, 
+    insert_object_at_uuid({uuid: rr, uuid_front: 'X_TEM_'+rr, name: 'new added node'}, 
         hierarchy, node_data.data.uuid_front, position)
-
         let temp = hierarchy
-
-        console.log('ssssssss: ', temp)
         store.w_data = {}
 
         setTimeout(() => {
             store.w_data = temp
             console.log('store.w_data', store.w_data)
           }, 300);
+        
+
+    apiClient
+        .post("https://localhost:8002/v1/api/hierarchy_to_markdown/", {hierarchy: temp, header_prop_name: store.header_prop_name})
+        .then(response => {
+            console.log('response.dataresponse.dataresponse.data: ', response.data)
+            store.md_content = response.data.md
+        })
 
     remove_map_menu()
 }

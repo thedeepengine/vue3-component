@@ -62,20 +62,6 @@ var adjust_tree_x = function (root_left, root_right) {
     root_left.descendants().map(item => { item.x -= diff_left })
 }
 
-
-var adjust_tree_x_graph = function (root_left, root_right, side) {
-    if (Object.keys(root_left).length === 0) return; // quit if root_left is empty as no adjustment is needed
-
-    var diff = Math.abs(root_right.x - root_left.x)
-
-    if (side === 'left') {
-        root_left.descendants().map(item => { item.x += diff })
-    } else {
-        root_right.descendants().map(item => { item.x += diff })
-    }
-}
-
-
 var adjust_tree_y_graph = function (root_left, root_right, side) {
     if (Object.keys(root_left).length === 0) return; // quit if root_left is empty as no adjustment is needed
 
@@ -105,90 +91,88 @@ function draw_path_tree(root_nodes, root_links) {
     var linkContainer = d3select(".link_container")
     var underlinedPath = d3select(".underlined_path_container")
 
-
+    console.log('root_links', root_links)
     linkContainer
         .setAttrs({ fill: "none", stroke: stroke, "stroke-opacity": strokeOpacity, "stroke-linecap": null, "stroke-linejoin": null, "stroke-width": strokeWidth })
-        .selectAll(".link")
-        .data(root_links)
-        .join("path")
-        .attr("d", linkHorizontal()
-            .source(d => ({ ...d.source, 'type': 'source' }))
-            .target(d => ({ ...d.target, 'type': 'target' }))
-            .x(d => {
-                if (d.type === 'source' & d.side === 'right' & d.depth === 0) {
-                    return d.y_end
-                } else if (d.type === 'target' & d.side === 'right' & d.depth > 0) {
-                    return d.y_start
-                } else if (d.type === 'source' & d.side === 'left') {
-                    return d.y_start
-                } else {
-                    return d.y_end
-                }
-            })
-            .y(d => d.x))
-        .attr("class", "link")
-        .style('opacity', 1);
+        .selectAll(".link2")
+        .data(root_links, function (d) { return d.source.data.uuid_front + '' + d.target.data.uuid_front })
+        .join(
+            enter => enter.append("path")
+                .attr("class", "link2")
+                .attr("d", linkHorizontal()
+                    .source(d => ({ ...d.source, 'type': 'source' }))
+                    .target(d => ({ ...d.target, 'type': 'target' }))
+                    .x(d => {
+                        if (d.type === 'source' & d.side === 'right' & d.depth === 0) {
+                            return d.y_end
+                        } else if (d.type === 'target' & d.side === 'right' & d.depth > 0) {
+                            return d.y_start
+                        } else if (d.type === 'source' & d.side === 'left') {
+                            return d.y_start
+                        } else {
+                            return d.y_end
+                        }
+                    })
+                    .y(d => d.x))
+                .style('opacity', 1),
+            update => update
+                .transition()
+                .duration(300)
+                .attr("d", linkHorizontal()
+                    .source(d => ({ ...d.source, 'type': 'source' }))
+                    .target(d => ({ ...d.target, 'type': 'target' }))
+                    .x(d => {
+                        if (d.type === 'source' & d.side === 'right' & d.depth === 0) {
+                            return d.y_end
+                        } else if (d.type === 'target' & d.side === 'right' & d.depth > 0) {
+                            return d.y_start
+                        } else if (d.type === 'source' & d.side === 'left') {
+                            return d.y_start
+                        } else {
+                            return d.y_end
+                        }
+                    })
+                    .y(d => d.x))
+            // exit => exit
+            //     .transition()  // Start transition for exit selection
+            //     .duration(500)  // Duration of 500ms
+            //     .style('opacity', 0)  // Fade out to opacity 0
+            //     .remove()  // Remove after transition
+        )
+
 
     const d3linew = d3line()
-    .x(d => d[0])  // Access the x-coordinate
-    .y(d => d[1]); 
+        .x(d => d[0])
+        .y(d => d[1]);
 
-    // function(d, i) { return d.product; }
+    let r = root_nodes
+        .map(x => ({ uuid_front: x.data.uuid_front, coord: ([[x.y_end, x.x], [x.y_start, x.x]]) }))
 
-        console.log('root_nodes', root_nodes)
-
-        
-        // underlinedPath.data(root_nodes, function(d) {console.log('aa');return 'i'})
-        
-
-
-        // const data = [
-        //     {name: "Locke", number: 4},
-        //     {name: "Reyes", number: 8},
-        //     {name: "Ford", number: 15},
-        //     {name: "Jarrah", number: 16},
-        //     {name: "Shephard", number: 23},
-        //     {name: "Kwon", number: 42}
-        //   ];
-          
-        //   d3selectAll("div")
-        //     .data(root_nodes, function(d) { console.log('_______AAAAAA', d); return d ? d.name : this.id; })
-        //       .text(d => d.number);
-
-
-
-
-
-        let r = root_nodes
-            .map(x => ({uuid_front: x.data.uuid_front, coord: ([[x.y_end, x.x], [x.y_start, x.x]])}))
-
-            console.log('fffff', r)
-
-        underlinedPath
+    underlinedPath
         .attr("stroke", stroke)
         .attr("stroke-opacity", strokeOpacity)
         .attr("stroke-width", strokeWidth)
         .selectAll(".link")
         .data(r,
-        function(d) { console.log('aaaa', d.uuid_front); return d.uuid_front })        
+            function (d) { console.log('aaaa', d.uuid_front); return d.uuid_front })
         .join(
             enter => enter.append("path")
                 .attr("class", "link")
-                .attr("d", d=>d3linew(d.coord))
+                .attr("d", d => d3linew(d.coord))
                 .each(function (d) {
                     console.log("Entering:", d); // Logs data for entering elements
                 }),
             update => update
-            .transition()  // Start a transition for update selection
-            .duration(300)
-                .attr("d", d=> d3linew(d.coord))
+                .transition()  // Start a transition for update selection
+                .duration(300)
+                .attr("d", d => d3linew(d.coord))
                 .each(function (d) {
                     console.log("Updating:", d); // Logs data for updating elements
                 }),
             exit => exit
-            .each(function (d) {
-                console.log("Exiting:", d); // Logs data for exiting elements
-            })
+                .each(function (d) {
+                    console.log("Exiting:", d); // Logs data for exiting elements
+                })
                 .transition()
                 .duration(300)
                 .remove()
@@ -217,7 +201,7 @@ function draw_text_tree(store) {
         .each(function (d) {
             d3select(this)
                 .setAttrs({ class: 'node_text', height: 13, 'data-pathid': d => d.data.uuid_front })
-                .attr("transform", d => { return `translate(${d.y_start},${d.x - 14})`})
+                .attr("transform", d => { return `translate(${d.y_start},${d.x - 14})` })
                 .style('width', node_width)
                 .append('xhtml:body')
                 .setStyles({ margin: 0, padding: 0, 'font-size': '12px', 'line-height': '1', 'min-height': '10px', 'background-color': 'transparent', 'width': node_width, 'background': 'transparent', 'font-family': 'inherit' })
@@ -273,57 +257,28 @@ function draw_text_tree(store) {
         })
         .attr('class', 'hoverspace')
         .attr('fill', 'transparent')
-
-
-
         .on('mouseover', function (event, data) {
             show_icon_for_menu(event)
         })
         .on('click', (event, data) => { console.log('ckckc'); show_map_menu(data); })
         .on('mouseout', function () {
-
-            // d3select(this)
-            // .transition()
-            // .duration(1000)
-            // .style("opacity", 0);
-
-
-            // d3selectAll('.new-node-icon')
-            // .transition()
-            // .duration(1000).remove();
-
             d3selectAll('.menu-icon')
                 .transition()
                 .duration(500)
                 .style("opacity", 0);
-
-
-            //             let a = d3selectAll('.network_class svg')
-            //   .selectAll('input')
-            //   .style('background-color', 'transparent')
-            //     .style('color', 'black');
-
-
         })
 
-
-
-
-
-
     rr
-        .property('value', d => d.data.name) 
+        .property('value', d => d.data.name)
         .attr('data-pathid', d => d.data.uuid_front)
-        .transition()  
+        .transition()
         .duration(300)
-            .attr("transform", d => `translate(${d.y_start},${d.x - 14})`)
-            .style('width', node_width)
-    .select('input') // Select the input child of each existing .node_text div
-        // .transition()  
-        // .duration(1000)
         .attr("transform", d => `translate(${d.y_start},${d.x - 14})`)
         .style('width', node_width)
-    .each(function(d) { console.log('updating:', d); });  
+        .select('input')
+        .attr("transform", d => `translate(${d.y_start},${d.x - 14})`)
+        .style('width', node_width)
+    // .each(function(d) { console.log('updating:', d); });  
 
     rr.exit()
         // .each(function(d) { console.log('Exiting:', d); })
@@ -456,7 +411,7 @@ function compute_base_tree(d) {
     let data_right = {}
     let data_left = {}
     if (d.children === undefined) {
-        data_right = { 'name': d.name}
+        data_right = { 'name': d.name }
         data_left = {}
     } else if (d.children.length === 1) {
         data_right = { 'name': d.name, 'children': d.children }
@@ -466,7 +421,7 @@ function compute_base_tree(d) {
         let split_right = odds.map(x => d.children[x])
         let split_left = evens.map(x => d.children[x])
         data_right = { 'name': d.name, uuid: d.uuid, uuid_front: d.uuid_front, 'children': split_right }
-        data_left = { uuid: 'fffff', uuid_front: 'aaaaa',  'children': split_left}
+        data_left = { uuid: 'fffff', uuid_front: 'aaaaa', 'children': split_left }
     }
 
     let root_right = compute_side(data_right, "right")

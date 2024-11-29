@@ -6,7 +6,7 @@ import { linkHorizontal, line as d3line } from 'd3-shape'
 import { transition } from 'd3-transition'
 import { toRaw } from 'vue';
 import { hierarchy, tree } from 'd3-hierarchy'
-import { insert_object_at_uuid } from '@/components_shared/utils'
+import { insert_object_at_uuid, find_parent_uuid } from '@/components_shared/utils'
 
 const NODE_MIN_WIDTH = 50
 const stroke = "#555";
@@ -108,7 +108,6 @@ function draw_path_tree(root_nodes, root_links) {
     var linkContainer = d3select(".link_container")
     var underlinedPath = d3select(".underlined_path_container")
 
-    console.log('root_links', root_links)
     linkContainer
         .setAttrs({ fill: "none", stroke: stroke, "stroke-opacity": strokeOpacity, "stroke-linecap": null, "stroke-linejoin": null, "stroke-width": strokeWidth })
         .selectAll(".link2")
@@ -430,21 +429,27 @@ function show_map_menu(hierarchy, data) {
 function handle_click_new_node(hierarchy, node_data, position) {
     console.log(node_data)
     let rr = Math.random().toString(36).substring(2, 7)
-    insert_object_at_uuid({uuid: rr, uuid_front: 'X_TEM_'+rr, name: 'new added node'}, 
+    let new_item = {uuid: rr, uuid_front: 'X_TEM_'+rr, name: 'new added node'}
+    // if (position === 'children') {
+    //     new_item.parent_ref = node_data.data.uuid_front
+    // } else if (position === 'sibling') {
+    //     let parent_uuid = find_parent_uuid(store.w_data, node_data.data.uuid_front);
+    //     console.log('parent_uuid,parent_uuidparent_uuid: ', parent_uuid)
+    //     new_item.parent_ref = parent_uuid
+    // }
+    
+    insert_object_at_uuid(new_item, 
         hierarchy, node_data.data.uuid_front, position)
         let temp = hierarchy
         store.w_data = {}
 
         setTimeout(() => {
             store.w_data = temp
-            console.log('store.w_data', store.w_data)
           }, 300);
-        
 
     apiClient
         .post("https://localhost:8002/v1/api/hierarchy_to_markdown/", {hierarchy: temp, header_prop_name: store.header_prop_name})
         .then(response => {
-            console.log('response.dataresponse.dataresponse.data: ', response.data)
             store.md_content = response.data.md
         })
 

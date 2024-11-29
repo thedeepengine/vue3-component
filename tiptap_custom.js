@@ -1,7 +1,6 @@
 import { Heading } from '@tiptap/extension-heading';
 import { Extension, mergeAttributes } from '@tiptap/core';
 import { Plugin } from 'prosemirror-state';
-import { select as d3select, selectAll as d3selectAll } from 'd3-selection'
 import { Mention } from '@tiptap/extension-mention';
 
 import { update_node_property, compute_tree, displayStaticTree } from '@/components_shared/network/network_utils.js'
@@ -19,10 +18,6 @@ const CustomHeading = Heading.extend({
         rendered: true,
       },
       'data-clt-name': {
-        default: null,
-        rendered: true,
-      },
-      w_opp_ref: {
         default: null,
         rendered: true,
       },
@@ -47,8 +42,6 @@ const CustomHeading = Heading.extend({
         `h${node.attrs.level}`,
         {
           ...HTMLAttributes,
-          // id: node.attrs.id || `X_TEM_${Math.random().toString(36).substr(2, 9)}`
-          // id: node.attrs.id ? node.attrs.id : || X_TEM_${Math.random().toString(36).substr(2, 9)},
         },
         0
       ]
@@ -75,14 +68,10 @@ const CustomHeading = Heading.extend({
         ];
 
         elements.splice(elements.length - 1, 0, mentionElement);
-        // elements.push(mentionElement);
-
       }
     }
-
     return elements;
   },
-
   addCommands() {
     return {
       toggle_display_refs: () => ({ tr, dispatch }) => {
@@ -101,7 +90,6 @@ const CustomHeading = Heading.extend({
             }
           });
 
-
           if (updated) {
             dispatch(tr);
           }
@@ -113,8 +101,10 @@ const CustomHeading = Heading.extend({
         return commands.setNode('heading', attributes);
       }
     };
-  }
+  },
 });
+
+
 
 
 function getHeadingsInRange(doc, from, to) {

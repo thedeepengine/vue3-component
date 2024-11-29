@@ -16,6 +16,7 @@ export const dimStore = defineStore("dimStore", () => {
   const is_menu_open = ref(false)
   const dimension = ref('hierarchy')
   const left_panel = ref('markdown')
+  const transaction_list = ref()
 
   const legacy_data = ref()
   const header_prop_name = ref()
@@ -522,23 +523,22 @@ watch(() => [d3_network_data.value],
 
 
   function save_dry_run() {
-    bus_event.value = {'id': 'get_html_with_ref'}    
+    bus_event.value = {'id': 'get_html_with_ref'}
+    dimension.value = 'save'
   }
 
   watch(() => bus_event.value, (new_value, old_value) => {
     console.log('bus_event.value', bus_event.value)
     if (new_value.id === 'html_with_ref') {
-
-      console.log('html_content_original.value', html_content_original.value)
       let payload = bus_event.value.payload
-
-      console.log('payload', payload)
       let bundle = {old_html: html_content_original.value, new_html: payload, header_prop_name: header_prop_name.value, dry_run: true}
 
       apiClient
       .post("https://localhost:8002/v1/api/save_dry_run/", bundle)
       .then(response => {
         console.log('response', response)
+        transaction_list.value = response.data
+        // bus_event.value = {'id': 'return_save_dry_run', payload: response.data}
       })
     }
   })
@@ -726,7 +726,10 @@ watch(() => [d3_network_data.value],
 
     fetch_data,
     save_dry_run,
-    bus_event
+    bus_event,
+
+    // save
+    transaction_list
   }
 
 })

@@ -156,10 +156,30 @@ function insert_object_at_uuid(simpleObj, nestedObj, uuidFront, position) {
 }
 
 
+function find_parent_uuid(nestedObj, uuidFront) {
+  function findParent(obj, uuid, parentUuid = null) {
+      if (obj.uuid_front === uuid) {
+          return parentUuid; 
+      }
+      if (obj.children) {
+          for (let child of obj.children) {
+              const result = findParent(child, uuid, obj.uuid_front);
+              if (result !== null) {
+                  return result;
+              }
+          }
+      }
+      return null; 
+  }
+
+  return findParent(nestedObj, uuidFront);
+}
+
 export {
     markdownToHtml,
     test_click_utils,
     find_path,
     add_children_at_path,
-    insert_object_at_uuid
+    insert_object_at_uuid,
+    find_parent_uuid
 }

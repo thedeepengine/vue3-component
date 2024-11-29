@@ -5,6 +5,7 @@ import { linkHorizontal, line as d3line } from 'd3-shape'
 import { transition } from 'd3-transition'
 import { toRaw } from 'vue';
 import { hierarchy, tree } from 'd3-hierarchy'
+import { insert_object_at_uuid } from '@/components_shared/utils'
 
 const NODE_MIN_WIDTH = 50
 const stroke = "#555";
@@ -13,6 +14,12 @@ const strokeOpacity = 1;
 const SPACE_WIDTH = 16
 const SPACE_HEIGHT = 16
 
+let store = null
+
+function set_store(val) {
+    console.log('set store: ', val)
+   store = val
+}
 
 let arrow_filled_up = '<g><circle cx="256" cy="256" r="256" fill="#f9f7f5"></circle><path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM377 271c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-87-87-87 87c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9L239 167c9.4-9.4 24.6-9.4 33.9 0L377 271z" fill="#1f2937"/></g>'
 let arrow_filled_down = '<g><circle cx="256" cy="256" r="256" fill="#f9f7f5"></circle><path d="M256 0a256 256 0 1 0 0 512A256 256 0 1 0 256 0zM135 241c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l87 87 87-87c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9L273 345c-9.4 9.4-24.6 9.4-33.9 0L135 241z" fill="#1f2937"/></g>'
@@ -260,8 +267,9 @@ function draw_text_tree(store) {
         .on('mouseover', function (event, data) {
             show_icon_for_menu(event)
         })
-        .on('click', (event, data) => { console.log('ckckc'); show_map_menu(data); })
+        .on('click', (event, data) => { show_map_menu(store.w_data, data); })
         .on('mouseout', function () {
+
             d3selectAll('.menu-icon')
                 .transition()
                 .duration(500)
@@ -286,6 +294,12 @@ function draw_text_tree(store) {
 }
 
 
+function remove_map_menu() {
+    d3selectAll('.append-node-icon')
+    .transition()
+    .duration(300)
+    .style("opacity", 0).remove()
+}
 
 function update_node_property(obj, uuid, key, value) {
     if (obj.uuid_front === uuid) {
@@ -317,16 +331,16 @@ function show_icon_for_menu(event) {
 
 
 
-function show_map_menu(data) {
-    d3selectAll('.new-node-icon')
+function show_map_menu(hierarchy, data) {
+    d3selectAll('.append-node-icon')
         .transition()
         .duration(100)
-        .attr('opacity', 0)
+        .attr('opacity', 0).remove()
 
     const icon_svg = d3select('.network_class svg').append('svg')
         .attr('x', data.side === 'right' ? data.y_start + (+data.y_end - data.y_start) / 2 - SPACE_WIDTH / 2 : data.y_end + (data.y_start - data.y_end) / 2 - SPACE_WIDTH / 2)
         .attr('y', data.x + 5)
-        .attr('class', 'new-node-icon')
+        .attr('class', 'append-node-icon')
         .attr('width', 24)
         .attr('height', 24)
         .attr('viewBox', "0 0 512 512")
@@ -337,7 +351,7 @@ function show_map_menu(data) {
 
 
     icon_svg.on('click', function () {
-        handle_click_new_node(data)
+        handle_click_new_node(hierarchy, data, 'sibling')
     })
 
     icon_svg.append('rect')
@@ -350,7 +364,7 @@ function show_map_menu(data) {
     // const icon_svg2 = d3select('.network_class svg').append('svg')
     //     .attr('x', data.side === 'right' ? data.y_start + (+data.y_end - data.y_start) / 2 - SPACE_WIDTH / 2 : data.y_end + (data.y_start - data.y_end) / 2 - SPACE_WIDTH / 2)
     //     .attr('y', data.x - 24 - 12 - 5)
-    //     .attr('class', 'new-node-icon')
+    //     .attr('class', 'append-node-icon')
     //     .attr('width', 24)
     //     .attr('height', 24)
     //     .attr('viewBox', "0 0 512 512")
@@ -361,13 +375,13 @@ function show_map_menu(data) {
         const icon_svg = d3select('.network_class svg').append('svg')
             .attr('x', data.y_end + 10)
             .attr('y', data.x - 24 + 7)
-            .attr('class', 'new-node-icon')
+            .attr('class', 'append-node-icon')
             .attr('width', 24)
             .attr('height', 24)
             .attr('viewBox', "0 0 512 512")
 
         icon_svg.on('click', function () {
-            handle_click_new_node(data)
+            handle_click_new_node(hierarchy, data, 'children')
         })
 
         icon_svg.transition()
@@ -379,13 +393,13 @@ function show_map_menu(data) {
         const icon_svg = d3select('.network_class svg').append('svg')
             .attr('x', data.y_start - 24 - 10)
             .attr('y', data.x - 24 + 7)
-            .attr('class', 'new-node-icon')
+            .attr('class', 'append-node-icon')
             .attr('width', 24)
             .attr('height', 24)
             .attr('viewBox', "0 0 512 512")
 
         icon_svg.on('click', function () {
-            handle_click_new_node(data)
+            handle_click_new_node(hierarchy, data, 'children')
         })
 
         icon_svg.transition()
@@ -403,8 +417,23 @@ function show_map_menu(data) {
 }
 
 
-function handle_click_new_node(data) {
-    console.log(data)
+function handle_click_new_node(hierarchy, node_data, position) {
+    console.log(node_data)
+    let rr = Math.random().toString(36).substring(2, 7)
+    insert_object_at_uuid({uuid: rr, uuid_front: 'X_AAA_'+rr, name: 'new added node'}, 
+        hierarchy, node_data.data.uuid_front, position)
+
+        let temp = hierarchy
+
+        console.log('ssssssss: ', temp)
+        store.w_data = {}
+
+        setTimeout(() => {
+            store.w_data = temp
+            console.log('store.w_data', store.w_data)
+          }, 300);
+
+    remove_map_menu()
 }
 
 function compute_base_tree(d) {
@@ -674,5 +703,6 @@ export {
     compute_base_tree,
     update_node_property,
     empty_static_tree,
-    empty_force_tree
+    empty_force_tree,
+    set_store
 }

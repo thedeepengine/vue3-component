@@ -5,6 +5,7 @@ import TurndownService from 'turndown';
 import { test_click_utils } from '@/components_shared/utils'
 import { marked } from "marked";
 
+
 export const dimStore = defineStore("dimStore", () => {
   // const is_menu_open = ref(true)
   // const dimension = ref('menu')
@@ -404,6 +405,9 @@ console.log('create_new_map: ', input)
     // const container = document.getElementById('text-container2');
     // container.addEventListener('animationend', handleAnimationEnd);
     // init_md_parser()
+
+
+
 
 
 

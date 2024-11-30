@@ -87,6 +87,9 @@ export const dimStore = defineStore("dimStore", () => {
   const data_table = ref()
   const full_mode = ref(false);
 
+  //save
+  const refresh_save_page = ref()
+
 
 
 
@@ -102,11 +105,8 @@ export const dimStore = defineStore("dimStore", () => {
       .post("https://localhost:8002/v1/api/query/", bundle)
       .then(response => {
         if (response.data?.legacy_data) legacy_data.value = response.data.legacy_data
-        if (response.data?.d3) {
-
-          
+        if (response.data?.d3) {          
           w_data.value = response.data.d3
-          console.log('w_data.value', w_data.value)
         }
         if (response.data?.header_prop_name) header_prop_name.value = response.data.header_prop_name
         if (response.data?.d3_network_data) d3_network_data.value = response.data.d3_network_data
@@ -520,30 +520,6 @@ watch(() => [d3_network_data.value],
       })
   }
 
-
-
-  function save_dry_run() {
-    bus_event.value = {'id': 'get_html_with_ref'}
-    dimension.value = 'save'
-  }
-
-  watch(() => bus_event.value, (new_value, old_value) => {
-    console.log('bus_event.value', bus_event.value)
-    if (new_value.id === 'html_with_ref') {
-      let payload = bus_event.value.payload
-      let bundle = {old_html: html_content_original.value, new_html: payload, header_prop_name: header_prop_name.value, dry_run: true}
-
-      apiClient
-      .post("https://localhost:8002/v1/api/save_dry_run/", bundle)
-      .then(response => {
-        console.log('response', response)
-        transaction_list.value = response.data
-        // bus_event.value = {'id': 'return_save_dry_run', payload: response.data}
-      })
-    }
-  })
-
-
   function getThingSpace(response) {
     let nNeighbors = 15
     if (response.length < 15) {
@@ -725,11 +701,11 @@ watch(() => [d3_network_data.value],
 
 
     fetch_data,
-    save_dry_run,
     bus_event,
 
     // save
-    transaction_list
+    transaction_list,
+    refresh_save_page
   }
 
 })

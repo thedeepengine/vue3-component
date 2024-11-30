@@ -1,11 +1,11 @@
 import { Heading } from '@tiptap/extension-heading';
 import { Extension, mergeAttributes } from '@tiptap/core';
-import { Plugin } from 'prosemirror-state';
-import { Mention } from '@tiptap/extension-mention';
+import { Plugin, PluginKey } from '@tiptap/pm/state'
 
-import { update_node_property, compute_tree, displayStaticTree } from '@/components_shared/network/network_utils.js'
+import { update_node_property, displayStaticTree } from '@/components_shared/network/network_utils.js'
 
 const CustomHeading = Heading.extend({
+  content: 'inline*',
   addAttributes() {
     return {
       ...this.parent?.(),
@@ -20,10 +20,6 @@ const CustomHeading = Heading.extend({
       'data-clt-name': {
         default: null,
         rendered: true,
-      },
-      showButton: {
-        default: false,
-        rendered: false
       }
     };
   },
@@ -36,40 +32,10 @@ const CustomHeading = Heading.extend({
     HTMLAttributes.id = node.attrs.id;
 
     const elements = [
-      'div',
-      { style: 'display: flex; align-items: baseline;', class: 'fmw-title', 'data-clt-name': node.attrs.clt_name },
-      [
-        `h${node.attrs.level}`,
-        {
-          ...HTMLAttributes,
-        },
-        0
-      ]
+      `h${node.attrs.level}`,
+      { ...HTMLAttributes, style: 'display: inline; align-items: baseline;', class: 'fmw-title'},
+      0
     ];
-
-    if (node.attrs.showButton) {
-
-      if (node.attrs['data-parent-ref'] !== '') {
-        const mentionAttributes = {
-          id: '1',
-          label: node.attrs['data-parent-ref'],
-        };
-
-        const mentionElement = [
-          'span',
-          mergeAttributes(
-            {
-              class: 'mention',
-              contenteditable: 'false',
-            },
-            mentionAttributes
-          ),
-          `@${mentionAttributes.label}`,
-        ];
-
-        elements.splice(elements.length - 1, 0, mentionElement);
-      }
-    }
     return elements;
   },
   addCommands() {
@@ -82,8 +48,7 @@ const CustomHeading = Heading.extend({
           doc.descendants((node, pos) => {
             if (node.type.name === 'heading') {
               const newAttrs = {
-                ...node.attrs,
-                showButton: !node.attrs.showButton
+                ...node.attrs
               };
               tr.setNodeMarkup(pos, null, newAttrs);
               updated = true;
@@ -103,20 +68,6 @@ const CustomHeading = Heading.extend({
     };
   },
 });
-
-
-
-
-function getHeadingsInRange(doc, from, to) {
-  let headings = [];
-  doc.nodesBetween(from, to, (node, pos) => {
-    if (node.type.name === 'heading') {
-      headings.push({ level: node.attrs.level, content: node.textContent, id: node.attrs.id });
-    }
-  });
-  return headings;
-}
-
 
 function get_all_heading(state) {
   let text = []
@@ -180,5 +131,6 @@ function getTrackHeadingsExtension(store, html_content) {
 
 export {
   CustomHeading,
-  getTrackHeadingsExtension
+  getTrackHeadingsExtension,
+  
 }

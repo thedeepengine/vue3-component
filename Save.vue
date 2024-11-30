@@ -31,15 +31,4 @@ const CATEGORY_MAPPING = {changed_prop: 'Updated Properties',
 removed_obj: 'Removed Object', added_obj: 'Added Object',
 removed_prop: 'Removed Properties', added_refs: 'Added References',
 deleted_refs: 'Deleted References'}
-
-console.log('dim_store.transaction_list', dim_store.transaction_list)
-// function format_transaction() {
-//     return dim_store.
-// }
-
-// watch(() => bus_event.value, (new_value, old_value) => {
-//     if (new_value.id === 'return_save_dry_run') {
-
-//     }
-// })
 </script>

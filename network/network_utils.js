@@ -95,6 +95,7 @@ function empty_static_tree() {
     d3selectAll(".front_text_container .node_text").remove()
     d3selectAll(".underlined_path_container .link").remove()
     d3selectAll(".link_container .link").remove()
+    d3selectAll(".link_container .link2").remove()
 }
 
 function empty_force_tree() {
@@ -286,13 +287,14 @@ function draw_text_tree(store) {
         })
 
     rr
-        .property('value', d => d.data.name)
+        
         .attr('data-pathid', d => d.data.uuid_front)
         .transition()
         .duration(300)
         .attr("transform", d => `translate(${d.y_start},${d.x - 14})`)
         .style('width', node_width)
         .select('input')
+        .attr('value', d => d.data.name)
         .attr("transform", d => `translate(${d.y_start},${d.x - 14})`)
         .style('width', node_width)
     // .each(function(d) { console.log('updating:', d); });  

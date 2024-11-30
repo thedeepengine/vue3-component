@@ -1,5 +1,6 @@
 <template>
   <div style="z-index:10;padding-top:12vh;padding-left:3vh">
+    <!-- <n-button style="position: fixed;top:100px;right:300px;z-index: 9999999999999" @click="tttt">AAAAA</n-button> -->
     <div style="width: 100%;transform: translate(0,25%)">
       <div class="editor-content-type" style="width:fit-content;margin:auto">
 
@@ -60,6 +61,7 @@
 </template>
 
 <script setup>
+import axios from 'axios'
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useEditor, Editor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
@@ -76,13 +78,22 @@ import { NIcon, NPopover, NButton } from 'naive-ui'
 import { DocumentChevronDouble24Regular, DrinkToGo24Regular } from '@vicons/fluent'
 import Graphql from '@/components_shared/Graphql.vue'
 import { DOMSerializer } from 'prosemirror-model';
+// import { Plugin } from 'prosemirror-state';
+import { Plugin, PluginKey } from 'prosemirror-state';
 
 const dim_store = dimStore()
 const lowlight = createLowlight(all)
-
-
 const debounceTimer = ref(null);
 
+
+const apiClient = axios.create({
+    baseURL: 'https://localhost:8002/',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+  
 const findNearestHeading = (editor) => {
   let position = editor.state.selection.$from.pos;
 
@@ -97,6 +108,77 @@ const findNearestHeading = (editor) => {
     position--;
   }
 };
+
+const add_mention_to_heading = () => {
+  const { tr } = editor.value.state;
+  const insertions = [];
+
+  editor.value.state.doc.descendants((node, pos) => {
+    if (node.type.name === 'heading' && node.attrs['data-parent-ref'] !== '') {
+      const mentionNode = editor.value.schema.nodes.mention.create({
+        label: node.attrs['data-parent-ref'] // Example label
+      });
+      insertions.push({ pos: pos + 1, node: mentionNode }); // +1 to insert at the beginning of the heading content
+    }
+  });
+
+  for (let i = insertions.length - 1; i >= 0; i--) {
+    const { pos, node } = insertions[i];
+    tr.insert(pos, node);
+  }
+
+  if (!tr.steps.length) return;
+
+  editor.value.view.dispatch(tr);
+};
+
+
+const remove_mention_from_headings = (dispatch_to_front=true) => {
+  const { tr } = editor.value.state;
+  let deletions = [];
+  editor.value.state.doc.descendants((node, pos) => {
+    if (node.type.name === 'mention') {
+      const parentNode = editor.value.state.doc.resolve(pos).parent;
+      if (parentNode.type.name === 'heading' && parentNode.attrs['data-parent-ref'] === node.attrs.label) {
+        deletions.push({ pos, size: node.nodeSize });
+      }
+    }
+  });
+
+  for (let i = deletions.length - 1; i >= 0; i--) {
+    const { pos, size } = deletions[i];
+    tr.delete(pos, pos + size);
+  }
+
+  if (!tr.steps.length) return;
+  if (dispatch_to_front) {
+    editor.value.view.dispatch(tr);
+  } else {
+    return tr
+  }
+};
+
+const trackMentionDeletionsKey = new PluginKey('trackMentionDeletions');
+
+const trackMentionDeletionsPlugin = new Plugin({
+  key: trackMentionDeletionsKey,
+  appendTransaction(transactions, oldState, newState) {
+    transactions.forEach(transaction => {
+      if (!transaction.docChanged) {
+        return;
+      }
+      transaction.steps.forEach(step => {
+        step.getMap().forEach((oldStart, oldEnd) => {
+          oldState.doc.nodesBetween(oldStart, oldEnd, (node, pos) => {
+            if (node.type.name === 'mention') {
+              console.log(`Potential mention deletion detected at position ${pos} with content: ${node.textContent}`);
+            }
+          });
+        });
+      });
+    });
+  }
+});
 
 
 const editor = useEditor({
@@ -118,6 +200,7 @@ const editor = useEditor({
     }),
     CustomHeading,
     getTrackHeadingsExtension(dim_store, dim_store.html_content),
+    trackMentionDeletionsPlugin
   ],
   content: dim_store.html_content,
   onUpdate: ({ editor }) => {
@@ -126,7 +209,8 @@ const editor = useEditor({
       dim_store.is_dirty = true
     }
 
-    let html = editor.getHTML()
+    // let html = editor.getHTML()
+    let html = dim_store.show_refs ? clean_html() : editor.getHTML()
     if (html !== dim_store.html_content) {
       dim_store.html_content = html
     }
@@ -158,37 +242,21 @@ onMounted(() => {
   watch(() => dim_store.md_content, (newValue) => {
     if (!dim_store.is_dirty && editor.value && editor.value.getHTML() !== newValue) {
       dim_store.html_content = markdownToHtml(newValue)
-      // show_refs.value = true
       editor.value.commands.setContent(dim_store.html_content);
-      dim_store.html_content_original = toggleDisplayRefsAndGetHtml()
+      dim_store.html_content_original = editor.value.getHTML()
     }
   }, { immediate: true });
 
-  watch(() => dim_store.show_refs, () => {
-    editor.value.commands.toggle_display_refs();
+  watch(() => dim_store.show_refs, (n,o) => {
+    if (n) {
+      add_mention_to_heading()
+    } else {
+      remove_mention_from_headings()
+    }    
   })
-
-  watch(() => dim_store.bus_event, (new_value, old_value) => {
-    if (new_value.id === 'get_html_with_ref') {
-      dim_store.bus_event = {id: 'html_with_ref', payload: toggleDisplayRefsAndGetHtml()}
-    }
-  })
-
 });
 
-
-function toggleDisplayRefsAndGetHtml() {
-  editor.value.state.doc.descendants((node, pos) => {
-    if (node.type.name === 'heading') {
-      const newAttrs = {
-        ...node.attrs,
-        showButton: !node.attrs.showButton
-      };
-      editor.value.state.tr.setNodeMarkup(pos, null, newAttrs);
-    }
-  });
-
-
+function clean_html() {
   function getHtmlFromState(state) {
     const div = document.createElement('div');
     const serializer = DOMSerializer.fromSchema(editor.value.schema);
@@ -197,11 +265,24 @@ function toggleDisplayRefsAndGetHtml() {
     return div.innerHTML;
   }
 
-  const newState = editor.value.state.apply(editor.value.state.tr);
+  let tr = remove_mention_from_headings(false)
+  const newState = editor.value.state.apply(tr);
   const newHtml = getHtmlFromState(newState);
-
-  return newHtml;
+  return newHtml
 }
+
+watch(() => dim_store.refresh_save_page, () => {
+
+  let html = dim_store.show_refs ? clean_html() : editor.value.getHTML()
+  let bundle = {old_html: dim_store.html_content_original, new_html: html, header_prop_name: dim_store.header_prop_name, dry_run: true}
+
+      apiClient
+      .post("https://localhost:8002/v1/api/save_dry_run/", bundle)
+      .then(response => {
+        dim_store.transaction_list = response.data
+      })
+
+})
 
 onBeforeUnmount(() => {
   if (editor) {

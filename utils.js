@@ -6,7 +6,6 @@ marked.use(markedKatex({throwOnError: false,displayMode: true}));
 
 const renderer = {
   heading({ tokens, depth }) {
-    // let split_text_uuid = tokens[0].text.split('{#X')
     let split_text_uuid = tokens[0].text.split('{#')
     let text = split_text_uuid[0]
     let uuid = split_text_uuid[1]

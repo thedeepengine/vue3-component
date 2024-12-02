@@ -8,7 +8,7 @@
           <template #trigger>
             <span class="fmw-button-icon" :class="{ selected: dim_store.content_type === 'tiptap' }"
               @click="dim_store.content_type = 'tiptap'">
-              <n-icon :component="DrinkToGo24Regular" color="#4c5467" size="24"></n-icon>
+              <n-icon :component="AlignLeft24Regular" color="#4c5467" size="24"></n-icon>
             </span>
           </template>
           <template #header>
@@ -75,7 +75,7 @@ import ButtonNode from '@/components_shared/ButtonExtension.js';
 import Mention from '@tiptap/extension-mention'
 import suggestion from '@/components_shared/suggestion.js'
 import { NIcon, NPopover, NButton } from 'naive-ui'
-import { DocumentChevronDouble24Regular, DrinkToGo24Regular } from '@vicons/fluent'
+import { DocumentChevronDouble24Regular, AlignLeft24Regular } from '@vicons/fluent'
 import Graphql from '@/components_shared/Graphql.vue'
 import { DOMSerializer } from 'prosemirror-model';
 // import { Plugin } from 'prosemirror-state';

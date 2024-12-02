@@ -1,5 +1,5 @@
 <template>
-    <div class="parent">
+    <div class="parent" @keydown.esc="onClickoutside">
         <div style="backdrop-filter: blur(10px);background-color: transparent;border-bottom: 2px solid #d4af37;">
             <div style="background-color: transparent;">
                 <editor-content class="editor" @animationend="handleAnimationEnd"
@@ -10,8 +10,13 @@
 
     <n-dropdown placement="bottom-start" trigger="manual" 
     style="z-index: 999999999999999999;"
-    :x="menuPosition.left" :y="menuPosition.top" :options="menu_options" :show="show_menu"
-        :on-clickoutside="onClickoutside" @select="selectOption" />
+    :x="menuPosition.left" 
+    :y="menuPosition.top" 
+    :options="menu_options" 
+    :show="show_menu"
+    :on-clickoutside="onClickoutside" 
+    @select="selectOption"
+    @keydown.esc="onClickoutside" />
 
 </template>
 
@@ -69,8 +74,8 @@ const EnterKeyHandler = Extension.create({
                 if (show_menu.value === false) {
                     submit()
                 }
-                return true; // Return false to let the editor handle the Enter key normally
-            }
+                return true; 
+            },
         };
     },
 });
@@ -110,35 +115,16 @@ const editor = useEditor({
         }
     },
     onBlur({ event }) {
-        console.log('blur')
         // show_menu.value = false
     },
     onTransaction: ({ editor, transaction }) => {
-        // const { state } = editor;
-        // const selection = state.selection;
-        // const from = selection.from;
+        const { state } = editor;
+        const selection = state.selection;
+        const from = selection.from;
 
-        // const all = state.doc.textBetween(0, from, ' ');
-        // let last_word = all.match(/\b\w+$/);
+        const all = state.doc.textBetween(0, from, ' ');
 
-        // if (last_word != null & transaction.docChanged) {
-        //     if (last_word[0] !== '' & last_word[0] !== ' ') {
-        //         last_index.value = last_word['index']
-        //         last_word = last_word[0]
-
-        //         let m = dim_store.allowed_clt_fields.filter(item => item['field'].toLowerCase().startsWith(last_word.toLowerCase()))
-
-        //         if (m.length > 0) {
-        //             menu_options.value = m
-        //             selected_option.value = m[0]
-        //             show_menu.value = true;
-        //             const coords = editor.view.coordsAtPos(from);
-        //             menuPosition.value = { top: coords.top + 20, left: coords.left };
-        //         } else {
-        //             show_menu.value = false;
-        //         }
-        //     }
-        // }
+        dim_store.user_input = all
     }
 });
 
@@ -179,7 +165,6 @@ onMounted(() => {
     // editor_ref.value = gg.value?.$el.querySelector('.n-input__textarea.n-scrollbar');
 
     watch(() => dim_store.stream_status, (newValue, oldValue) => {
-        console.log('newValuenewValue', newValue)
         if (newValue === 'start') {
             words.value = ['_']
         } else if (newValue === 'end') {
@@ -208,7 +193,11 @@ onMounted(() => {
 })
 
 function submit() {
-    toggleAnimation(editor_ref.value.$el, 'blur')
+    if (dim_store.selected_clt === '') {
+        dim_store.bus_event = 'header.show_clt_options' + Math.random().toString(36).substring(2, 6)
+    } else {
+        toggleAnimation(editor_ref.value.$el, 'blur')
+    }
 }
 
 function toggleAnimation(element, type) {
@@ -221,6 +210,7 @@ const handleAnimationEnd = async (role) => {
     add_message_to_history('box_input.value', 'human')
     show_new_history_message('box_input.value')
     dim_store.user_input = getTextContent(box_input_html.value).trim()
+    dim_store.fetch_data(dim_store.selected_clt, dim_store.user_input)
     editor.value.commands.setContent('');
 };
 

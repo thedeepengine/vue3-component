@@ -11,7 +11,11 @@ export const dimStore = defineStore("dimStore", () => {
   // const dimension = ref('menu')
   // const left_panel = ref('loading')
 
+  // header
+  const selected_clt = ref('')
+
   const bus_event = ref()
+  
 
   const is_menu_open = ref(false)
   const dimension = ref('hierarchy')
@@ -73,6 +77,7 @@ export const dimStore = defineStore("dimStore", () => {
   const isAnimatingNew = ref(false)
 
   const allowed_clt_fields = ref({})
+  const distinct_clt = ref([])
 
   const text_chunk = ref('')
   const stream_queue = ref([])
@@ -83,6 +88,7 @@ export const dimStore = defineStore("dimStore", () => {
   const current_stream_tag = ref([])
   const text_tracker = ref([])
 
+
   // data table
   const data_table = ref()
   const full_mode = ref(false);
@@ -92,13 +98,7 @@ export const dimStore = defineStore("dimStore", () => {
 
 
 
-
   function fetch_data(clt, request) {
-
-    if (request === '') {
-      request = 'name,vector,hasChildren:name'
-    }
-
     let bundle = { clt: clt, request: request, dimension: dimension.value, legacy_data: legacy_data.value }
 
     apiClient
@@ -118,6 +118,7 @@ export const dimStore = defineStore("dimStore", () => {
         if (response.data?.data_table) data_table.value = response.data.data_table
   
         
+        console.log('response.data.things_space', response.data.things_space)
         
         return response
       })
@@ -303,8 +304,6 @@ console.log('create_new_map: ', input)
 
 
 
-
-
   function getLastTokenWithParent(dict) {
     let parentType = null;
     let parent_id = null;
@@ -413,8 +412,8 @@ console.log('create_new_map: ', input)
 
 
 
-    let newValue='name=test>>name,name,content,hasChildren:name,content,hasOntology:name,content'
-    fetch_data('NodeTest2', newValue)
+    // let newValue='name=test>>name,name,content,hasChildren:name,content,hasOntology:name,content'
+    // fetch_data(selected_clt.value, newValue)
 
 
     turndownService.value.escape = function (text) {
@@ -437,44 +436,39 @@ console.log('create_new_map: ', input)
         const obj = response.data['ctx']['fields']
         const result = {};
         let all_concat = [];
+        let all_clt = []
         for (const key in obj) {
           if (Array.isArray(obj[key]?.all)) {
             obj[key].all.forEach(item => {
+              all_clt.push(key)
               all_concat.push({ label: `${item}|${key}`, key: `${item}|${key}`, field: item, clt: key });
             });
           }
         }
 
         allowed_clt_fields.value = all_concat
+        distinct_clt.value = [...new Set(all_clt)];
       })
   })
 
-  watch(() => user_input.value, (newValue, oldValue) => {
-    newValue='name=test>>name,name,content,hasChildren:name,content,hasOntology:name,content'
-    fetch_data('NodeTest2', newValue)
-  })
 
-  watch(() => dimension.value, (newValue, oldValue) => {
-    // fetch_data('NodeTest2', user_input.value)
 
-    newValue='name=test>>name,name,content,hasChildren:name,content,hasOntology:name,content'
-    fetch_data('NodeTest2', newValue)
-  })
-
-  watch(() => [things_space_data.value, dimension.value],
-    ([new_data, new_dimension], [old_data, old_dimension]) => {
-      console.log('new_dimension', new_dimension)
-      if (new_dimension === 'things_space') {
-        // if (new_data !== undefined) {
-        new_data = [{}]
-        console.log('new_data', new_data)
-        let reduced = getThingSpace(new_data)
-        things_space_option.value = things_space_options(reduced)
-        console.log('things_space_option.value', things_space_option.value)
-        // }
-      }
-    }
-  );
+  // watch(() => dimension.value,
+  //   (new_dimension, old_dimension) => {
+  //     console.log('new_dimension', new_dimension === 'things_space')
+  //     console.log('new_dimension', new_dimension)
+  //     if (new_dimension === 'things_space') {
+  //       fetch_data(selected_clt.value, user_input.value)
+  //       // if (new_data !== undefined) {
+  //       // new_data = [{}]
+  //       // console.log('new_data', new_data)
+  //       let reduced = getThingSpace(new_data)
+  //       things_space_option.value = things_space_options(reduced)
+  //       console.log('things_space_option.value', things_space_option.value)
+  //       // }
+  //     }
+  //   }
+  // );
 
 
 watch(() => [data_table.value, dimension.value],
@@ -495,6 +489,17 @@ watch(() => [d3_network_data.value],
 (new_data, old_data) => {
     if (dimension.value === 'network') {
       refresh_network.value = 'network'
+    } 
+});
+
+
+watch(() => things_space_data.value,
+(new_data, old_data) => {
+    if (dimension.value === 'things_space') {
+      let reduced = getThingSpace(new_data)
+      console.log('reduced', reduced)
+      things_space_option.value = things_space_options(reduced)
+      console.log('things_space_option.value', things_space_option.value)
     } 
 });
 
@@ -551,7 +556,6 @@ watch(() => [d3_network_data.value],
       [obj.category]: [...(acc[obj.category] || []), obj]
     }), {});
 
-    // dim_reduced_data.value = byCategory
     return byCategory
 
   }
@@ -580,13 +584,19 @@ watch(() => [d3_network_data.value],
             return value['name'];
           },
         },
-        data: [[1, 1, 1]]
+        data: data.a
+        // data: Object.entries(data).map(([key,value]) => {
+        //   [{name:value.name, value: value.value}]
+        // })
+
+        
+        // data: [1,1,1]
         // data: Object.entries(data).map(([key, value]) => {
-        //   return [1,1,1]
-        //   // option.series.push({
-        //   //   name: key, 
-        //   //   data: value
-        //   // })
+        //   // return [1,1,1]
+        //   option.series.push({
+        //     name: key, 
+        //     data: value
+        //   })
         // })
       }]
     }
@@ -671,6 +681,7 @@ watch(() => [d3_network_data.value],
     stream_status,
     stream_content,
     user_input,
+    selected_clt,
 
     // graphql
     code,

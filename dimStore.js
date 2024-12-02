@@ -12,7 +12,7 @@ export const dimStore = defineStore("dimStore", () => {
   // const left_panel = ref('loading')
 
   // header
-  const selected_clt = ref('')
+  const selected_clt = ref('NodeTest2')
 
   const bus_event = ref()
   
@@ -97,6 +97,13 @@ export const dimStore = defineStore("dimStore", () => {
   const refresh_save_page = ref()
 
 
+  const apiClient = axios.create({
+    baseURL: 'https://localhost:8002/',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
 
   function fetch_data(clt, request) {
     let bundle = { clt: clt, request: request, dimension: dimension.value, legacy_data: legacy_data.value }
@@ -111,15 +118,16 @@ export const dimStore = defineStore("dimStore", () => {
         if (response.data?.header_prop_name) header_prop_name.value = response.data.header_prop_name
         if (response.data?.d3_network_data) d3_network_data.value = response.data.d3_network_data
         if (response.data?.md) md_content.value = response.data.md
-        if (response.data?.things_space) things_space_data.value = response.data.things_space
+        if (response.data?.things_space) {
+            things_space_data.value = response.data.things_space
+        }
         if (response.data?.graphql) {
           graphql.value = JSON.stringify(response.data.graphql, null, '\t')
         }
         if (response.data?.data_table) data_table.value = response.data.data_table
   
         
-        console.log('response.data.things_space', response.data.things_space)
-        
+
         return response
       })
   }
@@ -452,25 +460,6 @@ console.log('create_new_map: ', input)
   })
 
 
-
-  // watch(() => dimension.value,
-  //   (new_dimension, old_dimension) => {
-  //     console.log('new_dimension', new_dimension === 'things_space')
-  //     console.log('new_dimension', new_dimension)
-  //     if (new_dimension === 'things_space') {
-  //       fetch_data(selected_clt.value, user_input.value)
-  //       // if (new_data !== undefined) {
-  //       // new_data = [{}]
-  //       // console.log('new_data', new_data)
-  //       let reduced = getThingSpace(new_data)
-  //       things_space_option.value = things_space_options(reduced)
-  //       console.log('things_space_option.value', things_space_option.value)
-  //       // }
-  //     }
-  //   }
-  // );
-
-
 watch(() => [data_table.value, dimension.value],
 ([new_data, new_dimension], [old_data, old_dimension]) => {
     // Object.assign(tableData, dim_store.datatable);
@@ -493,15 +482,19 @@ watch(() => [d3_network_data.value],
 });
 
 
-watch(() => things_space_data.value,
-(new_data, old_data) => {
-    if (dimension.value === 'things_space') {
-      let reduced = getThingSpace(new_data)
-      console.log('reduced', reduced)
-      things_space_option.value = things_space_options(reduced)
-      console.log('things_space_option.value', things_space_option.value)
-    } 
-});
+// watch(() => things_space_data.value,
+// (new_data, old_data) => {
+//     if (dimension.value === 'things_space') {
+//       console.log('new_datanew_datanew_data', new_data)
+//       if (!'ALT' in new_data) {
+//         console.log('AAAAAALKKKKKKKK')
+//         let reduced = getThingSpace(new_data)
+//         things_space_option.value = things_space_options(reduced)
+//       } else {
+//         things_space_option.value = things_space_options([1,1,1])
+//       }
+//     } 
+// });
 
 
 
@@ -525,103 +518,11 @@ watch(() => things_space_data.value,
       })
   }
 
-  function getThingSpace(response) {
-    let nNeighbors = 15
-    if (response.length < 15) {
-      nNeighbors = response.length
-    }
-
-    function dr(data, dr_method) {
-      const X = druid.Matrix.from(data);
-      const DR = druid[dr_method];
-      const P = { d: 3, n_neighbors: nNeighbors };
-      return new DR(X, { ...P });
-    }
-
-    let vectors = response.map(obj => obj.value);
-    let names = response.map(obj => obj.name);
-    let colors = response.map(obj => obj.color);
-    let category = response.map(obj => obj.category);
-
-    var t = dr(vectors, 'UMAP')
-    var Y = t.transform();
-    var mat = Y.asArray
-
-    let res = mat.map((item, index) => {
-      return { 'value': item, 'name': names[index], 'color': colors[index], 'category': category[index] || '_' }
-    });
-
-    const byCategory = res.reduce((acc, obj) => ({
-      ...acc,
-      [obj.category]: [...(acc[obj.category] || []), obj]
-    }), {});
-
-    return byCategory
-
-  }
-
-  function things_space_options(data) {
-    let option = {
-      tooltip: {},
-      legend: {},
-      xAxis3D: {
-        type: 'value'
-      },
-      yAxis3D: {
-        type: 'value'
-      },
-      zAxis3D: {
-        type: 'value'
-      },
-      grid3D: {
-      },
-      series: [{
-        type: 'scatter3D',
-        label: {
-          show: true,
-          fontSize: 10,
-          formatter: function (value) {
-            return value['name'];
-          },
-        },
-        data: data.a
-        // data: Object.entries(data).map(([key,value]) => {
-        //   [{name:value.name, value: value.value}]
-        // })
-
-        
-        // data: [1,1,1]
-        // data: Object.entries(data).map(([key, value]) => {
-        //   // return [1,1,1]
-        //   option.series.push({
-        //     name: key, 
-        //     data: value
-        //   })
-        // })
-      }]
-    }
-
-    option.legend = {
-      bottom: '10%',
-      right: '10%',
-      data: Object.keys(data),
-    };
-    return option
-  }
-
 
   function set_dimension(dimension_to_set) {
     dimension.value = dimension_to_set
     console.log('dimension.value', dimension.value)
   }
-
-
-  const apiClient = axios.create({
-    baseURL: 'https://localhost:8002/',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
 
 
 

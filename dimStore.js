@@ -12,7 +12,7 @@ export const dimStore = defineStore("dimStore", () => {
   // const left_panel = ref('loading')
 
   // header
-  const selected_clt = ref('NodeTest2')
+  const selected_clt = ref('')
 
   const bus_event = ref()
   
@@ -54,13 +54,14 @@ export const dimStore = defineStore("dimStore", () => {
   const is_dirty = ref(false)
 
   // thingsSpace
-  const things_space_data = ref(undefined)
+  const things_space_data = ref([])
   const things_space_option = ref({})
 
   // conversation
   const stream_status = ref('')
   const stream_content = ref([])
   const user_input = ref('')
+  const conversation_history = ref([])
 
   // graphql
   const code = ref()
@@ -583,6 +584,7 @@ watch(() => [d3_network_data.value],
     stream_content,
     user_input,
     selected_clt,
+    conversation_history,
 
     // graphql
     code,

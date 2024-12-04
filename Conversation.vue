@@ -206,10 +206,11 @@ function toggleAnimation(element, type) {
 }
 
 const handleAnimationEnd = async (role) => {
+    let user_input = getTextContent(box_input_html.value).trim()
     editor_ref.value.$el.classList.remove('blur', 'unblur')
-    add_message_to_history('box_input.value', 'human')
+    add_message_to_history(user_input, 'human')
     show_new_history_message('box_input.value')
-    dim_store.user_input = getTextContent(box_input_html.value).trim()
+    dim_store.user_input = user_input
     dim_store.fetch_data(dim_store.selected_clt, dim_store.user_input)
     editor.value.commands.setContent('');
 };
@@ -242,6 +243,7 @@ const handleAnimationEndNewItem = (role) => {
 
 const add_message_to_history = async (message, role) => {
     history.value.push({ message: message, user: role, type: 'last' })
+    dim_store.conversation_history.value = history.value
 }
 
 

@@ -1,14 +1,12 @@
 <!-- TEMPLATE MUST HAVE A SINGLE CHILD EVEN COMMENT NOT ACCEPTED -->
 <template>
   <div id="things_space_container" ref="containerRefThingsSpace">
-    <v-chart ref="myChartRef" id="thingsworld" class="chart" 
-    :option="things_space_option" autoresize />
-      <div v-if="show_message" class="message-container">
+    <!-- <n-button @click="aaaa" style="position: fixed;top:200px;left:400px;z-index:9999999999">AAAAA</n-button> -->
+    <v-chart ref="myChartRef" id="thingsworld" class="chart" :option="things_space_option" autoresize />
+    <div v-if="show_message" class="message-container">
       <!-- <div>Get vectors for:</div> -->
-      <div v-if="show_message" 
-      class="fmw-thing-space-button"
-      @click="generate_vect">
-        {{ dim_store.things_space_data.ALT }}
+      <div class="fmw-thing-space-button" @click="generate_vect">
+        {{ dim_store.header_prop_name }}
       </div>
       <div class="fmw-thing-space-button">
         Show me examples
@@ -28,8 +26,12 @@ import { Grid3DComponent } from 'echarts-gl/components';
 import { TitleComponent, LegendComponent, TooltipComponent } from "echarts/components";
 import { CanvasRenderer } from 'echarts/renderers';
 import { use } from "echarts/core";
-import { watch, ref } from "vue";
+import { watch, ref, onMounted } from "vue";
 import { dimStore } from '@/components_shared/dimStore.js'
+import { NButton } from 'naive-ui'
+
+// import * as echarts from 'echarts';
+// import 'echarts-gl';
 
 use([LegendComponent, TooltipComponent, Scatter3DChart, Grid3DComponent, TitleComponent, CanvasRenderer]);
 
@@ -42,12 +44,18 @@ const things_space_option = ref()
 
 
 const apiClient = axios.create({
-    baseURL: 'https://localhost:8002/',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
+  baseURL: 'https://localhost:8002/',
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
 
+onMounted(()=> {
+  if (dim_store.things_space_data.length === 0) {
+    show_message.value = true
+    things_space_option.value = get_echart_options([])
+  }
+})
 
 watch(() => dim_store.things_space_data, (new_data, old_data) => {
   if ('ALT' in new_data) {
@@ -77,16 +85,30 @@ function extractFieldValues(obj, fieldName) {
 }
 
 
+
+
 function generate_vect(event) {
-  let to_vectorize = extractFieldValues(dim_store.w_data, event.srcElement.innerText)
+  let request = dim_store.conversation_history.value.at(-1).message
   apiClient
-      .post("https://localhost:8002/v1/api/get_vector/", {to_vectorize: to_vectorize})
-      .then(response => {
-        let reduced = get_dimension_reduction(response.data.things_space)
-        things_space_option.value = get_echart_options(reduced)
-        dim_store.w_data
-        show_message.value = false
-      })
+    .post("https://localhost:8002/v1/api/get_on_the_fly_things_space/", { clt_name: dim_store.selected_clt, request: request, dimension: 'things_space', header_prop_name: dim_store.header_prop_name })
+    .then(response => {
+      let reduced = get_dimension_reduction(response.data.things_space)
+      things_space_option.value = get_echart_options(reduced)
+      // dim_store.w_data
+      show_message.value = false
+    })
+
+
+
+  // let to_vectorize = extractFieldValues(dim_store.w_data, event.srcElement.innerText)
+  // apiClient
+  //     .post("https://localhost:8002/v1/api/get_vector/", {to_vectorize: to_vectorize})
+  //     .then(response => {
+  //       let reduced = get_dimension_reduction(response.data.things_space)
+  //       things_space_option.value = get_echart_options(reduced)
+  //       dim_store.w_data
+  //       show_message.value = false
+  //     })
 
 }
 
@@ -104,24 +126,17 @@ function get_dimension_reduction(response) {
   }
 
   let vectors = response.map(obj => obj.value);
-  let names = response.map(obj => obj.name);
-  let colors = response.map(obj => obj.color);
-  let category = response.map(obj => obj.category);
 
   var t = dr(vectors, 'UMAP')
   var Y = t.transform();
   var mat = Y.asArray
 
-  let res = mat.map((item, index) => {
-    return { 'value': item, 'name': names[index], 'color': colors[index], 'category': category[index] || '_' }
-  });
 
-  // const byCategory = res.reduce((acc, obj) => ({
-  //   ...acc,
-  //   [obj.category]: [...(acc[obj.category] || []), obj]
-  // }), {});
 
-  // return byCategory
+  let res = response.map((obj, index) => ({
+  ...obj,
+  value: mat[index]
+}));
 
   return res
 
@@ -132,22 +147,53 @@ function get_echart_options(data) {
   let option = {
     tooltip: {},
     legend: {},
+    grid3D: {
+      show: true,
+      splitLine: {show:false},
+      axisPointer: {
+            show: false  // Disables axis pointers in 3D grid globally
+        }
+    },
     xAxis3D: {
-      type: 'value'
+      type: 'value',
+      axisTick: {show: false},
+      axisLabel: {show: false},
+      axisLine: {lineStyle: {opacity: 0}}, 
+      name: '',
+      axisPointer: {
+            show: false  // Disables the axis pointer on the X-axis
+        }
     },
     yAxis3D: {
-      type: 'value'
+      type: 'value',
+      axisTick: {show: false},
+      axisLabel: {show: false},
+      axisLine: {lineStyle: {opacity: 0}}, 
+      name: '',
+      axisPointer: {
+            show: false  // Disables the axis pointer on the X-axis
+        }
     },
     zAxis3D: {
-      type: 'value'
-    },
-    grid3D: {
+      type: 'value',
+      name: '',
+      axisLabel: {show: false},
+      axisLine: {lineStyle: {opacity: 0}}, 
+      axisTick: {show: false} ,
+      splitLine: {show:true, lineStyle: {opacity: 0}},
+      axisPointer: {
+            show: false  // Disables the axis pointer on the X-axis
+        }
     },
     series: [{
       type: 'scatter3D',
+      // color: "#d4af37",
+      symbolSize: 20,
       label: {
         show: true,
         fontSize: 10,
+        // color: "#1F2937",
+        // color: "#d4af37",
         formatter: function (value) {
           return value['name'];
         },
@@ -155,6 +201,12 @@ function get_echart_options(data) {
       // data: data.a || [1,1,1]
       // data: [[1, 1, 1]]
       data: data
+      // data: [{name: 'sssaaas', value: [1,1,1],  
+      // "itemStyle":{"color": "#d4af37"},
+      // "label": {
+      //               "show": true,
+      //               "color": '#1F2937' 
+      //           }}]
       // data: Object.entries(data).map(([key,value]) => {
       //   [{name:value.name, value: value.value}]
       // })
@@ -191,7 +243,8 @@ function get_echart_options(data) {
   display: flex;
   flex-direction: column;
   width: 50vw;
-  height: 95vh;justify-content: center;
+  height: 95vh;
+  justify-content: center;
   align-items: center;
 }
 

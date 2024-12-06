@@ -423,6 +423,7 @@ watch(() => dim_store.content_type, () => {
   padding-left: 8px;
   opacity: 0.1;
   transition: opacity 0.25s;
+  cursor: pointer;
 }
 
 .fmw-button-icon.selected {

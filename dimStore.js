@@ -68,6 +68,8 @@ export const dimStore = defineStore("dimStore", () => {
   // graphql
   const code = ref()
   const graphql = ref()
+  const graphql_input = ref()
+  const graphql_output = ref()
 
   //popup box
   const isVisible = ref(false);
@@ -593,6 +595,8 @@ watch(() => [d3_network_data.value],
     // graphql
     code,
     graphql,
+    graphql_input,
+    graphql_output,
 
     //popup box
     isVisible,

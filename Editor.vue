@@ -39,7 +39,8 @@
       <editor-content v-if="dim_store.content_type === 'tiptap'" id="dimension_tiptap" :editor="editor"
         key="tiptap-editor" />
       <Graphql v-else-if="dim_store.content_type === 'html'" key="html"></Graphql>
-      <Graphql v-else-if="dim_store.content_type === 'graphql'" :prop_option="{mode: 'graphql'}" key="graphql"></Graphql>
+      <!-- <Graphql v-else-if="dim_store.content_type === 'graphql'" :prop_option="{mode: 'graphql'}" key="graphql"></Graphql> -->
+      <GraphqlInput v-else-if="dim_store.content_type === 'graphql'" key="graphql"></GraphqlInput>
     </Transition>
   </div>
 </template>
@@ -61,6 +62,7 @@ import suggestion from '@/components_shared/suggestion.js'
 import { NIcon, NPopover, NButton } from 'naive-ui'
 import { DocumentChevronDouble24Regular, AlignLeft24Regular } from '@vicons/fluent'
 import Graphql from '@/components_shared/Graphql.vue'
+import GraphqlInput from './GraphqlInput.vue';
 import { DOMSerializer } from 'prosemirror-model';
 // import { Plugin } from 'prosemirror-state';
 import { Plugin, PluginKey } from 'prosemirror-state';

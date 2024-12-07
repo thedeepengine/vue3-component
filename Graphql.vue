@@ -1,6 +1,6 @@
 <template>
-    <Codemirror class="fmw-codemirror" ref="cm_ref" v-model:value="code" :options="cmOptions" placeholder="" :height="600"
-        @change="change" />
+    <Codemirror class="fmw-codemirror" ref="cm_ref" 
+    v-model:value="props.code" :options="cmOptions" placeholder="" :height="600" />
 </template>
 
 <script setup>
@@ -8,6 +8,8 @@ import Codemirror from "codemirror-editor-vue3";
 import 'codemirror/lib/codemirror.css';
 // import 'codemirror/theme/dracula.css';
 import 'codemirror/theme/yeti.css';
+import "codemirror/mode/javascript/javascript.js";
+
 
 import { ref, watch, defineProps } from 'vue';
 import { onMounted, onUnmounted } from 'vue'
@@ -32,12 +34,17 @@ import { buildClientSchema } from 'graphql';
 const dim_store = dimStore()
 const cm_ref = ref()
 const cmOptions = ref()
-
-const code = ref(``);
-
+// const code = ref(``);
 const props = defineProps({
-    prop_option: Object  
+    prop_option: Object,
+    code: String
 });
+
+function getCode() {
+    return props.code
+}
+
+defineExpose({ getCode });
 
 
 function fetchSchema(url) {

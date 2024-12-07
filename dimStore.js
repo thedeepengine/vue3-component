@@ -13,6 +13,7 @@ export const dimStore = defineStore("dimStore", () => {
 
   // header
   const selected_clt = ref('')
+  const loading_flag = ref(false)
 
   const bus_event = ref()
   
@@ -62,6 +63,7 @@ export const dimStore = defineStore("dimStore", () => {
   const stream_content = ref([])
   const user_input = ref('')
   const conversation_history = ref([])
+  const conv_full_screen = ref()
 
   // graphql
   const code = ref()
@@ -544,6 +546,7 @@ watch(() => [d3_network_data.value],
 
   return {
     test_network,
+    loading_flag,
 
     is_menu_open,
     deep_level,
@@ -585,6 +588,7 @@ watch(() => [d3_network_data.value],
     user_input,
     selected_clt,
     conversation_history,
+    conv_full_screen,
 
     // graphql
     code,

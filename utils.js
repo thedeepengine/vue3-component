@@ -174,11 +174,18 @@ function find_parent_uuid(nestedObj, uuidFront) {
   return findParent(nestedObj, uuidFront);
 }
 
+function f_log(tag, message) {
+  const now = new Date().toISOString();
+  console.log(`[${now}] [${tag}]`, message);
+}
+
+
 export {
     markdownToHtml,
     test_click_utils,
     find_path,
     add_children_at_path,
     insert_object_at_uuid,
-    find_parent_uuid
+    find_parent_uuid,
+    f_log
 }

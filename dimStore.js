@@ -129,7 +129,6 @@ export const dimStore = defineStore("dimStore", () => {
     apiClient
       .post("https://localhost:8002/v1/api/query/", bundle)
       .then(response => {
-        
         if (response.data?.legacy_data) {
           legacy_data.value = response.data.legacy_data
         }
@@ -153,6 +152,7 @@ export const dimStore = defineStore("dimStore", () => {
         }
         if (response.data?.graphql_output) {
           graphql_output.value = response.data.graphql_output
+          is_object_dirty.value.graphql_output = false
         }
         if (response.data?.data_table) {
           data_table.value = response.data.data_table
@@ -509,10 +509,10 @@ watch(() => dimension.value,
 (new_data, old_data) => {
   if (conversation_history.value.at(-1)) {
     if (dimension.value === 'network' && is_object_dirty.value.d3_network_data) {
-      fetch_data(selected_clt, conversation_history.value.at(-1).message)
+      fetch_data(selected_clt.value, conversation_history.value.at(-1).message)
     } 
     if (dimension.value === 'hierarchy' && is_object_dirty.value.w_data) {
-      fetch_data(selected_clt, conversation_history.value.at(-1).message)
+      fetch_data(selected_clt.value, conversation_history.value.at(-1).message)
     } 
 
     // if (dimension.value === 'graphql' && is_object_dirty.value.graphql_output) {

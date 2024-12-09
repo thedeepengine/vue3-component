@@ -44,7 +44,12 @@ function getCode() {
     return props.code
 }
 
-defineExpose({ getCode });
+function get_cm_instance() {
+    return cm_ref.value.cminstance
+}
+
+
+defineExpose({ getCode, get_cm_instance });
 
 
 function fetchSchema(url) {
@@ -94,15 +99,6 @@ watch(() => dim_store.conv_full_screen, () => {
     cm_ref.value.cminstance.focus()
 })
 
-watch(() => dim_store.loading_flag, (old_content_type, new_content_type) => {
-    if (dim_store.content_type === 'graphql' && dim_store.loading_flag === true) {
-        cm_ref.value.cminstance.getWrapperElement().style.opacity = 0
-        dim_store.loading_flag = false
-        setTimeout(() => {
-            dim_store.content_type = 'tiptap'
-        }, 300);
-    }
-})
 </script>
 
 

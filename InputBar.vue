@@ -219,7 +219,7 @@ function graphql_search_panel() {
 
     dim_store.conv_full_screen = (dim_store.conv_full_screen ? false : true)
     if (dim_store.conv_full_screen) {
-    dim_store.content_type = 'graphql'
+        dim_store.content_type = 'graphql'
     } else {
         dim_store.loading_flag = true
     }

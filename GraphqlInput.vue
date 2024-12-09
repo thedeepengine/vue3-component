@@ -56,6 +56,16 @@ function onChange(val) {
     code.value = val
 }
 
+
+watch(() => dim_store.loading_flag, (old_content_type, new_content_type) => {
+    if (dim_store.content_type === 'graphql' && dim_store.loading_flag === true) {
+      childRef.value.get_cm_instance().getWrapperElement().style.opacity = 0
+        dim_store.loading_flag = false
+        setTimeout(() => {
+            dim_store.content_type = 'tiptap'
+        }, 300);
+    }
+})
 </script>
 
 

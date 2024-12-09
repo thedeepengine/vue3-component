@@ -47,6 +47,7 @@ function run_graphql_query() {
       .then(response => {
         console.log('response.data', response.data)
         dim_store.graphql_output = response.data
+        is_object_dirty.graphql_output = false
       })
     
 }

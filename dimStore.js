@@ -151,8 +151,8 @@ export const dimStore = defineStore("dimStore", () => {
             things_space_data.value = response.data.things_space
             is_object_dirty.value.things_space_data = false
         }
-        if (response.data?.graphql) {
-          graphql.value = JSON.stringify(response.data.graphql, null, '\t')
+        if (response.data?.graphql_output) {
+          graphql_output.value = response.data.graphql_output
         }
         if (response.data?.data_table) {
           data_table.value = response.data.data_table
@@ -514,6 +514,12 @@ watch(() => dimension.value,
     if (dimension.value === 'hierarchy' && is_object_dirty.value.w_data) {
       fetch_data(selected_clt, conversation_history.value.at(-1).message)
     } 
+
+    // if (dimension.value === 'graphql' && is_object_dirty.value.graphql_output) {
+    //   // fetch_data(selected_clt, conversation_history.value.at(-1).message)
+    // } else {
+
+    // }
   }
 });
 

@@ -88,7 +88,7 @@ function extractFieldValues(obj, fieldName) {
 
 
 function generate_vect(event) {
-  let request = dim_store.conversation_history.value.at(-1).message
+  let request = dim_store.conversation_history.at(-1).message
   apiClient
     .post("https://localhost:8002/v1/api/get_on_the_fly_things_space/", { clt_name: dim_store.selected_clt, request: request, dimension: 'things_space', header_prop_name: dim_store.header_prop_name })
     .then(response => {

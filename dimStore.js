@@ -11,6 +11,14 @@ export const dimStore = defineStore("dimStore", () => {
   // const dimension = ref('menu')
   // const left_panel = ref('loading')
 
+  const is_object_dirty = ref({
+    w_data: true,
+    d3_network_data: true,
+    graphql_output: true,
+    things_space_data: true,
+    data_table: true
+  })
+
   // header
   const selected_clt = ref('')
   const loading_flag = ref(false)
@@ -110,29 +118,49 @@ export const dimStore = defineStore("dimStore", () => {
   });
 
 
+  function set_all_object_dirty() {
+    Object.keys(is_object_dirty.value).forEach(key => is_object_dirty.value[key] = true);
+  }
+
   function fetch_data(clt, request) {
     let bundle = { clt: clt, request: request, dimension: dimension.value, legacy_data: legacy_data.value }
 
+    
     apiClient
       .post("https://localhost:8002/v1/api/query/", bundle)
       .then(response => {
-        if (response.data?.legacy_data) legacy_data.value = response.data.legacy_data
+        
+        if (response.data?.legacy_data) {
+          legacy_data.value = response.data.legacy_data
+        }
         if (response.data?.d3) {          
           w_data.value = response.data.d3
+          is_object_dirty.value.w_data = false
         }
-        if (response.data?.header_prop_name) header_prop_name.value = response.data.header_prop_name
-        if (response.data?.d3_network_data) d3_network_data.value = response.data.d3_network_data
-        if (response.data?.md) md_content.value = response.data.md
+        if (response.data?.header_prop_name) {
+          header_prop_name.value = response.data.header_prop_name
+        }
+        if (response.data?.d3_network_data) {
+          d3_network_data.value = response.data.d3_network_data
+          is_object_dirty.value.d3_network_data = false
+        }
+        if (response.data?.md) {
+          md_content.value = response.data.md
+        }
         if (response.data?.things_space) {
             things_space_data.value = response.data.things_space
+            is_object_dirty.value.things_space_data = false
         }
         if (response.data?.graphql) {
           graphql.value = JSON.stringify(response.data.graphql, null, '\t')
         }
-        if (response.data?.data_table) data_table.value = response.data.data_table
+        if (response.data?.data_table) {
+          data_table.value = response.data.data_table
+          is_object_dirty.value.data_table = false
+        }
   
         
-
+        
         return response
       })
   }
@@ -182,7 +210,6 @@ export const dimStore = defineStore("dimStore", () => {
     container.setAttribute('data-new-word', '');
     isAnimatingNew.value = false
     let popped_up = stream_queue.value.shift()
-    console.log('popped_uppopped_uppopped_uppopped_uppopped_uppopped_up: ', popped_up)
   }
 
 
@@ -420,15 +447,6 @@ console.log('create_new_map: ', input)
     // init_md_parser()
 
 
-
-
-
-
-
-    // let newValue='name=test>>name,name,content,hasChildren:name,content,hasOntology:name,content'
-    // fetch_data(selected_clt.value, newValue)
-
-
     turndownService.value.escape = function (text) {
       return text.replace(/([\\`*{}[\]()#+.!-])/g, '\\$1'); // Keep only necessary escapes
     };
@@ -487,20 +505,17 @@ watch(() => [d3_network_data.value],
 });
 
 
-// watch(() => things_space_data.value,
-// (new_data, old_data) => {
-//     if (dimension.value === 'things_space') {
-//       console.log('new_datanew_datanew_data', new_data)
-//       if (!'ALT' in new_data) {
-//         console.log('AAAAAALKKKKKKKK')
-//         let reduced = getThingSpace(new_data)
-//         things_space_option.value = things_space_options(reduced)
-//       } else {
-//         things_space_option.value = things_space_options([1,1,1])
-//       }
-//     } 
-// });
-
+watch(() => dimension.value,
+(new_data, old_data) => {
+  if (conversation_history.value.at(-1)) {
+    if (dimension.value === 'network' && is_object_dirty.value.d3_network_data) {
+      fetch_data(selected_clt, conversation_history.value.at(-1).message)
+    } 
+    if (dimension.value === 'hierarchy' && is_object_dirty.value.w_data) {
+      fetch_data(selected_clt, conversation_history.value.at(-1).message)
+    } 
+  }
+});
 
 
   const popUpBoxStyle = computed(() => ({
@@ -526,7 +541,6 @@ watch(() => [d3_network_data.value],
 
   function set_dimension(dimension_to_set) {
     dimension.value = dimension_to_set
-    console.log('dimension.value', dimension.value)
   }
 
 
@@ -549,6 +563,8 @@ watch(() => [d3_network_data.value],
   return {
     test_network,
     loading_flag,
+    is_object_dirty,
+    set_all_object_dirty,
 
     is_menu_open,
     deep_level,

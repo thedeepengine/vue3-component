@@ -100,7 +100,8 @@ const expand = () => {
 };
 
 onMounted(() => {
-    tabulator.value = new Tabulator(table.value, {
+    if (dim_store.data_table !== undefined) {
+        tabulator.value = new Tabulator(table.value, {
         data: dim_store.data_table.data,
         reactiveData: true,
         // frozenRows:1,
@@ -115,6 +116,7 @@ onMounted(() => {
         //     { title: "Date Of Birth", field: "dob", sorter: "date", hozAlign: "center" },
         // ],
     });
+    }
 })
 
 

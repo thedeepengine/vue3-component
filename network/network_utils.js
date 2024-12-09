@@ -99,9 +99,10 @@ function empty_static_tree() {
 }
 
 function empty_force_tree() {
-    d3selectAll("#forcedtree line").remove()
-    d3selectAll("#forcedtree circle").remove()
-    d3selectAll("#forcedtree text").remove()
+    d3selectAll("#forcedtree .back_node_container").remove()
+    // d3selectAll("#forcedtree line").remove()
+    // d3selectAll("#forcedtree circle").remove()
+    // d3selectAll("#forcedtree text").remove()
 }
 
 function draw_path_tree(root_nodes, root_links) {

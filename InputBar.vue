@@ -32,6 +32,7 @@ import StarterKit from '@tiptap/starter-kit'
 import { markdownToHtml } from '@/components_shared/utils.js'
 import { onMounted, onUnmounted, ref, watch, onBeforeUnmount, computed } from 'vue';
 import { Extension } from '@tiptap/core'
+import { nextTick } from 'vue';
 
 const dim_store = dimStore()
 const editor_ref = ref()
@@ -39,6 +40,7 @@ const box_input_html = ref('')
 const clt_options = ref(['+'])
 const box_input_md = ref('')
 const show_menu = ref(false);
+const history = ref([])
 
 function focusout() {
   if (clt_options.value.length > 1) {
@@ -81,18 +83,17 @@ function submit() {
 }
 
 function toggleAnimation(element, type) {
-    console.log('element---', element)
     element.classList.remove('blur', 'unblur');
     element.classList.add(type);
 }
 
 const handleAnimationEnd = async (role) => {
-    console.log('aaaaa')
     let user_input = getTextContent(box_input_html.value).trim()
     editor_ref.value.$el.classList.remove('blur', 'unblur')
     add_message_to_history(user_input, 'human')
     show_new_history_message('box_input.value')
     dim_store.user_input = user_input
+    dim_store.set_all_object_dirty()
     dim_store.fetch_data(dim_store.selected_clt, dim_store.user_input)
     editor.value.commands.setContent('');
 };
@@ -113,7 +114,7 @@ const show_new_history_message = async (message) => {
 
 const add_message_to_history = async (message, role) => {
     history.value.push({ message: message, user: role, type: 'last' })
-    dim_store.conversation_history.value = history.value
+    dim_store.conversation_history = history.value
 }
 
 

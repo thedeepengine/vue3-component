@@ -48,13 +48,13 @@ const checkElement = () => {
     }
 };
 
-watch(() => [dim_store.w_data, dim_store.d3_network_data, isElementPresent.value],
+watch(() => [dim_store.w_data, dim_store.d3_network_data, isElementPresent.value, dim_store.dimension],
     ([refresh_network, s, old_data], [q, h, w]) => {
-        if (isElementPresent.value === true) {
-            if (dim_store.dimension === 'network') {
+        if (isElementPresent.value) {
+            if (dim_store.dimension === 'network' && !dim_store.is_object_dirty.d3_network_data) {
                 empty_static_tree()
                 forcedTree(dim_store.d3_network_data, 'network')
-            } else if (dim_store.dimension === 'hierarchy') {
+            } else if (dim_store.dimension === 'hierarchy' && !dim_store.is_object_dirty.w_data) {
                 empty_force_tree()
                 displayStaticTree(dim_store)
             }
@@ -230,8 +230,6 @@ function forcedTree(data, data_type = 'hierarchy') {
             nodes = data.nodes
         }
 
-        console.log('nodes', nodes)
-
         const nodeColor = '#3A434A'
 
         simulation.value = d3forceSimulation()
@@ -243,22 +241,14 @@ function forcedTree(data, data_type = 'hierarchy') {
             .force("collide", forceCollide().strength(0.3).radius(d => forcedNodeR + 12));
 
         const svg = d3select("#forcedtree")
-            .attr("class", "onesvg2")
 
         const link = svg.append("g")
-            // .setAttrs({ 'class': 'back_link_container', 'stroke': '#999', 'stroke-opacity': 0.6, 'stroke-width': 0.5 })
             .attr("stroke", "#4c5467")
             .attr("stroke-opacity", 0.6)
-            // .attr("fill", '#3f83c9')
             .selectAll("line")
             .data(links)
             .join("line")
-            // .attr("stroke-width", d => 40);
             .attr('class', 'forcedlink');
-
-        const colorScale = scaleLinear()
-            .domain([min(nodes, d => d.weight), max(nodes, d => d.weight)])
-            .range(["rgb(63, 131, 201)", "rgb(255, 255, 255)"]);
 
         const nodet = svg.append("g")
             .attr('class', 'back_node_container')
@@ -300,12 +290,7 @@ function forcedTree(data, data_type = 'hierarchy') {
             });
 
 
-
-
         const node = svg.selectAll("circle");
-
-
-
 
         var text = svg.append("g").attr("class", "back_text_container")
             .selectAll('.back_text')

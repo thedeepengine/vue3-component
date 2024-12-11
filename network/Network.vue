@@ -160,11 +160,11 @@ function initSVGBase() {
     g_tree.append("g").attr("class", "left_tree_container").append("g").attr("class", "node_container")
     g_tree.append("g").attr("class", "right_tree_container").append("g").attr("class", "node_container")
 
-    // d3select("#affix_container")
-    //     .call(d3drag()
-    //         .on('start.namespace', dragStart)
-    //         .on('drag.namespace', dragging)
-    //         .on('end.namespace', dragEnd))
+    d3select("#affix_container")
+        .call(d3drag()
+            .on('start.namespace', dragStart)
+            .on('drag.namespace', dragging)
+            .on('end.namespace', dragEnd))
 }
 
 function addOntologyBackgroundTitle() {

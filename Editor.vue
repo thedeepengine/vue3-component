@@ -1,5 +1,5 @@
 <template>
-  <div style="z-index:10;padding-left:3vw">
+  <div style="z-index:10;padding-left:3vw;">
     <!-- <n-button style="position: fixed;top:100px;right:300px;z-index: 9999999999999" @click="tttt">AAAAA</n-button> -->
     <div style="width: 100%;">
       <div class="editor-content-type" style="width:fit-content;margin:auto">
@@ -301,7 +301,8 @@ watch(() => dim_store.content_type, () => {
 
 <style>
 #dimension_tiptap .tiptap {
-  height: 100vh;
+  height: auto;
+  /* backdrop-filter: blur(10px); */
 }
 
 #dimension_tiptap .tiptap:focus {

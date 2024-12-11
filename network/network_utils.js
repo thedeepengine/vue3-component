@@ -233,7 +233,7 @@ function draw_text_tree(store) {
                     event.stopPropagation()
                 })
                 .append('input')
-                .setAttrs({ value: d => { return d.data.name }, type: 'text', 'background-color': 'transparent', background: 'transparent' })
+                .setAttrs({ value: d => { return d.data[store.header_prop_name] }, type: 'text', 'background-color': 'transparent', background: 'transparent' })
                 .attr('style', d => { return `border: none; outline: none; font-size: 12px; padding: 0; font-family: inherit; box-sizing: border-box;` })
                 .style('width', node_width2)
                 .style('font-family', 'inherit')
@@ -300,7 +300,7 @@ function draw_text_tree(store) {
         .attr("transform", d => `translate(${d.y_start},${d.x - 14})`)
         .style('width', node_width)
         .select('input')
-        .attr('value', d => d.data.name)
+        .attr('value', d => d.data[store.header_prop_name])
         .attr("transform", d => `translate(${d.y_start},${d.x - 14})`)
         .style('width', node_width)
     // .each(function(d) { console.log('updating:', d); });  
@@ -535,7 +535,7 @@ function draw_side_tree(store, root, side) {
     var SIDE_CONST = side === "right" ? 1 : -1
     var NODE_CLASS = "node_" + side
     const NODE_Y_SHIFT = 50
-    const labels = root.descendants().map(d => d.data.name);
+    const labels = root.descendants().map(d => d.data[store.header_prop_name]);
     let side_container = d3select(".global_tree_container ." + side + "_tree_container .node_container");
 
     var node_container = side_container
@@ -556,20 +556,20 @@ function draw_side_tree(store, root, side) {
         .text((d, i) => labels[i])
 
     // compute text length.
-    var text_length = node_text.nodes().reduce((prev, cur) => ({ ...prev, [cur.__data__.data.name]: cur.getComputedTextLength() || 0 }), {})
+    var text_length = node_text.nodes().reduce((prev, cur) => ({ ...prev, [cur.__data__.data[store.header_prop_name]]: cur.getComputedTextLength() || 0 }), {})
     node_container.selectAll("text").remove();
 
     // set position y_start and y_end of each node.
     var rec_y_position = function (node) {
         if (node.depth === 0) { // initialisation for root node
             root.y_start = root.y
-            root.y_end = root.y + text_length[root.data.name]
+            root.y_end = root.y + text_length[root.data[store.header_prop_name]]
         }
 
         if (node.children !== undefined) {
             for (const child of node.children) {
-                child.y_start = (side === "right" ? child.parent.y_end : child.parent.y_start) + SIDE_CONST * NODE_Y_SHIFT + (side === "right" ? 0 : -Math.max(text_length[child.data.name], NODE_MIN_WIDTH))
-                child.y_end = (side === "right" ? child.parent.y_end : child.parent.y_start) + SIDE_CONST * (NODE_Y_SHIFT + (side === "right" ? Math.max(text_length[child.data.name], NODE_MIN_WIDTH) : 0))
+                child.y_start = (side === "right" ? child.parent.y_end : child.parent.y_start) + SIDE_CONST * NODE_Y_SHIFT + (side === "right" ? 0 : -Math.max(text_length[child.data[store.header_prop_name]], NODE_MIN_WIDTH))
+                child.y_end = (side === "right" ? child.parent.y_end : child.parent.y_start) + SIDE_CONST * (NODE_Y_SHIFT + (side === "right" ? Math.max(text_length[child.data[store.header_prop_name]], NODE_MIN_WIDTH) : 0))
                 rec_y_position(child)
             }
         }

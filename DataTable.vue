@@ -338,6 +338,7 @@ const expand = () => {
 <style>
 #datatable_component {
     /* padding-top: var(--general-padding-top) */
+    z-index: 999999999999999;
 }
 
 #fmw-datatable .tabulator-col,

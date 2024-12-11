@@ -8,7 +8,7 @@
       </div>
     </div>
 
-        <div style="background-color: #eeeae6;display:flex;border-radius: 30px;">
+        <div style="background-color: rgba(238, 234, 230, 1);display:flex;border-radius: 30px;">
             <div style="flex-grow: 1">
                 <editor-content class="editor" @animationend="handleAnimationEnd" ref="editor_ref"
                     id="conversation_tiptap" style="padding:10px;padding-left:23px" :editor="editor" />

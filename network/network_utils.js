@@ -99,7 +99,12 @@ function empty_static_tree() {
 }
 
 function empty_force_tree() {
-    d3selectAll("#forcedtree .back_node_container").remove()
+    d3selectAll("#forcedtree g.back_node_container").remove()
+    d3selectAll("#forcedtree g.back_text_container").remove()
+    d3selectAll("#forcedtree g.back_link_container").remove()
+
+    
+    
     // d3selectAll("#forcedtree line").remove()
     // d3selectAll("#forcedtree circle").remove()
     // d3selectAll("#forcedtree text").remove()

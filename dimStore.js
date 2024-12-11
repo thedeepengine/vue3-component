@@ -159,8 +159,6 @@ export const dimStore = defineStore("dimStore", () => {
           is_object_dirty.value.data_table = false
         }
   
-        
-        
         return response
       })
   }
@@ -514,7 +512,9 @@ watch(() => dimension.value,
     if (dimension.value === 'hierarchy' && is_object_dirty.value.w_data) {
       fetch_data(selected_clt.value, conversation_history.value.at(-1).message)
     } 
-
+    if (dimension.value === 'data_table' && is_object_dirty.value.data_table) {
+      fetch_data(selected_clt.value, conversation_history.value.at(-1).message)
+    } 
     // if (dimension.value === 'graphql' && is_object_dirty.value.graphql_output) {
     //   // fetch_data(selected_clt, conversation_history.value.at(-1).message)
     // } else {

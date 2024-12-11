@@ -243,6 +243,7 @@ function forcedTree(data, data_type = 'hierarchy') {
         const svg = d3select("#forcedtree")
 
         const link = svg.append("g")
+            .attr('class', 'back_link_container')
             .attr("stroke", "#4c5467")
             .attr("stroke-opacity", 0.6)
             .selectAll("line")

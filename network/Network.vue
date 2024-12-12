@@ -140,6 +140,7 @@ function initSVGBase() {
 
     console.log('window.innerWidth', window.innerWidth)
     d3select(".network_class")
+    .style('height', '100vh')
         .append("svg")
         .attr('id', 'forcedtree')
         .attr("viewBox", viewBox)
@@ -160,7 +161,7 @@ function initSVGBase() {
     g_tree.append("g").attr("class", "left_tree_container").append("g").attr("class", "node_container")
     g_tree.append("g").attr("class", "right_tree_container").append("g").attr("class", "node_container")
 
-    d3select("#affix_container")
+    d3select(".network_class")
         .call(d3drag()
             .on('start.namespace', dragStart)
             .on('drag.namespace', dragging)

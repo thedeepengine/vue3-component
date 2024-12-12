@@ -22,6 +22,7 @@ export const dimStore = defineStore("dimStore", () => {
   // header
   const selected_clt = ref('')
   const loading_flag = ref(false)
+  const right_panel_message = ref(undefined)
 
   const bus_event = ref()
   
@@ -129,6 +130,23 @@ export const dimStore = defineStore("dimStore", () => {
     apiClient
       .post("https://localhost:8002/v1/api/query/", bundle)
       .then(response => {
+        
+        if ('error_info' in response.data) {
+          
+          let info_pop = document.getElementById('right_panel_message_id');
+          let fmw_llm_bar = document.getElementById('fmw-llm-bar');
+          const fmw_llm_bar_rect = fmw_llm_bar.getBoundingClientRect();
+          right_panel_message.value = response.data.error_info
+
+          setTimeout(() => {
+            const info_popup_rect = info_pop.getBoundingClientRect();
+            console.log('info_popup_rect', info_popup_rect)
+            info_pop.style.top = `${fmw_llm_bar_rect.top-info_popup_rect.height-fmw_llm_bar_rect.height-20}px`
+            info_pop.style.left = `${fmw_llm_bar_rect.left + fmw_llm_bar_rect.width/2 - info_popup_rect.width/2}px`
+            info_pop.style.transition = '0.3s opacity'
+            info_pop.style.opacity = 1
+          }, 0);
+        }
         if (response.data?.legacy_data) {
           legacy_data.value = response.data.legacy_data
         }
@@ -166,6 +184,11 @@ export const dimStore = defineStore("dimStore", () => {
 
 
 
+
+  function note_click_event() {
+    let info_pop = document.getElementById('right_panel_message_id');
+    info_pop.style.opacity = 0;
+  }
   
   function streamText() {
     // const markdown = '# Main Heading\n\nthis is a paragraph\n## Subheading with **bold** text\n\nThis is a paragraph with a [link](https://example.com).';
@@ -571,6 +594,8 @@ watch(() => dimension.value,
     loading_flag,
     is_object_dirty,
     set_all_object_dirty,
+    right_panel_message,
+    note_click_event,
 
     is_menu_open,
     deep_level,

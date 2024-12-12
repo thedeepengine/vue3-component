@@ -155,12 +155,12 @@ function draw_path_tree(root_nodes, root_links) {
                             return d.y_end
                         }
                     })
-                    .y(d => d.x))
-            // exit => exit
-            //     .transition()  // Start transition for exit selection
-            //     .duration(500)  // Duration of 500ms
-            //     .style('opacity', 0)  // Fade out to opacity 0
-            //     .remove()  // Remove after transition
+                    .y(d => d.x)),
+            exit => exit
+                .transition()  // Start transition for exit selection
+                .duration(500)  // Duration of 500ms
+                .style('opacity', 0)  // Fade out to opacity 0
+                .remove()  // Remove after transition
         )
 
 

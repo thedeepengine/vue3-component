@@ -1,12 +1,16 @@
 <template>
     <div id="fmw-llm-bar" style="position: fixed;bottom:20px;left:25vw;width:47vw;margin:auto;z-index: 99999999999;">
-        
+
         <div id="clt-menu" tabindex="-1" style="position: fixed;bottom: 70px;left: 28vw;z-index: 999999999999999999;">
-      <div v-for="(item, index) in clt_options" :key="index" class="field-indicator" style="margin-bottom: 3px"
-        @click="set_clt">
-        {{ item }}
-      </div>
-    </div>
+
+            <transition-group name="list" tag="div" appear class="reverse-order">
+                <div v-for="(item, index) in clt_options" :key="index" 
+                class="field-indicator"
+                    style="margin-bottom: 3px;" @click="set_clt">
+                    {{ item }}
+                </div>
+            </transition-group>
+        </div>
 
         <div style="background-color: rgba(238, 234, 230, 1);display:flex;border-radius: 30px;">
             <div style="flex-grow: 1">
@@ -43,19 +47,19 @@ const show_menu = ref(false);
 const history = ref([])
 
 function focusout() {
-  if (clt_options.value.length > 1) {
-    clt_options.value = [dim_store?.selected_clt || '+']
-  }
+    if (clt_options.value.length > 1) {
+        clt_options.value = [dim_store?.selected_clt || '+']
+    }
 }
 
 onMounted(() => {
-  const clt_menu = document.getElementById('clt-menu');
-  clt_menu.addEventListener('focusout', focusout);
+    const clt_menu = document.getElementById('clt-menu');
+    clt_menu.addEventListener('focusout', focusout);
 });
 
 onUnmounted(() => {
-  const clt_menu = document.getElementById('clt-menu');
-  clt_menu.removeEventListener('focusout', focusout);
+    const clt_menu = document.getElementById('clt-menu');
+    clt_menu.removeEventListener('focusout', focusout);
 });
 
 onMounted(() => {
@@ -182,33 +186,38 @@ const editor = useEditor({
 
 
 function set_clt(e) {
-  let single_item_showing = clt_options.value.length === 1
-  let no_clt_selected = clt_options.value[0] === '+'
-  let is_selected_different = e.srcElement.innerText !== clt_options.value[0]
-  if (is_selected_different) {
-    clt_options.value = [e.srcElement.innerText]
-    dim_store.selected_clt = e.srcElement.innerText
-  } else if (single_item_showing || no_clt_selected) {
+    let single_item_showing = clt_options.value.length === 1
+    let no_clt_selected = clt_options.value[0] === '+'
+    let is_selected_different = e.srcElement.innerText !== clt_options.value[0]
+    if (is_selected_different) {
+        clt_options.value = [e.srcElement.innerText]
+        dim_store.selected_clt = e.srcElement.innerText
+    } else if (single_item_showing || no_clt_selected) {
 
-    const pattern = /^(\w+)([\.:=])/;
-    const is_metal_query = dim_store.user_input.match(pattern);
-    console.log('is_metal_query', is_metal_query)
-    let matching_clt
-    if (is_metal_query) {
-      let first_word = is_metal_query[1]
-      matching_clt = dim_store.allowed_clt_fields.filter(item => item['field'].toLowerCase().startsWith(first_word.toLowerCase()))
-    } else {
-      matching_clt = dim_store.allowed_clt_fields
+        const pattern = /^(\w+)([\.:=])/;
+        const is_metal_query = dim_store.user_input.match(pattern);
+        console.log('is_metal_query', is_metal_query)
+        let matching_clt
+        if (is_metal_query) {
+            let first_word = is_metal_query[1]
+            matching_clt = dim_store.allowed_clt_fields.filter(item => item['field'].toLowerCase().startsWith(first_word.toLowerCase()))
+        } else {
+            matching_clt = dim_store.allowed_clt_fields
+        }
+
+        matching_clt = Array.from(new Set(matching_clt.map(x => x.clt)))
+        let i = 0
+        matching_clt.sort().forEach(item => {
+            if (!clt_options.value.includes(item)) {
+            // setTimeout(() => {
+                // console.log('kkk')
+                clt_options.value.push(item)
+            // }, i);
+            // i+=5
+        }
+        });
+
     }
-
-    matching_clt = Array.from(new Set(matching_clt.map(x => x.clt)))
-    matching_clt.sort().forEach(item => {
-      if (!clt_options.value.includes(item)) {
-        clt_options.value.push(item)
-      }
-    });
-
-  }
 }
 
 function graphql_search_panel() {
@@ -228,26 +237,30 @@ function graphql_search_panel() {
 
 
 watch(() => dim_store.user_input, (n, o) => {
-  const pattern = /^(\w+)([\.:=])/;
-  const is_metal_query = dim_store.user_input.match(pattern);
-  if (is_metal_query && dim_store.selected_clt === '') {
-    let first_word = is_metal_query[1]
-    show_clt_options(first_word)
-  }
+    const pattern = /^(\w+)([\.:=])/;
+    const is_metal_query = dim_store.user_input.match(pattern);
+    if (is_metal_query && dim_store.selected_clt === '') {
+        let first_word = is_metal_query[1]
+        show_clt_options(first_word)
+    }
 })
 
 watch(() => dim_store.bus_event, (n, o) => {
-  if (n.startsWith('header.show_clt_options')) {
-    show_clt_options(dim_store.user_input)
-  }
+    if (n.startsWith('header.show_clt_options')) {
+        show_clt_options(dim_store.user_input)
+    }
 })
 
 function show_clt_options(property_string) {
-  let matching_clt = dim_store.allowed_clt_fields.filter(item => item['field'].toLowerCase().startsWith(property_string.toLowerCase()))
-  matching_clt.forEach(item => {
-    if (!clt_options.value.includes(item.clt))
-      clt_options.value.push(item.clt)
-  });
+    let matching_clt = dim_store.allowed_clt_fields.filter(item => item['field'].toLowerCase().startsWith(property_string.toLowerCase()))
+    console.log('matching_clt', matching_clt)
+    matching_clt.forEach(item => {
+        if (!clt_options.value.includes(item.clt)) {
+            // setTimeout(() => {
+                clt_options.value.push(item.clt)
+            // }, 10);   
+        }    
+    });
 }
 
 </script>
@@ -295,5 +308,32 @@ function show_clt_options(property_string) {
 .unblur {
     animation: moveAndUnblur 0.5s ease-out forwards;
 }
+
+
+/* .list-enter-active,
+.list-leave-active {
+    transition: opacity 1s ease-in-out;
+}
+
+.list-enter,
+.list-leave-to {
+    opacity: 1;
+} */
+
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.4s ease;
+}
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  /* width: fit-content; */
+}
+
+.reverse-order {
+  display: flex;
+  flex-direction: column-reverse; /* This reverses the visual order of flex items */
+}
+
 
 </style>

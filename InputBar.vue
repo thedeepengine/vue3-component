@@ -1,6 +1,5 @@
 <template>
-    <!-- id="fmw-llm-bar" -->
-    <div
+    <div id="fmw-llm-bar"
         :class="{ home_display_config: dim_store.dimension === 'home', bottom_display_config: dim_store.dimension !== 'home' }">
         <Transition>
             <div v-if="dim_store.show_llm_hist_box" id="shadow-box-container">
@@ -53,10 +52,12 @@
                     placement="top"
                     size="tiny"
                     placeholder=""
-                    v-model:value="value" 
+                    v-model:value="dim_store.selected_clt" 
                     @updateShow="on_show_select_clt"
                     :options="clt_options"
-                    :style="{width: select_clt_open ? '200px': 'fit-content' }" />
+                    
+                    filterable />
+                    <!-- :style="{maxWidth: select_clt_open ? '200px!important': 'fit-content!important' }" -->
                 </n-gi>
                 <n-gi span="24" id="fm_input_container">
                     <div style="flex-grow: 1;">
@@ -382,6 +383,20 @@ function on_show_select_clt(state) {
     /* width: fit-content; */
 }
 
+
+.n-base-selection {
+    max-width:100px!important;
+}
+
+/* .n-base-selection-input {
+    width:10px;
+} */
+
+.n-base-selection.n-base-selection--active {
+    max-width:200px!important;
+}
+
+
 #fmw-select-clt .n-base-selection {
     text-align: center;
     --n-text-color: white!important;
@@ -429,19 +444,25 @@ function on_show_select_clt(state) {
 }
 
 .n-base-select-option {
-    padding: 4px!important;
+    padding: 10px!important;
     padding-top:0px!important;
     padding-bottom:0px!important;
-    height: 10px!important;
+    /* height: 10px!important; */
     background-color: #1f2937;
     --n-color: white!important;
     color:white!important;
+    /* --n-option-height: 30px!important; */
 }
+
+/* .n-base-select-menu .n-base-select-option {
+    min-height: 30px!important;
+} */
+
 
 /* --n-option-color-active */
 .n-base-select-option.n-base-select-option--pending {
     /* --n-color: rgb(84, 88, 92)!important; */
-    color: rgb(114, 117, 120)!important;
+    color: var(--gold-color)!important;
     /* --n-option-text-color: rgb(84, 88, 92)!important; */
 }
 
@@ -517,7 +538,7 @@ function on_show_select_clt(state) {
     z-index: 99999999999;
 }
 
-#fmw-llm-bar {
+/* #fmw-llm-bar {
     transition: left 0.3s;
     position: fixed;
     bottom: 20px;
@@ -525,7 +546,7 @@ function on_show_select_clt(state) {
     width: 47vw;
     margin: auto;
     z-index: 99999999999;
-}
+} */
 
 #clt-menu {
     transition: left 0.3s;

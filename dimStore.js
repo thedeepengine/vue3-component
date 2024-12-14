@@ -91,7 +91,7 @@ export const dimStore = defineStore("dimStore", () => {
   const turndownService = ref(new TurndownService());
   const isAnimatingNew = ref(false)
 
-  const allowed_clt_fields = ref({})
+  const allowed_clt_fields = ref([])
   const distinct_clt = ref([])
 
   const text_chunk = ref('')

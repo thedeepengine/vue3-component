@@ -78,6 +78,8 @@ const clt_options = ref(['+'])
 const box_input_md = ref('')
 const show_menu = ref(false);
 const history = ref([])
+const up_down_position = ref(0)
+const temp_save = ref('')
 
 const temp_history = ref([
     { user: 'human', message: 'Hey' },
@@ -128,6 +130,7 @@ function submit() {
         dim_store.bus_event = 'header.show_clt_options' + Math.random().toString(36).substring(2, 6)
     } else {
         dim_store.right_panel_message = undefined
+        up_down_position.value = 0
         toggleAnimation(editor_ref.value.$el, 'blur')
     }
 }
@@ -184,17 +187,35 @@ const EnterKeyHandler = Extension.create({
 
 
 // const UpAndDownKeyHandler = Extension.create({
-//     name: 'enterKeyHandler',
+//     name: 'UpAndDownKeyHandler',
 //     addKeyboardShortcuts() {
-//         return {
-//             'Enter': () => {
-//                 if (show_menu.value === false) {
-//                     submit()
-//                 }
-//                 return true;
-//             },
-//         };
+//   return {
+//     'ArrowDown': () => {
+//         console.log('editor htlml,', editor.value.getText())
+//         if (editor.value.getText() === '') {
+//             if (upDownPosition.value >= 1 && dim_store.conversation_history.value.at(up_down_position.value-1)) {
+//                 editor.value.commands.setContent(dim_store.conversation_history.value.at(up_down_position.value-1).message)
+//                 upDownPosition.value-=1
+//             }
+//         }
+//       return true;
 //     },
+//     'ArrowUp': () => {
+//       console.log('editor htlml,', editor.value.getText())
+//         if (editor.value.getText() === '') {
+//             // if (upDownPosition.value < conversation_history.value.length && conversation_history.value.at(upDownPosition.value+1)) {
+//             console.log('dim_store.conversation_history: ',dim_store.conversation_history)
+//             if (upDownPosition.value < dim_store.conversation_history.length && dim_store.conversation_history.at(up_down_position.value).message) {
+//                 console.log('toset', dim_store.conversation_history.at(up_down_position.value).message)
+//                 editor.value.commands.setContent(dim_store.conversation_history.at(up_down_position.value).message)
+//                 upDownPosition.value+=1
+//             }
+//         }
+
+//       return true;
+//     }
+//   }
+// }
 // });
 
 const ShiftEnterHandler = Extension.create({
@@ -215,6 +236,7 @@ const editor = useEditor({
     extensions: [
         StarterKit,
         EnterKeyHandler,
+        // UpAndDownKeyHandler,
         ShiftEnterHandler,
     ],
     content: box_input_html.value,

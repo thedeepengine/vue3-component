@@ -127,6 +127,7 @@ function submit() {
     if (dim_store.selected_clt === '') {
         dim_store.bus_event = 'header.show_clt_options' + Math.random().toString(36).substring(2, 6)
     } else {
+        dim_store.right_panel_message = undefined
         toggleAnimation(editor_ref.value.$el, 'blur')
     }
 }

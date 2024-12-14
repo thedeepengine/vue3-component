@@ -1,5 +1,6 @@
 <template>
-    <div id="fmw-llm-bar">
+    <div id="fmw-llm-bar"
+    v-if="dim_store.dimension !== 'home'">
 
         <Transition>
         <div v-if="dim_store.show_llm_hist_box" id="shadow-box-container">

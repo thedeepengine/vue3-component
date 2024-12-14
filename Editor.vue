@@ -1,6 +1,5 @@
 <template>
-  <div style="z-index:10;padding-left:3vw;">
-    <!-- <n-button style="position: fixed;top:100px;right:300px;z-index: 9999999999999" @click="gggg">AAAAA</n-button> -->
+  <div v-if="dim_store.dimension !== 'home'" style="z-index:10;padding-left:3vw;">
     <div style="width: 100%;">
       <div class="editor-content-type" style="width:fit-content;margin:auto">
 
@@ -29,8 +28,6 @@
               d="M593.8 59.1H46.2C20.7 59.1 0 79.8 0 105.2v301.5c0 25.5 20.7 46.2 46.2 46.2h547.7c25.5 0 46.2-20.7 46.1-46.1V105.2c0-25.4-20.7-46.1-46.2-46.1zM338.5 360.6H277v-120l-61.5 76.9-61.5-76.9v120H92.3V151.4h61.5l61.5 76.9 61.5-76.9h61.5v209.2zm135.3 3.1L381.5 256H443V151.4h61.5V256H566z" />
           </svg>
         </span>
-
-
       </div>
     </div>
 
@@ -39,7 +36,6 @@
       <editor-content v-if="dim_store.content_type === 'tiptap'" id="dimension_tiptap" :editor="editor"
         key="tiptap-editor" />
       <Graphql v-else-if="dim_store.content_type === 'html'" key="html"></Graphql>
-      <!-- <Graphql v-else-if="dim_store.content_type === 'graphql'" :prop_option="{mode: 'graphql'}" key="graphql"></Graphql> -->
       <GraphqlInput v-else-if="dim_store.content_type === 'graphql'" key="graphql"></GraphqlInput>
     </Transition>
   </div>
@@ -75,16 +71,16 @@ const debounceTimer = ref(null);
 
 
 const apiClient = axios.create({
-    baseURL: 'https://localhost:8002/',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
+  baseURL: 'https://localhost:8002/',
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
 
 onMounted(() => {
-    on('things_space_scroll_to', (message) => {
-        addClassToHeadingById(message.uuid_front, message.action_type);
-    });
+  on('things_space_scroll_to', (message) => {
+    addClassToHeadingById(message.uuid_front, message.action_type);
+  });
 });
 
 
@@ -127,7 +123,7 @@ const add_mention_to_heading = () => {
 };
 
 
-const remove_mention_from_headings = (dispatch_to_front=true) => {
+const remove_mention_from_headings = (dispatch_to_front = true) => {
   const { tr } = editor.value.state;
   let deletions = [];
   editor.value.state.doc.descendants((node, pos) => {
@@ -241,12 +237,12 @@ onMounted(() => {
     }
   }, { immediate: true });
 
-  watch(() => dim_store.show_refs, (n,o) => {
+  watch(() => dim_store.show_refs, (n, o) => {
     if (n) {
       add_mention_to_heading()
     } else {
       remove_mention_from_headings()
-    }    
+    }
   })
 });
 
@@ -258,15 +254,17 @@ function addClassToHeadingById(headingId, action_type) {
   tr.doc.descendants((node, pos) => {
     if (node.type.name === 'heading' && node.attrs.id === headingId && updated === false) {
       let newAttrs = node.attrs;
-      
+
       if (action_type === 'add') {
-      newAttrs = {...node.attrs, 
-        class: 'highlight-background'}
+        newAttrs = {
+          ...node.attrs,
+          class: 'highlight-background'
+        }
       } else {
-        newAttrs = {...node.attrs, class: ''}
+        newAttrs = { ...node.attrs, class: '' }
       }
 
-        
+
       tr.setNodeMarkup(pos, null, newAttrs);
       updated = true;
     }
@@ -305,13 +303,13 @@ function clean_html() {
 watch(() => dim_store.refresh_save_page, () => {
 
   let html = dim_store.show_refs ? clean_html() : editor.value.getHTML()
-  let bundle = {old_html: dim_store.html_content_original, new_html: html, header_prop_name: dim_store.header_prop_name, dry_run: true}
+  let bundle = { old_html: dim_store.html_content_original, new_html: html, header_prop_name: dim_store.header_prop_name, dry_run: true }
 
-      apiClient
-      .post("https://localhost:8002/v1/api/save_dry_run/", bundle)
-      .then(response => {
-        dim_store.transaction_list = response.data
-      })
+  apiClient
+    .post("https://localhost:8002/v1/api/save_dry_run/", bundle)
+    .then(response => {
+      dim_store.transaction_list = response.data
+    })
 
 })
 
@@ -358,17 +356,17 @@ watch(() => dim_store.content_type, () => {
 
 
 <style lang="scss">
-
-
 @keyframes backgroundColorChange {
   0% {
     // background-color: #f9f7f5;
     background-color: #f9f7f5;
   }
+
   50% {
     // background-color: #F1E6FF;
     background-color: #d4af379e;
   }
+
   100% {
     background-color: #f9f7f5;
   }
@@ -376,7 +374,7 @@ watch(() => dim_store.content_type, () => {
 
 
 .highlight-background {
-    animation: backgroundColorChange 1s forwards;
+  animation: backgroundColorChange 1s forwards;
 }
 
 /* Basic editor styles */

@@ -29,7 +29,7 @@ export const dimStore = defineStore("dimStore", () => {
   
 
   const is_menu_open = ref(false)
-  const dimension = ref('hierarchy')
+  const dimension = ref('home')
   const left_panel = ref('markdown')
   const transaction_list = ref()
 

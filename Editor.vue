@@ -1,6 +1,6 @@
 <template>
   <div style="z-index:10;padding-left:3vw;">
-    <!-- <n-button style="position: fixed;top:100px;right:300px;z-index: 9999999999999" @click="tttt">AAAAA</n-button> -->
+    <n-button style="position: fixed;top:100px;right:300px;z-index: 9999999999999" @click="gggg">AAAAA</n-button>
     <div style="width: 100%;">
       <div class="editor-content-type" style="width:fit-content;margin:auto">
 
@@ -66,6 +66,8 @@ import GraphqlInput from './GraphqlInput.vue';
 import { DOMSerializer } from 'prosemirror-model';
 // import { Plugin } from 'prosemirror-state';
 import { Plugin, PluginKey } from 'prosemirror-state';
+import { useEventBus } from '@/components_shared/event_bus';
+const { on, emit } = useEventBus();
 
 const dim_store = dimStore()
 const lowlight = createLowlight(all)
@@ -79,7 +81,13 @@ const apiClient = axios.create({
     }
   });
 
-  
+onMounted(() => {
+    on('things_space_scroll_to', (message) => {
+        addClassToHeadingById(message.uuid_front, message.action_type);
+    });
+});
+
+
 const findNearestHeading = (editor) => {
   let position = editor.state.selection.$from.pos;
 
@@ -242,6 +250,43 @@ onMounted(() => {
   })
 });
 
+
+function addClassToHeadingById(headingId, action_type) {
+  const { tr } = editor.value.state;
+  let updated = false;
+
+  tr.doc.descendants((node, pos) => {
+    if (node.type.name === 'heading' && node.attrs.id === headingId && updated === false) {
+      let newAttrs = node.attrs;
+      
+      if (action_type === 'add') {
+      newAttrs = {...node.attrs, 
+        class: 'highlight-background'}
+      } else {
+        newAttrs = {...node.attrs, class: ''}
+      }
+
+        
+      tr.setNodeMarkup(pos, null, newAttrs);
+      updated = true;
+    }
+  });
+
+  if (updated) {
+    editor.value.view.dispatch(tr);
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
 function clean_html() {
   function getHtmlFromState(state) {
     const div = document.createElement('div');
@@ -313,6 +358,27 @@ watch(() => dim_store.content_type, () => {
 
 
 <style lang="scss">
+
+
+@keyframes backgroundColorChange {
+  0% {
+    // background-color: #f9f7f5;
+    background-color: #f9f7f5;
+  }
+  50% {
+    // background-color: #F1E6FF;
+    background-color: #d4af379e;
+  }
+  100% {
+    background-color: #f9f7f5;
+  }
+}
+
+
+.highlight-background {
+    animation: backgroundColorChange 1s forwards;
+}
+
 /* Basic editor styles */
 .tiptap {
   :first-child {

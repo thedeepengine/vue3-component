@@ -1,19 +1,50 @@
 <template>
-    <div id="fmw-llm-bar" style="position: fixed;bottom:20px;left:25vw;width:47vw;margin:auto;z-index: 99999999999;">
+    <div id="fmw-llm-bar">
 
-        <div id="clt-menu" tabindex="-1" style="position: fixed;bottom: 70px;left: 28vw;z-index: 999999999999999999;">
+        <Transition>
+        <div v-if="dim_store.show_llm_hist_box" id="shadow-box-container">
+            <div @click="close_llm_history" 
+            style="width: 100%;justify-items: center;cursor: pointer;"><div>
+                <n-icon :component=DismissCircle20Regular size="24"></n-icon>
+            </div></div>
+            <div class="shadow-box">
+                <div v-for="(item, index) in temp_history" :key="index">
+                    <div v-if="item.user === 'ai'" style="display: flex;width: 100%;">
+                        <div style="width: 0%;background-color: #1F2937;padding-top: 5%;border-radius: 30px;margin-top:10px;margin-bottom:10px"></div>
+                        <div style="width: 99.8%;align-items:center;"
+                            :class="{ ai_style: item.user === 'ai', human_style: item.user === 'human' }"
+                            class="conv_item">
+                            {{ item.message }}
+                        </div>
+                    </div>
+
+                    <div v-if="item.user === 'human'" style="display: flex;width: 100%;">
+                        <!-- <div style="width: 10%;background-color: blue">h</div> -->
+                        <div style="width: 99.8%;align-items:center;"
+                            :class="{ ai_style: item.user === 'ai', human_style: item.user === 'human' }"
+                            class="">
+                            <div style="background-color: #eeeae6;border-radius: 5px;padding: 10px;font-weight: 300;">{{ item.message }}</div>
+                        </div>
+                        <div style="width: 0%;background-color: #d4af37;padding-top: 5%;border-radius: 30px;margin-top:10px;margin-bottom:10px"></div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </Transition>
+
+        <div id="clt-menu" tabindex="-1" style="position: fixed;bottom: 70px;left: 28vw;z-index: 0;">
 
             <transition-group name="list" tag="div" appear class="reverse-order">
-                <div v-for="(item, index) in clt_options" :key="index" 
-                class="field-indicator"
+                <div v-for="(item, index) in clt_options" :key="index" class="field-indicator"
                     style="margin-bottom: 3px;" @click="set_clt">
                     {{ item }}
                 </div>
             </transition-group>
         </div>
 
-        <div style="background-color: rgba(238, 234, 230, 1);display:flex;border-radius: 30px;">
-            <div style="flex-grow: 1">
+        <div id="fm_input_container">
+            <div style="flex-grow: 1;">
                 <editor-content class="editor" @animationend="handleAnimationEnd" ref="editor_ref"
                     id="conversation_tiptap" style="padding:10px;padding-left:23px" :editor="editor" />
             </div>
@@ -37,6 +68,8 @@ import { markdownToHtml } from '@/components_shared/utils.js'
 import { onMounted, onUnmounted, ref, watch, onBeforeUnmount, computed } from 'vue';
 import { Extension } from '@tiptap/core'
 import { nextTick } from 'vue';
+import { NIcon } from 'naive-ui'
+import { DismissCircle20Regular } from '@vicons/fluent'
 
 const dim_store = dimStore()
 const editor_ref = ref()
@@ -46,10 +79,22 @@ const box_input_md = ref('')
 const show_menu = ref(false);
 const history = ref([])
 
+const temp_history = ref([
+    { user: 'human', message: 'Hey' },
+    { user: 'ai', message: `In Vue 3, to apply different styles based on the value of item.user, you can modify your class binding to include both conditions directly within the template. Here's how you can adjust your <div> to apply a style for when item.user equals 'ai' and another style for when it equals 'human'` },
+    { user: 'human', message: 'I am good thansk and you' },
+    { user: 'ai', message: 'I\'m alright. How can I help you today?' }
+])
+
 function focusout() {
     if (clt_options.value.length > 1) {
         clt_options.value = [dim_store?.selected_clt || '+']
     }
+}
+
+function close_llm_history() {
+    const clt_menu = document.getElementById('shadow-box-container');
+
 }
 
 onMounted(() => {
@@ -136,6 +181,21 @@ const EnterKeyHandler = Extension.create({
     },
 });
 
+
+// const UpAndDownKeyHandler = Extension.create({
+//     name: 'enterKeyHandler',
+//     addKeyboardShortcuts() {
+//         return {
+//             'Enter': () => {
+//                 if (show_menu.value === false) {
+//                     submit()
+//                 }
+//                 return true;
+//             },
+//         };
+//     },
+// });
+
 const ShiftEnterHandler = Extension.create({
     name: 'shiftEnterHandler',
 
@@ -209,12 +269,12 @@ function set_clt(e) {
         let i = 0
         matching_clt.sort().forEach(item => {
             if (!clt_options.value.includes(item)) {
-            // setTimeout(() => {
+                // setTimeout(() => {
                 // console.log('kkk')
                 clt_options.value.push(item)
-            // }, i);
-            // i+=5
-        }
+                // }, i);
+                // i+=5
+            }
         });
 
     }
@@ -257,9 +317,9 @@ function show_clt_options(property_string) {
     matching_clt.forEach(item => {
         if (!clt_options.value.includes(item.clt)) {
             // setTimeout(() => {
-                clt_options.value.push(item.clt)
+            clt_options.value.push(item.clt)
             // }, 10);   
-        }    
+        }
     });
 }
 
@@ -267,12 +327,40 @@ function show_clt_options(property_string) {
 
 
 <style>
+.conv_item {
+    display: flex;
+    padding: 10px;
+    font-weight: 300;
+}
+
+.human_style {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.ai_style {
+    padding-left: 20px;
+}
+
+#fm_input_container {
+    background-color: rgba(238, 234, 230, 1);
+    display: flex;
+    border-radius: 30px;
+    position: relative;
+}
+
 #conversation_tiptap .tiptap:focus {
     outline: none !important;
 }
 
 #fmw-llm-bar {
     transition: left 0.3s;
+    position: fixed;
+    bottom: 20px;
+    left: 25vw;
+    width: 47vw;
+    margin: auto;
+    z-index: 99999999999;
 }
 
 #clt-menu {
@@ -322,18 +410,84 @@ function show_clt_options(property_string) {
 
 .list-enter-active,
 .list-leave-active {
-  transition: all 0.4s ease;
+    transition: all 0.4s ease;
 }
+
 .list-enter-from,
 .list-leave-to {
-  opacity: 0;
-  /* width: fit-content; */
+    opacity: 0;
+    /* width: fit-content; */
 }
 
 .reverse-order {
-  display: flex;
-  flex-direction: column-reverse; /* This reverses the visual order of flex items */
+    display: flex;
+    flex-direction: column-reverse;
+    /* This reverses the visual order of flex items */
 }
 
 
+
+
+
+
+
+
+.shadow-box {
+    width: 100%;
+    height: 300px;
+    background: #f9f7f5;
+    /* background: #eeeae6; */
+    border-radius: 10px;
+    box-shadow: -14px -10px 20px #FFFFFF, 11px 15px 20px #C8C8C8;
+    padding: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+
+#shadow-box-container {
+    position: fixed;
+    bottom: 90px;
+    left: 25vw;
+    width: 47vw;
+    height: auto;
+}
+
+
+
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
+}
 </style>
+
+
+
+<!-- .shadow-box {
+    width: 100px; /* Adjust the size as needed */
+    height: 100px; /* Adjust the size as needed */
+    background: #f9f7f5; /* White background */
+    box-shadow:
+      28px 28px 50px 0 rgba(13, 39, 80, 0.16), /* Dark Shadow */
+      inset 10px 10px 20px 0 rgba(255, 255, 255, 0.5); /* More pronounced top-left corner */
+  } -->
+
+
+<!-- 
+.shadow-box {
+    width: 100px; /* Adjust the size as needed */
+    height: 100px; /* Adjust the size as needed */
+    background: #f9f7f5; /* White background */
+    border-radius: 10px;
+    box-shadow:
+      /* 28px 28px 50px 0 rgba(13, 39, 80, 0.16),  */
+      -23px -23px 45px 0 rgba(255, 255, 255, 1), 
+      inset -10px -10px 20px 0 rgba(255, 255, 255, 0.5); 
+  }
+  
+   -->

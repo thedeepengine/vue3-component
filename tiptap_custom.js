@@ -20,48 +20,40 @@ const CustomHeading = Heading.extend({
       'data-clt-name': {
         default: null,
         rendered: true,
+      },
+      
+      class: {
+        default: null, 
+        renderHTML: attributes => {
+          return {
+            class: attributes.class,
+          }
+        },
+        parseHTML: element => 
+          element.getAttribute('class')
       }
     };
   },
 
   renderHTML({ node, HTMLAttributes }) {
-
     if (!node.attrs.id) {
       node.attrs.id = `X_TEM_${Math.random().toString(36).substr(2, 9)}`;
     }
+
+    let default_style = 'display: inline; align-items: baseline;'
     HTMLAttributes.id = node.attrs.id;
+    HTMLAttributes.class = (node.attrs.class ? `${node.attrs.class} fmw-title` : 'fmw-title').trim();
+    HTMLAttributes.style = (node.attrs.style ? `${node.attrs.style};${default_style}` : `${default_style}`).trim();
 
     const elements = [
       `h${node.attrs.level}`,
-      { ...HTMLAttributes, style: 'display: inline; align-items: baseline;', class: 'fmw-title'},
+      HTMLAttributes,
       0
     ];
     return elements;
   },
   addCommands() {
     return {
-      toggle_display_refs: () => ({ tr, dispatch }) => {
-        if (dispatch) {
-          const { doc } = tr;
-          let updated = false;
-
-          doc.descendants((node, pos) => {
-            if (node.type.name === 'heading') {
-              const newAttrs = {
-                ...node.attrs
-              };
-              tr.setNodeMarkup(pos, null, newAttrs);
-              updated = true;
-            }
-          });
-
-          if (updated) {
-            dispatch(tr);
-          }
-          return updated;
-        }
-        return false;
-      },
       setCustomHeading: attributes => ({ commands }) => {
         return commands.setNode('heading', attributes);
       }

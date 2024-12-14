@@ -23,6 +23,7 @@ export const dimStore = defineStore("dimStore", () => {
   const selected_clt = ref('')
   const loading_flag = ref(false)
   const right_panel_message = ref(undefined)
+  const show_llm_hist_box = ref(false)
 
   const bus_event = ref()
   
@@ -596,6 +597,7 @@ watch(() => dimension.value,
     set_all_object_dirty,
     right_panel_message,
     note_click_event,
+    show_llm_hist_box,
 
     is_menu_open,
     deep_level,

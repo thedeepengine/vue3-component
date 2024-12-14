@@ -20,7 +20,8 @@ const RefBadge = Node.create({
   renderHTML({ node }) {
     return [
       'span', // The HTML tag
-      mergeAttributes(this.options.HTMLAttributes, { class: 'ref-badge', contenteditable: 'true' }), // Merge any additional attributes with class
+      mergeAttributes(this.options.HTMLAttributes, { class: 'ref-badge', 
+        contenteditable: 'true' }), // Merge any additional attributes with class
       node.attrs.text,  // Render the text inside the badge
     ];
   },
@@ -49,7 +50,6 @@ const RefBadge = Node.create({
       console.log('dom', dom)
 
       dom.addEventListener('input', () => {
-        console.log('LLLLLLLLLLAAA')
         const newText = dom.textContent;
         const pos = getPos();
         const transaction = view.state.tr.setNodeMarkup(pos, null, {

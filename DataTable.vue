@@ -4,7 +4,7 @@
             <n-space justify="end">
                 <button style="z-index:99999999999999999;position:relative" class='fm-button' @click="expand"
                     :class="{ shrink: is_shrunk, reverseShrunk: !is_shrunk }" ref="expand_button">
-                    <n-icon :component="icon" color="black" size="30"></n-icon>
+                    <n-icon :component="icon" color="rgb(76, 84, 103)" size="30"></n-icon>
                 </button>
             </n-space>
         </n-gi>

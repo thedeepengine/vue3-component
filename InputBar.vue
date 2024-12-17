@@ -1,6 +1,7 @@
 <template>
     <div id="fmw-llm-bar"
-        :class="{ home_display_config: dim_store.dimension === 'home', bottom_display_config: dim_store.dimension !== 'home' }">
+        :class="{ home_display_config: dim_store.dimension === 'home', 
+        bottom_display_config: dim_store.dimension !== 'home' }">
         <Transition>
             <div v-if="dim_store.show_llm_hist_box" id="shadow-box-container">
                 <div @click="close_llm_history" style="width: 100%;justify-items: center;cursor: pointer;">
@@ -42,8 +43,6 @@
 
 
         <div>
-
-            <!-- style="position: fixed;bottom: 70px;left: 28vw;z-index: 0;" -->
             <n-grid>
                 <n-gi span="24">
                     <n-select 
@@ -55,14 +54,12 @@
                     v-model:value="dim_store.selected_clt" 
                     @updateShow="on_show_select_clt"
                     :options="clt_options"
-                    
                     filterable />
-                    <!-- :style="{maxWidth: select_clt_open ? '200px!important': 'fit-content!important' }" -->
                 </n-gi>
                 <n-gi span="24" id="fm_input_container">
                     <div style="flex-grow: 1;">
                         <editor-content class="editor" @animationend="handleAnimationEnd" ref="editor_ref"
-                            id="conversation_tiptap" style="padding:10px;padding-left:23px;flex-grow: 1;" :editor="editor" />
+                            style="padding:10px;padding-left:23px;flex-grow: 1;" :editor="editor" />
                     </div>
                     <div @click="graphql_search_panel"
                         style="cursor: pointer;flex-grow: 0;align-content: center;width: 22px;height:22px;margin:auto;margin-right:3vh;">
@@ -88,6 +85,9 @@ import { Extension } from '@tiptap/core'
 import { nextTick } from 'vue';
 import { NIcon, NGrid, NGi, NSelect } from 'naive-ui'
 import { DismissCircle20Regular } from '@vicons/fluent'
+import { useEventBus } from '@/components_shared/event_bus_promise';
+
+const { on, emit } = useEventBus();
 
 const dim_store = dimStore()
 const editor_ref = ref()
@@ -123,6 +123,7 @@ function close_llm_history() {
 
 
 onMounted(() => {
+
     watch(() => box_input_md, (newValue) => {
         if (editor.value && editor.value.getHTML() !== newValue.value && newValue.value !== '') {
             box_input_html.value = markdownToHtml(newValue.value)
@@ -133,18 +134,29 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     if (editor) {
-        editor.value.destroy();
+        setTimeout(() => {
+            editor.value.destroy();
+        }, 500);
     }
 });
 
 
+
 function submit() {
-    if (dim_store.selected_clt === '') {
+    if (dim_store.dimension === 'home') {
+        let user_input = editor.value.getText()
+        dim_store.one_shot_home = user_input
+        add_message_to_history(user_input, 'human')
+        dim_store.dimension = 'hierarchy'
+        dim_store.left_panel = 'markdown'
+    } else {
+        if (dim_store.selected_clt === '') {
         dim_store.bus_event = 'header.show_clt_options' + Math.random().toString(36).substring(2, 6)
     } else {
         dim_store.right_panel_message = undefined
         up_down_position.value = 0
         toggleAnimation(editor_ref.value.$el, 'blur')
+    }
     }
 }
 
@@ -516,7 +528,7 @@ function on_show_select_clt(state) {
     position: relative;
 }
 
-#conversation_tiptap .tiptap:focus {
+.tiptap:focus {
     outline: none !important;
 }
 
@@ -524,7 +536,6 @@ function on_show_select_clt(state) {
     position: relative;
     width: 50vw;
     top: 50%;
-    /* margin: auto; */
     z-index: 99999999999;
 }
 

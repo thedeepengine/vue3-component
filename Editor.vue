@@ -1,5 +1,5 @@
 <template>
-  <div v-if="dim_store.dimension !== 'home'" style="z-index:10;padding-left:3vw;">
+  <div v-if="dim_store.left_panel === 'markdown'" style="z-index:10;padding-left:3vw;">
     <div style="width: 100%;">
       <div class="editor-content-type" style="width:fit-content;margin:auto">
 
@@ -33,7 +33,8 @@
 
 
     <Transition name="fade" mode="out-in">
-      <editor-content v-if="dim_store.content_type === 'tiptap'" id="dimension_tiptap" :editor="editor"
+      <editor-content v-if="dim_store.content_type === 'tiptap'" 
+      id="dimension_tiptap" :editor="editor"
         key="tiptap-editor" />
       <Graphql v-else-if="dim_store.content_type === 'html'" key="html"></Graphql>
       <GraphqlInput v-else-if="dim_store.content_type === 'graphql'" key="graphql"></GraphqlInput>
@@ -43,7 +44,7 @@
 
 <script setup>
 import axios from 'axios'
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch, onUnmounted, onActivated } from 'vue'
 import { useEditor, Editor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
@@ -68,6 +69,28 @@ const { on, emit } = useEventBus();
 const dim_store = dimStore()
 const lowlight = createLowlight(all)
 const debounceTimer = ref(null);
+
+let maxRetries;
+let retries;
+
+const is_editor_ready = ref(false);
+
+const checkElement = () => {
+    const element = document.querySelector('.tiptap.ProseMirror');
+    console.log('element', element)
+    if (element) {
+      is_editor_ready.value = true;
+    } else if (retries < maxRetries) {
+        retries++;
+        setTimeout(checkElement, 100);
+    }
+};
+
+onActivated(() => {
+    maxRetries = 20;
+    retries = 0;
+    checkElement()
+});
 
 
 const apiClient = axios.create({
@@ -194,7 +217,6 @@ const editor = useEditor({
   ],
   content: dim_store.html_content,
   onUpdate: ({ editor }) => {
-
     if (dim_store.is_dirty === false) {
       dim_store.is_dirty = true
     }
@@ -229,6 +251,13 @@ const editor = useEditor({
 
 
 onMounted(() => {
+
+  watch(is_editor_ready, () => {
+    if (is_editor_ready.value) {
+        dim_store.is_comp_mounted.editor = true
+    }
+  })
+
   watch(() => dim_store.md_content, (newValue) => {
     if (!dim_store.is_dirty && editor.value && editor.value.getHTML() !== newValue) {
       dim_store.html_content = markdownToHtml(newValue)
@@ -246,6 +275,9 @@ onMounted(() => {
   })
 });
 
+onUnmounted(() => {
+  // dim_store.is_comp_mounted.editor = false
+})
 
 function addClassToHeadingById(headingId, action_type) {
   const { tr } = editor.value.state;

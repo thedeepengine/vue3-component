@@ -11,6 +11,9 @@ export const dimStore = defineStore("dimStore", () => {
   // const dimension = ref('menu')
   // const left_panel = ref('loading')
 
+  const dimension = ref('home')
+  const left_panel = ref('')
+
   const is_object_dirty = ref({
     w_data: true,
     d3_network_data: true,
@@ -19,18 +22,19 @@ export const dimStore = defineStore("dimStore", () => {
     data_table: true
   })
 
+  const is_comp_mounted = ref({editor: false})
+
   // header
   const selected_clt = ref('')
   const loading_flag = ref(false)
   const right_panel_message = ref(undefined)
   const show_llm_hist_box = ref(false)
+  const one_shot_home = ref('')
 
   const bus_event = ref()
   
 
   const is_menu_open = ref(false)
-  const dimension = ref('home')
-  const left_panel = ref('markdown')
   const transaction_list = ref()
 
   const legacy_data = ref()
@@ -120,6 +124,18 @@ export const dimStore = defineStore("dimStore", () => {
   });
 
 
+
+  watch(() => is_comp_mounted.value.editor, () => {
+    if (is_comp_mounted.value.editor && one_shot_home.value !== '') {
+      dimension.value = 'hierarchy'
+        user_input.value = one_shot_home.value
+        set_all_object_dirty()
+        fetch_data(selected_clt.value, user_input.value)
+        one_shot_home.value = ''
+    }
+})
+
+
   function set_all_object_dirty() {
     Object.keys(is_object_dirty.value).forEach(key => is_object_dirty.value[key] = true);
   }
@@ -132,7 +148,7 @@ export const dimStore = defineStore("dimStore", () => {
       .post("https://localhost:8002/v1/api/query/", bundle)
       .then(response => {
         
-        if ('error_info' in response.data) {
+        if (response.data !== null && 'error_info' in response.data) {
           
           let info_pop = document.getElementById('right_panel_message_id');
           let fmw_llm_bar = document.getElementById('fmw-llm-bar');
@@ -501,15 +517,11 @@ console.log('create_new_map: ', input)
 
         allowed_clt_fields.value = all_concat
         distinct_clt.value = [...new Set(all_clt)];
+        // selected_clt.value = distinct_clt.value[0]
+        selected_clt.value = 'NodeTest2'
       })
   })
 
-
-watch(() => [data_table.value, dimension.value],
-([new_data, new_dimension], [old_data, old_dimension]) => {
-    // Object.assign(tableData, dim_store.datatable);
-    // data_table.value.data.splice(0, data_table.value.data.length, data_table.value.data);
-});
 
 watch(() => [w_data.value],
     (new_data,old_data) => {
@@ -598,6 +610,8 @@ watch(() => dimension.value,
     right_panel_message,
     note_click_event,
     show_llm_hist_box,
+    is_comp_mounted,
+    one_shot_home,
 
     is_menu_open,
     deep_level,

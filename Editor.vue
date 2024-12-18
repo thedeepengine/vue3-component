@@ -3,6 +3,7 @@
     <div style="width: 100%;">
       <div class="editor-content-type" style="width:fit-content;margin:auto">
 
+        <!-- tiptap button -->
         <n-popover trigger="hover" placement="top">
           <template #trigger>
             <span class="fmw-button-icon" :class="{ selected: dim_store.content_type === 'tiptap' }"
@@ -17,10 +18,12 @@
           </template>
         </n-popover>
 
+        <!-- html button -->
         <span class="fmw-button-icon" :class="{ selected: dim_store.content_type === 'html' }"
           @click="dim_store.content_type = 'html'">
           <n-icon :component="DocumentChevronDouble24Regular" color="#4c5467" size="24"></n-icon>
         </span>
+        <!-- markdown button -->
         <span class="fmw-button-icon" :class="{ selected: dim_store.content_type === 'markdown' }"
           @click="dim_store.content_type = 'markdown'">
           <svg fill="#4c5467" width="24px" height="24px" viewBox="0 0 640 512" xmlns="http://www.w3.org/2000/svg">
@@ -36,8 +39,9 @@
       <editor-content v-if="dim_store.content_type === 'tiptap'" 
       id="dimension_tiptap" :editor="editor"
         key="tiptap-editor" />
-      <Graphql v-else-if="dim_store.content_type === 'html'" key="html"></Graphql>
-      <GraphqlInput v-else-if="dim_store.content_type === 'graphql'" key="graphql"></GraphqlInput>
+        <Graphql v-else-if="dim_store.content_type === 'html'" key="html"></Graphql>
+        <MarkdownEditor v-else-if="dim_store.content_type === 'markdown'" key="markdown"></MarkdownEditor>
+        <GraphqlInput v-else-if="dim_store.content_type === 'graphql'" key="graphql"></GraphqlInput>
     </Transition>
   </div>
 </template>
@@ -64,6 +68,7 @@ import { DOMSerializer } from 'prosemirror-model';
 // import { Plugin } from 'prosemirror-state';
 import { Plugin, PluginKey } from 'prosemirror-state';
 import { useEventBus } from '@/components_shared/event_bus';
+import MarkdownEditor from './MarkdownEditor.vue';
 const { on, emit } = useEventBus();
 
 const dim_store = dimStore()

@@ -11,8 +11,11 @@ export const dimStore = defineStore("dimStore", () => {
   // const dimension = ref('menu')
   // const left_panel = ref('loading')
 
-  const dimension = ref('home')
-  const left_panel = ref('')
+  // const dimension = ref('home')
+  // const left_panel = ref('')
+
+  const dimension = ref('hierarchy')
+  const left_panel = ref('markdown')
 
   const is_object_dirty = ref({
     w_data: true,
@@ -38,7 +41,7 @@ export const dimStore = defineStore("dimStore", () => {
   const transaction_list = ref()
 
   const legacy_data = ref()
-  const header_prop_name = ref()
+  const header_prop_name = ref(undefined)
 
   
   const root_nodes = ref(undefined)
@@ -572,11 +575,19 @@ watch(() => dimension.value,
 
   function html_to_hierarchy(html) {
     console.log('html', html)
+
+    //TODO: 
+
+    if (header_prop_name.value === undefined) {
+      header_prop_name.value = 'name'
+    }
+    
     apiClient
       .post("https://localhost:8002/v1/api/html_to_hierarchy/", { html: html, header_prop_name: header_prop_name.value })
       .then(response => {
         console.log('md_to_hierarchy', response.data)
         w_data.value = response.data.hierarchy
+        is_object_dirty.value.w_data = false
       })
   }
 

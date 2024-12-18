@@ -1,11 +1,66 @@
 import { Heading } from '@tiptap/extension-heading';
 import { Extension, mergeAttributes } from '@tiptap/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state'
-
 import { update_node_property, displayStaticTree } from '@/components_shared/network/network_utils.js'
+import { InputRule } from '@tiptap/core';
+import { TextSelection } from 'prosemirror-state'; // Correct import from ProseMirror
+
+
+class CustomInputRule extends InputRule {
+  constructor(type, getAttrs) {
+    super({
+      find: /^(#{1,6})\s(.*)$/,
+      handler: ({ state, range, match }) => {
+        const attrs = getAttrs(match);
+        if (!attrs) return null; // No attributes, no heading
+
+        const { tr } = state;
+        const start = range.from;
+        const end = range.to;
+
+        
+        // const paragraphNode = type.schema.nodes.paragraph.create();
+        // const headingNode = type.schema.nodes.heading.create({...attrs, class: 'fmw-title'});
+        // const headingPosition = start + paragraphNode.nodeSize;
+        // state.tr.delete(range.from, range.to)
+        // tr.insert(start, paragraphNode);
+        // tr.insert(start + paragraphNode.nodeSize, headingNode);
+        // const posInHeading = headingPosition + 1; 
+        // tr.setSelection(TextSelection.create(tr.doc, posInHeading));
+
+
+        // const headingNode = type.schema.nodes.heading.create({...attrs, class: 'fmw-title'});
+        // const headingPosition = start 
+        // tr.delete(range.from, range.to)
+        // tr.insert(start, headingNode);
+        // const posInHeading = headingPosition+1; 
+        // tr.setSelection(TextSelection.create(tr.doc, posInHeading));
+
+        const headingNode = type.schema.nodes.heading.create({...attrs, class: 'fmw-title'});
+const headingPosition = start;
+tr.delete(range.from, range.to)  // Delete the specified range
+  .insert(headingPosition, headingNode)  // Insert the new heading node at the start position
+  .setSelection(TextSelection.create(tr.doc, headingPosition + 2));  // Set cursor position inside the heading
+
+
+        return tr;
+      }
+    });
+
+    this.getAttrs = getAttrs;
+  }
+}
 
 const CustomHeading = Heading.extend({
   content: 'inline*',
+  addInputRules() {
+    return [
+      new CustomInputRule(this.type, (match) => {
+        const levels = match[1].length; // Calculate heading level from number of '#'
+        return { level: levels };
+      })
+    ];
+  },
   addAttributes() {
     return {
       ...this.parent?.(),
@@ -99,19 +154,37 @@ function getTrackHeadingsExtension(store, html_content) {
               let new_heading = get_all_heading(newState)
               let is_new_heading_in_html = new_heading.length > old_heading.length
               let is_new_heading_removed_from_html = new_heading.length < old_heading.length
-              if (nodeAtPos.type.name === 'heading' || is_new_heading_removed_from_html) {
-                  if (is_new_heading_removed_from_html) {
-                    store.refresh_map = true
-                  } else if (is_new_heading_in_html) {
-                    store.refresh_map = true
-                  } else { 
-                      update_node_property(store.w_data, nodeAtPos.attrs.id, 'name', nodeAtPos.textContent)
-                      if (store.dimension === 'hierarchy') {
-                        displayStaticTree(store)
-                      }
-                  }
-                return undefined;
+              
+              // console.log('is_new_heading_in_html', is_new_heading_in_html)
+              // console.log('is_new_heading_removed_from_html', is_new_heading_removed_from_html)
+
+              // console.log('store.html_content', store.html_content)
+              // console.log('new_heading', new_heading)
+              // console.log('nodeAtPos', nodeAtPos)
+              if (is_new_heading_in_html) {
+                console.log('NEW HEADING')
+                setTimeout(() => {
+                  store.html_to_hierarchy(store.html_content)
+                }, 500);
+              } else {
+                update_node_property(store.w_data, nodeAtPos.attrs.id, store.header_prop_name, nodeAtPos.textContent)
+                displayStaticTree(store)
               }
+
+              // if (nodeAtPos.type.name === 'heading' || is_new_heading_removed_from_html) {
+              //     if (is_new_heading_removed_from_html) {
+              //       store.refresh_map = true
+              //     } else if (is_new_heading_in_html) {
+              //       store.refresh_map = true
+              //     } else { 
+              //         update_node_property(store.w_data, nodeAtPos.attrs.id, store.header_prop_name, nodeAtPos.textContent)
+              //         if (store.dimension === 'hierarchy') {
+              //           displayStaticTree(store)
+              //         }
+              //     }
+              //   return undefined;
+              // }
+
             }
           })
         ];

@@ -92,7 +92,7 @@ const checkElement = () => {
 };
 
 onActivated(() => {
-    maxRetries = 20;
+    maxRetries = 10;
     retries = 0;
     checkElement()
 });

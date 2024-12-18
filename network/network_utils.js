@@ -293,7 +293,6 @@ function draw_text_tree(store) {
         })
 
     rr
-        
         .attr('data-pathid', d => d.data.uuid_front)
         .transition()
         .duration(300)
@@ -468,17 +467,17 @@ function compute_base_tree(d) {
     let data_right = {}
     let data_left = {}
     if (d.children === undefined) {
-        data_right = { 'name': d.name }
+        data_right = { 'name': d.name, uuid: d.uuid, uuid_front: d.uuid_front }
         data_left = {}
     } else if (d.children.length === 1) {
-        data_right = { 'name': d.name, 'children': d.children }
+        data_right = { 'name': d.name, 'children': d.children, uuid: d.uuid, uuid_front: d.uuid_front }
         data_left = {}
     } else {
         var [odds, evens] = splitOddEven(d.children.length)
         let split_right = odds.map(x => d.children[x])
         let split_left = evens.map(x => d.children[x])
         data_right = { 'name': d.name, uuid: d.uuid, uuid_front: d.uuid_front, 'children': split_right }
-        data_left = { uuid: 'fffff', uuid_front: 'aaaaa', 'children': split_left }
+        data_left = { uuid: 'SPECIFIC_UUID_X', uuid_front: 'SPECIFIC_UUID_X_FRONT', 'children': split_left }
     }
 
     let root_right = compute_side(data_right, "right")
@@ -563,7 +562,7 @@ function draw_side_tree(store, root, side) {
     var rec_y_position = function (node) {
         if (node.depth === 0) { // initialisation for root node
             root.y_start = root.y
-            root.y_end = root.y + text_length[root.data[store.header_prop_name]]
+            root.y_end = root.y + Math.max(NODE_MIN_WIDTH, text_length[root.data[store.header_prop_name]])
         }
 
         if (node.children !== undefined) {

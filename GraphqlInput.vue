@@ -41,7 +41,6 @@ const apiClient = axios.create({
   });
 
 function run_graphql_query() {
-    console.log('aaaa', childRef.value.getCode().trim())
     apiClient
       .post("https://localhost:8002/v1/api/graphql/", {query: childRef.value.getCode().trim()})
       .then(response => {

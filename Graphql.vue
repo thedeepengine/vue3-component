@@ -1,5 +1,6 @@
 <template>
-    <Codemirror class="fmw-codemirror" ref="cm_ref" 
+    <Codemirror class="fmw-codemirror" ref="cm_ref"
+    @ready="onReady"
     v-model:value="props.code" :options="cmOptions" placeholder="" :height="600" />
 </template>
 
@@ -62,6 +63,11 @@ function fetchSchema(url) {
 }
 
 
+const onReady = (cm) => {
+    is_cm_ready.value = true
+//   console.log(cm.focus());
+};
+
 
 
 onMounted(() => {
@@ -104,7 +110,7 @@ watch(() => dim_store.conv_full_screen, () => {
 
 <style>
 .fmw-codemirror .CodeMirror {
-    opacity: 0.1;
+    opacity: 0;
     transition: opacity 0.3s;
     padding: 14px;
 }

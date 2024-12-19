@@ -392,4 +392,40 @@ foreignObject body input {
     --color-background: transparent;
     --vt-c-white: transparent;
 }
+
+
+.hover-trace-left {
+    width: 10px; 
+    height: 10px; 
+    /* background: red;  */
+    display: inline-block; 
+    position: absolute; 
+    bottom: 2px; 
+    transform: translate(15px,0);
+    right: 0;
+    opacity:0;
+    transition: opacity 0.3s;
+    /* overflow: visible; */
+}
+
+.hover-trace-left:hover {
+    opacity: 1;
+}
+
+.hover-trace-right {
+    width: 10px; 
+    height: 10px; 
+    /* background: red;  */
+    display: inline-block; 
+    position: absolute; 
+    bottom: 2px; 
+    left: 0;
+    transform: translate(-15px,0);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.hover-trace-right:hover {
+    opacity: 1;
+}
 </style>

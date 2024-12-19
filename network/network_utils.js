@@ -33,7 +33,7 @@ const apiClient = axios.create({
 
 let arrow_filled_up = '<g><circle cx="256" cy="256" r="256" fill="#f9f7f5"></circle><path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM377 271c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-87-87-87 87c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9L239 167c9.4-9.4 24.6-9.4 33.9 0L377 271z" fill="#1f2937"/></g>'
 let arrow_filled_down = '<g><circle cx="256" cy="256" r="256" fill="#f9f7f5"></circle><path d="M256 0a256 256 0 1 0 0 512A256 256 0 1 0 256 0zM135 241c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l87 87 87-87c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9L273 345c-9.4 9.4-24.6 9.4-33.9 0L135 241z" fill="#1f2937"/></g>'
-let arrow_filled_right = '<g><circle cx="256" cy="256" r="256" fill="#f9f7f5"></circle><path d="M0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM241 377c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l87-87-87-87c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L345 239c9.4 9.4 9.4 24.6 0 33.9L241 377z" fill="#1f2937"/></g>'
+let arrow_filled_right = '<circle cx="256" cy="256" r="256" fill="#f9f7f5"></circle><path d="M0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM241 377c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l87-87-87-87c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L345 239c9.4 9.4 9.4 24.6 0 33.9L241 377z" fill="#1f2937"/>'
 let arrow_filled_left = '<g><circle cx="256" cy="256" r="256" fill="#f9f7f5"></circle><path d="M512 256A256 256 0 1 0 0 256a256 256 0 1 0 512 0zM271 135c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-87 87 87 87c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0L167 273c-9.4-9.4-9.4-24.6 0-33.9L271 135z" fill="#1f2937"/></g>'
 let add_icon = '<svg width="16" height="16" viewBox="0 0 24 24"><path d="M5 6a1 1 0 0 1 1-1h2a1 1 0 0 0 0-2H6a3 3 0 0 0-3 3v2a1 1 0 0 0 2 0V6ZM5 18a1 1 0 0 0 1 1h2a1 1 0 1 1 0 2H6a3 3 0 0 1-3-3v-2a1 1 0 1 1 2 0v2ZM18 5a1 1 0 0 1 1 1v2a1 1 0 1 0 2 0V6a3 3 0 0 0-3-3h-2a1 1 0 1 0 0 2h2ZM19 18a1 1 0 0 1-1 1h-2a1 1 0 1 0 0 2h2a3 3 0 0 0 3-3v-2a1 1 0 1 0-2 0v2Z" fill="#222F3D"/></svg>'
 
@@ -187,7 +187,7 @@ function draw_path_tree(root_nodes, root_links) {
                 // }),
             update => update
                 .transition()  // Start a transition for update selection
-                .duration(300)
+                .duration(50)
                 .attr("d", d => d3linew(d.coord)),
                 // .each(function (d) {
                 //     console.log("Updating:", d); // Logs data for updating elements
@@ -203,6 +203,7 @@ function draw_path_tree(root_nodes, root_links) {
 }
 
 function displayStaticTree(store) {
+    console.log('store.w_data---- ', store.w_data)
     if (Object.keys(store.w_data).length > 0) {
         let { root_nodes, root_links } = compute_tree(store)
         draw_path_tree(root_nodes, root_links)
@@ -216,92 +217,110 @@ function draw_text_tree(store) {
     let rr = d3sel
         .data(store.root_nodes, d => d.data.uuid_front); // Using a key function based on uuid
 
-    let node_width = d => { return `${Math.max(d.y_end - d.y_start, NODE_MIN_WIDTH)}px` }
+    let AREA_EXTRA = 20
+    let node_width = d => { return `${Math.max(d.y_end - d.y_start, NODE_MIN_WIDTH )}px` }
     let node_width2 = d => { return `${Math.max(d.y_end - d.y_start, NODE_MIN_WIDTH)}px` }
 
     const enteredElements = rr.enter()
         .append('foreignObject')
+        .filter(d=> d.data.uuid !== 'SPECIFIC_UUID_X')
         .each(function (d) {
-            d3select(this)
-                .setAttrs({ class: 'node_text', height: 13, 'data-pathid': d => d.data.uuid_front })
+
+            let foreignObject = d3select(this)
+                .setAttrs({overflow: 'visible', height: 13, 'data-pathid': d => d.data.uuid_front })
+                .attr("class", d => {
+                    if (d.depth === 0) return `node_text`
+                    else if (d.side === 'left') return `node_text left-sided`
+                    else if (d.side === 'right') return `node_text right-sided`
+                })
                 .attr("transform", d => { return `translate(${d.y_start},${d.x - 14})` })
                 .style('width', node_width)
-                .append('xhtml:body')
-                .setStyles({ margin: 0, padding: 0, 'font-size': '12px', 'line-height': '1', 'min-height': '10px', 'background-color': 'transparent', 'width': node_width, 'background': 'transparent', 'font-family': 'inherit' })
-                .on('click', function (event) {
-                    event.preventDefault();
-                    event.stopPropagation()
-                })
-                .append('input')
-                .setAttrs({ value: d => { return d.data[store.header_prop_name] }, type: 'text', 'background-color': 'transparent', background: 'transparent' })
-                .attr('style', d => { return `border: none; outline: none; font-size: 12px; padding: 0; font-family: inherit; box-sizing: border-box;` })
-                .style('width', node_width2)
-                .style('font-family', 'inherit')
-                .on('input', function (event) {
-                    let uuid_front = this.__data__.data.uuid_front
-                    let value = event.srcElement.value
-                    update_node_property(store.w_data, uuid_front, 'name', value)
-                    displayStaticTree(store)
-                    d3select(`#${uuid_front}`).text(value)
-                })
-                .on('keydown', function (event) {
-                    if (event.key === 'Enter') {
-                        update_node_property(store.w_data, this.__data__.data.uuid_front, 'name', this.value)
-                        displayStaticTree(store)
-                    }
-                })
-                .on('click', function (event) {
-                    event.preventDefault();
-                    event.stopPropagation()
-                })
-                .on('dblclick', function () {
-                    this.disabled = false;
-                    this.focus();
-                })
-        })
+                
+            let body = foreignObject.append('xhtml:body')
+                    .setStyles({ margin: 0, padding: 0, 
+                        'font-size': '12px', 'line-height': '1', 
+                        'min-height': '10px', 'background-color': 'transparent', 
+                        'width': node_width, 'background': 'transparent', 'font-family': 'inherit' })
+                    .on('click', function (event) {
+                        event.preventDefault();
+                        event.stopPropagation()
+                    })
+            
+                body.append('input')
+                    .setAttrs({ value: d => { return d.data[store.header_prop_name] }, type: 'text', 'background-color': 'transparent', background: 'transparent' })
+                    .attr('style', d => { return `border: none; outline: none; font-size: 12px; padding: 0; font-family: inherit; box-sizing: border-box;` })
+                    .style('justify-items', d => {return d.depth === 0 ? 'center': ''})
+                    .style('width', node_width2)
+                    .style('font-family', 'inherit')
+                        .on('input', function (event) {
+                            let uuid_front = this.__data__.data.uuid_front
+                            let value = event.srcElement.value
+                            update_node_property(store.w_data, uuid_front, 'name', value)
+                            displayStaticTree(store)
+                            d3select(`#${uuid_front}`).text(value)
+                        })
+                        .on('keydown', function (event) {
+                            if (event.key === 'Enter') {
+                                update_node_property(store.w_data, this.__data__.data.uuid_front, 'name', this.value)
+                                displayStaticTree(store)
+                            }
+                        })
+                        .on('click', function (event) {
+                            event.preventDefault();
+                            event.stopPropagation()
+                        })
+                        .on('dblclick', function () {
+                            this.disabled = false;
+                            this.focus();
+                        })
 
+            body.filter(d => d.depth > 0 && d.side === 'right')
+                .append('xhtml:div')
+                .attr('class', 'hover-trace hover-trace-right')
+                .html(add_icon)
 
-
-    d3sel
-        .data(store.root_nodes, d => d.data.uuid_front)
-        .enter()
-        .filter(d => d.depth > 0)
-        .append('g')
-        .attr('class', 'menu-hover-rect')
-        .attr('width', SPACE_WIDTH)
-        .attr('height', SPACE_HEIGHT)
-        .append('rect')
-        .attr('width', SPACE_WIDTH)
-        .attr('height', SPACE_HEIGHT)
-        .attr("transform", d => {
-            if (d.depth === 0) return
-            else if (d.side === 'left') return `translate(${d.y_end + 5},${d.x - 14})`
-            else if (d.side === 'right') return `translate(${d.y_start - SPACE_WIDTH - 3},${d.x - 14})`
-        })
-        .attr('class', 'hoverspace')
-        .attr('fill', 'transparent')
-        .on('mouseover', function (event, data) {
-            show_icon_for_menu(event)
-        })
-        .on('click', (event, data) => { show_map_menu(store.w_data, data); })
-        .on('mouseout', function () {
-
-            d3selectAll('.menu-icon')
-                .transition()
-                .duration(500)
-                .style("opacity", 0);
+            body
+                .filter(d => d.depth > 0 && d.side === 'left')
+                .append('xhtml:div')
+                .attr('class', 'hover-trace hover-trace-left')
+                .html(add_icon)
+            
+                
+            d3selectAll('.hover-trace')
+                .on('click', (event, data) => { 
+                    show_map_menu(store.w_data, data)
+                 })
         })
 
     rr
         .attr('data-pathid', d => d.data.uuid_front)
+        .attr("class", d => {
+            if (d.depth === 0) return `node_text`
+            else if (d.side === 'left') return `node_text left-sided`
+            else if (d.side === 'right') return `node_text right-sided`
+        })
         .transition()
-        .duration(300)
+        .duration(0)
         .attr("transform", d => `translate(${d.y_start},${d.x - 14})`)
+        .style('width', node_width)
+        .select('body')
         .style('width', node_width)
         .select('input')
         .attr('value', d => d.data[store.header_prop_name])
         .attr("transform", d => `translate(${d.y_start},${d.x - 14})`)
-        .style('width', node_width)
+        .style('width', node_width2)
+
+        console.log('llll', rr.select('.hover-trace'))
+        console.log('llll', rr)
+        
+    rr.select('.hover-trace')
+        .attr("class", d => {
+            if (d.depth === 0) return
+            else if (d.side === 'left') return `hover-trace hover-trace-left`
+            else if (d.side === 'right') return `hover-trace hover-trace-right`
+        })
+        .html('<div>aaa</div>')
+
     // .each(function(d) { console.log('updating:', d); });  
 
     rr.exit()
@@ -311,26 +330,30 @@ function draw_text_tree(store) {
 
 
 function remove_map_menu() {
-    d3selectAll('.append-node-icon')
+    d3selectAll('.icon-menu')
     .transition()
     .duration(300)
     .style("opacity", 0).remove()
 }
 
 function update_node_property(obj, uuid, key, value) {
-    if (obj.uuid_front === uuid) {
-        obj[key] = value;
-        return true;
-    }
-
-    if (Array.isArray(obj.children)) {
-        for (let child of obj.children) {
-            if (update_node_property(child, uuid, key, value)) {
-                return true;
+    if (Object.keys(obj).length > 0) {
+        if (obj.uuid_front === uuid) {
+            obj[key] = value;
+            return true;
+        }
+    
+        if (Array.isArray(obj.children)) {
+            for (let child of obj.children) {
+                if (update_node_property(child, uuid, key, value)) {
+                    return true;
+                }
             }
         }
+        return false;
+    } else {
+
     }
-    return false;
 }
 
 
@@ -341,88 +364,121 @@ function show_icon_for_menu(event) {
         .attr('transform', event.target.attributes.transform.nodeValue)
         .style('opacity', 0)
         .transition()
-        .duration(2000)
+        .duration(1000)
         .style("opacity", 1)
 }
 
 
 
 function show_map_menu(hierarchy, data) {
-    d3selectAll('.append-node-icon')
-        .transition()
-        .duration(100)
-        .attr('opacity', 0).remove()
 
-    const icon_svg = d3select('.network_class svg').append('svg')
-        .attr('x', data.side === 'right' ? data.y_start + (+data.y_end - data.y_start) / 2 - SPACE_WIDTH / 2 : data.y_end + (data.y_start - data.y_end) / 2 - SPACE_WIDTH / 2)
-        .attr('y', data.x + 5)
-        .attr('class', 'append-node-icon')
-        .attr('width', 24)
-        .attr('height', 24)
-        .attr('viewBox', "0 0 512 512")
+    let ICON_SIZE = 18
+    d3selectAll('.icon-menu')
+        .remove()
 
-    icon_svg.transition()
-        .duration(300)
-        .attr('opacity', 1)
+    let current_transform = d3select('.global_tree_container').attr('transform');
+    var match = /translate\(([^,]+),\s*([^)]+)\)/.exec(current_transform);
+    let x = 0;
+    let y = 0;
+
+    if (match) {
+        x = parseFloat(match[1]); 
+        y = parseFloat(match[2]);
+    }
+
+    const icon_svg = d3select('.network_class svg')
+        .append('g')
+            .attr('class', 'icon-menu icon-menu-down')
+            .style('transform', `translate(${x}px,${y - 10}px)`)
+        .append('svg')
+            .attr('x', data.side === 'right' ? data.y_start + (+data.y_end - data.y_start) / 2 - SPACE_WIDTH / 2 : data.y_end + (data.y_start - data.y_end) / 2 - SPACE_WIDTH / 2)
+            .attr('y', data.x + 5)
+            .attr('class', 'append-node-icon')
+            .attr('width', ICON_SIZE)
+            .attr('height', ICON_SIZE)
+            .attr('viewBox', "0 0 512 512")
+
+        d3select('.icon-menu-down').transition()
+            .duration(300)
+            .attr('opacity', 1)
+            .style('transform', `translate(${x}px,${y}px)`)
 
 
     icon_svg.on('click', function () {
         handle_click_new_node(hierarchy, data, 'sibling')
     })
 
-    icon_svg.append('rect')
-        .attr('width', 24)
-        .attr('height', 24)
-        .attr('fill', '#f9f7f5')
-
     icon_svg.html(arrow_filled_down);
 
-    // const icon_svg2 = d3select('.network_class svg').append('svg')
-    //     .attr('x', data.side === 'right' ? data.y_start + (+data.y_end - data.y_start) / 2 - SPACE_WIDTH / 2 : data.y_end + (data.y_start - data.y_end) / 2 - SPACE_WIDTH / 2)
-    //     .attr('y', data.x - 24 - 12 - 5)
-    //     .attr('class', 'append-node-icon')
-    //     .attr('width', 24)
-    //     .attr('height', 24)
-    //     .attr('viewBox', "0 0 512 512")
-
-    // icon_svg2.html(arrow_filled_up)
-
     if (data.side === 'right') {
-        const icon_svg = d3select('.network_class svg').append('svg')
-            .attr('x', data.y_end + 10)
-            .attr('y', data.x - 24 + 7)
+        const icon_svg = d3select('.network_class svg')
+        .append('g')
+            .attr('class', 'icon-menu icon-menu-right')
+            .style('transform', `translate(${x - 20}px,${y}px)`)
+        .append('svg')
+            .attr('x', data.y_end + 5)
+            .attr('y', data.x - 14)
             .attr('class', 'append-node-icon')
-            .attr('width', 24)
-            .attr('height', 24)
+            .attr('width', ICON_SIZE)
+            .attr('height', ICON_SIZE)
             .attr('viewBox', "0 0 512 512")
+            
 
         icon_svg.on('click', function () {
             handle_click_new_node(hierarchy, data, 'children')
         })
-
-        icon_svg.transition()
-            .duration(300)
-            .attr('opacity', 1)
 
         icon_svg.html(arrow_filled_right)
+
+        d3select('.icon-menu-right').transition()
+        .duration(300)
+        .attr('opacity', 1)
+        .style('transform', `translate(${x}px,${y}px)`)
+        
     } else {
-        const icon_svg = d3select('.network_class svg').append('svg')
-            .attr('x', data.y_start - 24 - 10)
-            .attr('y', data.x - 24 + 7)
+        // const icon_svg = d3select('.network_class svg').append('rect')
+        //     .attr('x', data.y_start - 24 - 10)
+        //     .attr('y', data.x - 24 + 7)
+        //     .attr('class', 'append-node-icon')
+        //     .attr('width', ICON_SIZE)
+        //     .attr('height', ICON_SIZE)
+        //     // .attr('viewBox', "0 0 512 512")
+
+        // icon_svg.on('click', function () {
+        //     handle_click_new_node(hierarchy, data, 'children')
+        // })
+
+        // icon_svg.transition()
+        //     .duration(300)
+        //     .attr('opacity', 1)
+
+        // icon_svg.html(arrow_filled_left)
+
+
+        const icon_svg = d3select('.network_class svg')
+        .append('g')
+            .attr('class', 'icon-menu icon-menu-left')
+            .style('transform', `translate(${x + 20}px,${y}px)`)
+        .append('svg')
+            .attr('x', data.y_start - 25)
+            .attr('y', data.x - 14)
             .attr('class', 'append-node-icon')
-            .attr('width', 24)
-            .attr('height', 24)
+            .attr('width', ICON_SIZE)
+            .attr('height', ICON_SIZE)
             .attr('viewBox', "0 0 512 512")
+            
 
         icon_svg.on('click', function () {
             handle_click_new_node(hierarchy, data, 'children')
         })
 
-        icon_svg.transition()
-            .duration(300)
-            .attr('opacity', 1)
-
         icon_svg.html(arrow_filled_left)
+
+        d3select('.icon-menu-left').transition()
+        .duration(300)
+        .attr('opacity', 1)
+        .style('transform', `translate(${x}px,${y}px)`)
+
     }
 
 
@@ -731,5 +787,6 @@ export {
     update_node_property,
     empty_static_tree,
     empty_force_tree,
-    set_store
+    set_store,
+    remove_map_menu
 }

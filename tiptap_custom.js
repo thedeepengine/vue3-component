@@ -150,8 +150,11 @@ function getTrackHeadingsExtension(store, html_content) {
               // const nodePrev = $to.node();
               // console.log('nodePrev', nodePrev)
 
+              // console.log('transactions', transactions)
               let old_heading = get_all_heading(oldState)
               let new_heading = get_all_heading(newState)
+              // console.log('old_heading', old_heading)
+              // console.log('new_heading', new_heading)
               let is_new_heading_in_html = new_heading.length > old_heading.length
               let is_new_heading_removed_from_html = new_heading.length < old_heading.length
               
@@ -161,15 +164,19 @@ function getTrackHeadingsExtension(store, html_content) {
               // console.log('store.html_content', store.html_content)
               // console.log('new_heading', new_heading)
               // console.log('nodeAtPos', nodeAtPos)
-              if (is_new_heading_in_html) {
-                console.log('NEW HEADING')
-                setTimeout(() => {
-                  store.html_to_hierarchy(store.html_content)
-                }, 500);
-              } else {
-                update_node_property(store.w_data, nodeAtPos.attrs.id, store.header_prop_name, nodeAtPos.textContent)
-                displayStaticTree(store)
+
+              if (old_heading.length > 0) {
+                if (is_new_heading_in_html) {
+                  console.log('NEW HEADING')
+                  setTimeout(() => {
+                    store.html_to_hierarchy(store.html_content)
+                  }, 500);
+                } else {
+                  update_node_property(store.w_data, nodeAtPos.attrs.id, store.header_prop_name, nodeAtPos.textContent)
+                  displayStaticTree(store)
+                }
               }
+
 
               // if (nodeAtPos.type.name === 'heading' || is_new_heading_removed_from_html) {
               //     if (is_new_heading_removed_from_html) {

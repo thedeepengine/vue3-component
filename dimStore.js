@@ -5,17 +5,21 @@ import TurndownService from 'turndown';
 import { test_click_utils } from '@/components_shared/utils'
 import { marked } from "marked";
 
+// const APP_TYPE = 'fmw'
+// const APP_TYPE = 'tde'
 
 export const dimStore = defineStore("dimStore", () => {
   // const is_menu_open = ref(true)
   // const dimension = ref('menu')
   // const left_panel = ref('loading')
 
-  // const dimension = ref('home')
-  // const left_panel = ref('')
+  const APP_TYPE = ref('fmw')
 
-  const dimension = ref('hierarchy')
-  const left_panel = ref('markdown')
+  const dimension = ref(APP_TYPE.value === 'fmw' ? 'hierarchy':'home')
+  const left_panel = ref(APP_TYPE.value === 'fmw' ? 'markdown': '')
+
+  // const dimension = ref('hierarchy')
+  // const left_panel = ref('markdown')
 
   const is_object_dirty = ref({
     w_data: true,
@@ -597,24 +601,7 @@ watch(() => dimension.value,
   }
 
 
-
-
-  function test_network() {
-    console.log('w_data.value: ', w_data.value)
-    let rr = Math.random().toString(36).substring(2, 7)
-    w_data.value.children.push({uuid: rr, uuid_front: 'X_AAA_'+rr, name: 'new added node'})
-    console.log('w_data.value: ', w_data.value)
-    let temp = w_data.value
-    w_data.value = {}
-    
-    setTimeout(() => {
-      w_data.value = temp
-    }, 300);
-  }
-
-
   return {
-    test_network,
     loading_flag,
     is_object_dirty,
     set_all_object_dirty,
@@ -623,6 +610,7 @@ watch(() => dimension.value,
     show_llm_hist_box,
     is_comp_mounted,
     one_shot_home,
+    APP_TYPE,
 
     is_menu_open,
     deep_level,

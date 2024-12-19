@@ -1,72 +1,90 @@
 <template>
-    <div id="fmw-llm-bar"
-        :class="{ home_display_config: dim_store.dimension === 'home', 
-        bottom_display_config: dim_store.dimension !== 'home' }">
-        <Transition>
-            <div v-if="dim_store.show_llm_hist_box" id="shadow-box-container">
-                <div @click="close_llm_history" style="width: 100%;justify-items: center;cursor: pointer;">
-                    <div>
-                        <n-icon :component=DismissCircle20Regular size="24"></n-icon>
-                    </div>
-                </div>
-
-                <div class="shadow-box">
-                    <div v-for="(item, index) in temp_history" :key="index">
-                        <div v-if="item.user === 'ai'" style="display: flex;width: 100%;">
-                            <div
-                                style="width: 0%;background-color: #1F2937;padding-top: 5%;border-radius: 30px;margin-top:10px;margin-bottom:10px">
-                            </div>
-                            <div style="width: 99.8%;align-items:center;"
-                                :class="{ ai_style: item.user === 'ai', human_style: item.user === 'human' }"
-                                class="conv_item">
-                                {{ item.message }}
-                            </div>
-                        </div>
-
-                        <div v-if="item.user === 'human'" style="display: flex;width: 100%;">
-                            <!-- <div style="width: 10%;background-color: blue">h</div> -->
-                            <div style="width: 99.8%;align-items:center;"
-                                :class="{ ai_style: item.user === 'ai', human_style: item.user === 'human' }" class="">
-                                <div
-                                    style="background-color: #eeeae6;border-radius: 5px;padding: 10px;font-weight: 300;">
-                                    {{ item.message }}</div>
-                            </div>
-                            <div
-                                style="width: 0%;background-color: #d4af37;padding-top: 5%;border-radius: 30px;margin-top:10px;margin-bottom:10px">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </Transition>
-
-
-
+    <div id="fmw-llm-bar" :class="{
+        home_display_config: dim_store.dimension === 'home',
+        bottom_display_config: dim_store.dimension !== 'home'
+    }">
         <div>
             <n-grid>
                 <n-gi span="24">
-                    <n-select 
-                    id="fmw-select-clt"
-                    :show-checkmark="false"
-                    placement="top"
-                    size="tiny"
-                    placeholder=""
-                    v-model:value="dim_store.selected_clt" 
-                    @updateShow="on_show_select_clt"
-                    :options="clt_options"
-                    filterable />
+                    <n-select style="z-index: 999999999" id="fmw-select-clt" :show-checkmark="false" placement="top"
+                        size="tiny" placeholder="" v-model:value="dim_store.selected_clt"
+                        @updateShow="on_show_select_clt" :options="clt_options" filterable />
                 </n-gi>
-                <n-gi span="24" id="fm_input_container">
-                    <div style="flex-grow: 1;">
-                        <editor-content class="editor" @animationend="handleAnimationEnd" ref="editor_ref"
-                            style="padding:10px;padding-left:23px;flex-grow: 1;" :editor="editor" />
+                <n-gi span="24">
+                    <div id="fm_input_container">
+                        <div v-if="is_llm_chat_context_open"
+                            style="width:auto;display:block;flex-grow: 24;z-index: 99999;height:2px;margin-right:20px;margin-left:20px;background-color: #f9f7f5;border-radius: 5px;">
+                        </div>
+                        <div style="display:flex">
+                            <div style="flex-grow: 1;">
+                                <editor-content class="editor" @animationend="handleAnimationEnd" ref="editor_ref"
+                                    style="padding:12px 10px 12px 30px;flex-grow: 1;" :editor="editor" />
+                            </div>
+                            <div style="cursor: pointer;flex-grow: 0;align-content: center;width: 22px;height:22px;margin:auto;margin-right:3vh;"
+                                @click="graphql_search_panel">
+                                <svg fill="#4c5467" width="22px" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M18.734 3.667l6.578 3.802c1.089-1.146 2.901-1.193 4.047-0.104 0.193 0.188 0.365 0.401 0.5 0.635 0.786 1.37 0.313 3.12-1.063 3.906-0.229 0.13-0.479 0.234-0.745 0.297v7.599c1.531 0.365 2.474 1.896 2.109 3.427-0.063 0.271-0.172 0.531-0.307 0.771-0.792 1.365-2.536 1.833-3.906 1.042-0.26-0.146-0.5-0.344-0.698-0.568l-6.542 3.776c0.495 1.495-0.318 3.109-1.813 3.604-0.292 0.099-0.594 0.146-0.896 0.146-1.573 0-2.854-1.271-2.854-2.849 0-0.271 0.042-0.547 0.12-0.813l-6.583-3.797c-1.089 1.141-2.896 1.188-4.036 0.094-1.135-1.089-1.177-2.891-0.094-4.031 0.38-0.396 0.865-0.677 1.396-0.807v-7.599c-1.531-0.365-2.479-1.906-2.109-3.443 0.063-0.266 0.167-0.521 0.302-0.755 0.786-1.365 2.536-1.833 3.901-1.042 0.234 0.135 0.453 0.302 0.641 0.5l6.583-3.797c-0.448-1.51 0.417-3.099 1.922-3.542 0.26-0.083 0.536-0.12 0.813-0.12 1.573 0 2.854 1.271 2.854 2.844 0 0.281-0.042 0.557-0.12 0.823zM18.047 4.839c-0.026 0.026-0.047 0.052-0.078 0.078l8.615 14.917c0.036-0.010 0.078-0.021 0.109-0.031v-7.609c-1.526-0.375-2.453-1.922-2.073-3.448 0.005-0.031 0.016-0.068 0.021-0.099zM14.026 4.917l-0.078-0.078-6.594 3.802c0.438 1.51-0.438 3.089-1.948 3.526-0.036 0.010-0.068 0.016-0.104 0.026v7.609l0.115 0.031 8.615-14.917zM16.797 5.594c-0.521 0.146-1.073 0.146-1.589 0l-8.615 14.917c0.391 0.375 0.667 0.859 0.802 1.391h17.214c0.13-0.531 0.406-1.016 0.802-1.396zM18.109 27.229l6.552-3.786c-0.021-0.063-0.036-0.125-0.052-0.188h-17.219l-0.031 0.109 6.589 3.802c0.516-0.536 1.245-0.87 2.052-0.87 0.839 0 1.589 0.359 2.109 0.932z" />
+                                </svg>
+                            </div>
+                        </div>
+
                     </div>
-                    <div @click="graphql_search_panel"
-                        style="cursor: pointer;flex-grow: 0;align-content: center;width: 22px;height:22px;margin:auto;margin-right:3vh;">
-                        <svg fill="#4c5467" width="22px" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M18.734 3.667l6.578 3.802c1.089-1.146 2.901-1.193 4.047-0.104 0.193 0.188 0.365 0.401 0.5 0.635 0.786 1.37 0.313 3.12-1.063 3.906-0.229 0.13-0.479 0.234-0.745 0.297v7.599c1.531 0.365 2.474 1.896 2.109 3.427-0.063 0.271-0.172 0.531-0.307 0.771-0.792 1.365-2.536 1.833-3.906 1.042-0.26-0.146-0.5-0.344-0.698-0.568l-6.542 3.776c0.495 1.495-0.318 3.109-1.813 3.604-0.292 0.099-0.594 0.146-0.896 0.146-1.573 0-2.854-1.271-2.854-2.849 0-0.271 0.042-0.547 0.12-0.813l-6.583-3.797c-1.089 1.141-2.896 1.188-4.036 0.094-1.135-1.089-1.177-2.891-0.094-4.031 0.38-0.396 0.865-0.677 1.396-0.807v-7.599c-1.531-0.365-2.479-1.906-2.109-3.443 0.063-0.266 0.167-0.521 0.302-0.755 0.786-1.365 2.536-1.833 3.901-1.042 0.234 0.135 0.453 0.302 0.641 0.5l6.583-3.797c-0.448-1.51 0.417-3.099 1.922-3.542 0.26-0.083 0.536-0.12 0.813-0.12 1.573 0 2.854 1.271 2.854 2.844 0 0.281-0.042 0.557-0.12 0.823zM18.047 4.839c-0.026 0.026-0.047 0.052-0.078 0.078l8.615 14.917c0.036-0.010 0.078-0.021 0.109-0.031v-7.609c-1.526-0.375-2.453-1.922-2.073-3.448 0.005-0.031 0.016-0.068 0.021-0.099zM14.026 4.917l-0.078-0.078-6.594 3.802c0.438 1.51-0.438 3.089-1.948 3.526-0.036 0.010-0.068 0.016-0.104 0.026v7.609l0.115 0.031 8.615-14.917zM16.797 5.594c-0.521 0.146-1.073 0.146-1.589 0l-8.615 14.917c0.391 0.375 0.667 0.859 0.802 1.391h17.214c0.13-0.531 0.406-1.016 0.802-1.396zM18.109 27.229l6.552-3.786c-0.021-0.063-0.036-0.125-0.052-0.188h-17.219l-0.031 0.109 6.589 3.802c0.516-0.536 1.245-0.87 2.052-0.87 0.839 0 1.589 0.359 2.109 0.932z" />
-                        </svg>
+                    <div id="llm_chat_context" class="shadow-box"
+                        style="height:45px;display: flex;flex-grow: 1;position: absolute;background-color: #eeeae6;width: 100%;border-radius:30px;z-index: 9;bottom:0;left:0;right:0;">
+                        <div id="temp_history_text" style="height: fit-content;width: 100%;">
+                            <div v-for="(item, index) in temp_history" :key="index">
+
+
+                                <div style="display: flex;width: 100%;padding:16px 16px 0px 16px;" 
+                                :id="index === temp_history.length - 1 ? 'last-conv-item' : undefined"
+                                :style="{opacity: index === temp_history.length - 1 ? 0 : 1}">
+                                    <div v-if="item.user === 'ai'" style="display: flex;width:100%">
+                                        <!-- <div
+                                            style="width: 0%;background-color: #1F2937;padding-top: 5%;border-radius: 30px;margin-top:10px;margin-bottom:10px">
+                                        </div> -->
+                                        <div style="width: 99.8%;align-items:center;"
+                                            :class="{ ai_style: item.user === 'ai', human_style: item.user === 'human' }"
+                                            class="conv_item">
+                                            {{ item.message }}
+                                        </div>
+                                    </div>
+                                    <div v-if="item.user === 'human'" style="display: flex;width:100%;padding-right:15px">
+                                    <div style="width: 99.8%;align-items:center;"
+                                        :class="{ ai_style: item.user === 'ai', human_style: item.user === 'human' }"
+                                        class="">
+                                        <div
+                                            style="background-color: #eeeae6;border-radius: 5px;font-weight: 300;">
+                                            {{ item.message }}</div>
+                                    </div>
+                                    <!-- <div
+                                        style="width: 0%;background-color: #d4af37;padding-top: 5%;border-radius: 30px;margin-top:10px;margin-bottom:10px">
+                                    </div> -->
+                                </div>
+                            </div>
+<!-- 
+<div v-if="index === temp_history.length - 1" 
+id="last-conv-item" 
+style="opacity:0;transform: translate('-15px','0');">
+     {{ item }}
+</div>
+<div v-else>
+    {{ item }}
+</div> -->
+
+                            </div>
+                            
+
+
+ 
+
+                                
+
+
+                            
+                        </div> 
+
+
                     </div>
                 </n-gi>
             </n-grid>
@@ -83,7 +101,7 @@ import { markdownToHtml } from '@/components_shared/utils.js'
 import { onMounted, onUnmounted, ref, watch, onBeforeUnmount, computed } from 'vue';
 import { Extension } from '@tiptap/core'
 import { nextTick } from 'vue';
-import { NIcon, NGrid, NGi, NSelect } from 'naive-ui'
+import { NIcon, NGrid, NGi, NSelect, NDivider } from 'naive-ui'
 import { DismissCircle20Regular } from '@vicons/fluent'
 import { useEventBus } from '@/components_shared/event_bus_promise';
 
@@ -99,20 +117,21 @@ const history = ref([])
 const up_down_position = ref(0)
 const temp_save = ref('')
 const select_clt_open = ref(false)
+const is_llm_chat_context_open = ref(false)
 
 const clt_options = computed(() => {
     let distinct = Array.from(new Set(dim_store.allowed_clt_fields.map(x => x.clt)))
-    let all = distinct.map(item => ({label: item, value: item}))
+    let all = distinct.map(item => ({ label: item, value: item }))
     return all
 })
 
 // dim_store.allowed_clt_fields.map(item=>({label: item['field'], value: item['field']}))
 
 const temp_history = ref([
-    { user: 'human', message: 'Hey' },
-    { user: 'ai', message: `In Vue 3, to apply different styles based on the value of item.user, you can modify your class binding to include both conditions directly within the template. Here's how you can adjust your <div> to apply a style for when item.user equals 'ai' and another style for when it equals 'human'` },
-    { user: 'human', message: 'I am good thansk and you' },
-    { user: 'ai', message: 'I\'m alright. How can I help you today?' }
+    // { user: 'human', message: 'Hey' },
+    // { user: 'ai', message: `In Vue 3, to apply different styles based on the value of item.user, you can modify your class binding to include both conditions directly within the template. Here's how you can adjust your <div> to apply a style for when item.user equals 'ai' and another style for when it equals 'human'` },
+    // { user: 'human', message: 'I am good thansk and you' },
+    // { user: 'ai', message: 'I\'m alright. How can I help you today?' }
 ])
 
 
@@ -141,24 +160,90 @@ onBeforeUnmount(() => {
 });
 
 
-
 function submit() {
-    if (dim_store.dimension === 'home') {
-        let user_input = editor.value.getText()
-        dim_store.one_shot_home = user_input
-        add_message_to_history(user_input, 'human')
-        dim_store.dimension = 'hierarchy'
-        dim_store.left_panel = 'markdown'
-    } else {
-        if (dim_store.selected_clt === '') {
-        dim_store.bus_event = 'header.show_clt_options' + Math.random().toString(36).substring(2, 6)
-    } else {
-        dim_store.right_panel_message = undefined
-        up_down_position.value = 0
-        toggleAnimation(editor_ref.value.$el, 'blur')
-    }
-    }
+    let user_input = editor.value.getText()
+    const llm_chat_context = document.getElementById('llm_chat_context'); // Select the div by its ID
+
+
+    console.log('llm_chat_context', llm_chat_context)
+    console.log('llm_chat_context', llm_chat_context.style.height)
+
+    let current_heigth = window.getComputedStyle(llm_chat_context).height
+
+
+    temp_history.value.push({ user: 'human', message: user_input })
+
+    setTimeout(() => {
+        const temp_history_text = document.getElementById('temp_history_text');
+        let rect = temp_history_text.getBoundingClientRect()
+        const last_item = document.getElementById('last-conv-item');
+
+        console.log('current_heigth', current_heigth)
+        console.log('rect.height', rect.height)
+        // if (is_llm_chat_context_open.value === false) {
+        
+        if ((100 + rect.height) < (window.innerHeight - 200))
+            llm_chat_context.animate([
+            { height: current_heigth }, 
+            { height: `${100 + rect.height}px` } 
+            ], {
+                duration: 500,
+                fill: 'forwards',
+                easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
+                // easing: 'cubic-bezier(0.7, 0.7, 0.1, 0.1)'
+            });
+
+            llm_chat_context.animate([
+            { 'paddingBottom': `0px` }, 
+            { 'paddingBottom': `100px` } 
+            ], {
+                duration: 500,
+                fill: 'forwards',
+                easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
+                // easing: 'cubic-bezier(0.7, 0.7, 0.1, 0.1)'
+            });
+
+
+            is_llm_chat_context_open.value = true
+        // }
+
+
+
+        setTimeout(() => {
+            last_item.animate([
+            { opacity: 0 },
+            { opacity: 1 } 
+        ], {
+            duration: 350,
+            fill: 'forwards',
+            easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
+        });
+        }, 500);
+
+
+    }, 300);
+
+
 }
+
+
+// function submit() {
+//     if (dim_store.dimension === 'home') {
+//         let user_input = editor.value.getText()
+//         dim_store.one_shot_home = user_input
+//         add_message_to_history(user_input, 'human')
+//         dim_store.dimension = 'hierarchy'
+//         dim_store.left_panel = 'markdown'
+//     } else {
+//         if (dim_store.selected_clt === '') {
+//         dim_store.bus_event = 'header.show_clt_options' + Math.random().toString(36).substring(2, 6)
+//     } else {
+//         dim_store.right_panel_message = undefined
+//         up_down_position.value = 0
+//         toggleAnimation(editor_ref.value.$el, 'blur')
+//     }
+//     }
+// }
 
 function toggleAnimation(element, type) {
     element.classList.remove('blur', 'unblur');
@@ -386,10 +471,13 @@ function on_show_select_clt(state) {
 
 
 <style>
+/* #llm_chat_content {
+    display: flex;flex-grow: 1;position: absolute;background-color: #eeeae6;width: 100%;border-radius:30px;z-index: 9;bottom:0;left:0;right:0
+} */
 
 #fmw-select-clt {
     padding-bottom: 10px;
-    padding-left: 20px!important;
+    padding-left: 20px !important;
     height: 30px;
     min-width: 100px;
     /* width: fit-content; */
@@ -397,7 +485,7 @@ function on_show_select_clt(state) {
 
 
 .n-base-selection {
-    max-width:100px!important;
+    max-width: 100px !important;
 }
 
 /* .n-base-selection-input {
@@ -405,64 +493,64 @@ function on_show_select_clt(state) {
 } */
 
 .n-base-selection.n-base-selection--active {
-    max-width:200px!important;
+    max-width: 200px !important;
 }
 
 
 #fmw-select-clt .n-base-selection {
     text-align: center;
-    --n-text-color: white!important;
+    --n-text-color: white !important;
     /* --n-color: #1f2937!important; */
-    --n-border-focus: none!important;
-    --n-border-hover: none!important;
-    --n-border-active: none!important;
+    --n-border-focus: none !important;
+    --n-border-hover: none !important;
+    --n-border-active: none !important;
     --n-border-pressed: none !important;
-    outline: none!important;
-    border: none!important;
+    outline: none !important;
+    border: none !important;
     --n-box-shadow-focus: none !important;
     --n-box-shadow-active: none !important;
-    --n-padding-single-right: none!important; 
-    background-color: #1f2937!important;
-    --n-border: none!important;
+    --n-padding-single-right: none !important;
+    background-color: #1f2937 !important;
+    --n-border: none !important;
 }
 
 #fmw-select-clt .n-base-selection-label {
-    background-color: #1f2937!important;
-    --n-text-color: white!important;
-    padding-right:10px;
-    padding-left:10px;
+    background-color: #1f2937 !important;
+    --n-text-color: white !important;
+    padding-right: 10px;
+    padding-left: 10px;
 }
 
 .n-base-selection:not(.n-base-selection--disabled).n-base-selection--active .n-base-selection-label {
-    background-color: #1f2937!important;
+    background-color: #1f2937 !important;
 }
 
 .n-virtual-list.v-vl {
-    border-radius: 5px!important;
+    border-radius: 5px !important;
 }
 
 .v-vl-items {
-    --n-color: #f9f7f5!important;
-    padding:0!important;
-    --n-option-color-pending: none!important;
-    border-radius: 5px!important;
+    --n-color: #f9f7f5 !important;
+    padding: 0 !important;
+    --n-option-color-pending: none !important;
+    border-radius: 5px !important;
 }
 
 .n-base-select-menu.n-select-menu {
-    --n-color: #f9f7f5!important;
-    --n-border-radius: 5px!important;
-    border-radius: 5px!important;
+    --n-color: #f9f7f5 !important;
+    --n-border-radius: 5px !important;
+    border-radius: 5px !important;
     /* --n-option-height: 20px!important; */
 }
 
 .n-base-select-option {
-    padding: 10px!important;
-    padding-top:0px!important;
-    padding-bottom:0px!important;
+    padding: 10px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
     /* height: 10px!important; */
     background-color: #1f2937;
-    --n-color: white!important;
-    color:white!important;
+    --n-color: white !important;
+    color: white !important;
     /* --n-option-height: 30px!important; */
 }
 
@@ -474,7 +562,7 @@ function on_show_select_clt(state) {
 /* --n-option-color-active */
 .n-base-select-option.n-base-select-option--pending {
     /* --n-color: rgb(84, 88, 92)!important; */
-    color: var(--gold-color)!important;
+    color: var(--gold-color) !important;
     /* --n-option-text-color: rgb(84, 88, 92)!important; */
 }
 
@@ -484,8 +572,8 @@ function on_show_select_clt(state) {
 
 
 #fmw-select-clt .n-base-loading.n-base-suffix {
- display: none;
- width: 0;
+    display: none;
+    width: 0;
 }
 
 
@@ -508,7 +596,7 @@ function on_show_select_clt(state) {
 
 .conv_item {
     display: flex;
-    padding: 10px;
+    /* padding: 10px; */
     font-weight: 300;
 }
 
@@ -526,6 +614,9 @@ function on_show_select_clt(state) {
     display: flex;
     border-radius: 30px;
     position: relative;
+    z-index: 10;
+    width: 100%;
+    flex-direction: column;
 }
 
 .tiptap:focus {
@@ -542,7 +633,7 @@ function on_show_select_clt(state) {
 .bottom_display_config {
     transition: left 0.3s;
     position: fixed;
-    bottom: 20px;
+    bottom: 30px;
     left: 25vw;
     width: 47vw;
     margin: auto;
@@ -619,15 +710,17 @@ function on_show_select_clt(state) {
 
 
 .shadow-box {
-    width: 100%;
-    height: 300px;
+    /* width: 100%; */
+    /* height: 300px; */
     background: #f9f7f5;
     /* background: #eeeae6; */
     border-radius: 10px;
-    box-shadow: -14px -10px 20px #FFFFFF, 11px 15px 20px #C8C8C8;
-    padding: 10px;
+    /* box-shadow: -14px -10px 20px #FFFFFF, 11px 15px 20px #C8C8C8; */
+    /* padding: 10px;
     padding-left: 20px;
-    padding-right: 20px;
+    padding-right: 20px; */
+
+    /* 0 0 12px rgba(0,0,0,.08) */
 }
 
 
@@ -651,5 +744,3 @@ function on_show_select_clt(state) {
     opacity: 0;
 }
 </style>
-
-

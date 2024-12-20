@@ -99,6 +99,21 @@ onMounted(() => {
                 cmOptions.value = merged_object
                 cm_ref.value.cminstance.getWrapperElement().style.opacity = 1
                 cm_ref.value.cminstance.focus()
+
+
+                cm_ref.value.cminstance.setOption("extraKeys", {
+                    "Cmd-Enter": function(cm) {
+                        console.log("Cmd+Enter was pressed", cm_ref.value.cminstance.getValue());
+                        dim_store.conversation_history.push({ message: cm_ref.value.cminstance.getValue(), user: 'human' })
+                    }
+                    });
+
+
+
+
+
+
+                console.log('cm_ref.value', cm_ref.value)
             })
 })
 

@@ -8,11 +8,23 @@
     }">
         <div>
             <n-grid>
-                <!-- collection selector -->
+
                 <n-gi span="24">
-                    <n-select style="z-index: 999999999" id="fmw-select-clt" :show-checkmark="false" placement="top"
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <div style="align-self: flex-start;">
+                            <!-- collection selector -->
+                            <n-select style="z-index: 999999999" id="fmw-select-clt" :show-checkmark="false"
+                                placement="top" size="tiny" placeholder="" v-model:value="dim_store.selected_clt"
+                                @updateShow="on_show_select_clt" :options="clt_options" filterable />
+                        </div>
+                    </div>
+
+                    <!-- <n-select style="z-index: 999999999" id="fmw-select-clt" :show-checkmark="false" placement="top"
                         size="tiny" placeholder="" v-model:value="dim_store.selected_clt"
-                        @updateShow="on_show_select_clt" :options="clt_options" filterable />
+                        @updateShow="on_show_select_clt" :options="clt_options" filterable /> -->
+                    <!-- <span>
+                        <n-icon :component="ChevronUp28Regular" color="#4c5467" size="24"></n-icon>
+                    </span> -->
                 </n-gi>
                 <!-- input bar -->
                 <n-gi span="24">
@@ -25,11 +37,13 @@
                         <div style="display:flex">
                             <div style="flex-grow: 1;">
                                 <div v-if="editor_type === 'tiptap'" style="padding:12px 10px 12px 30px;flex-grow: 1;">
+                                    <!-- tiptap editor -->
                                     <editor-content class="editor" @animationend="handleAnimationEnd" ref="editor_ref"
                                         :editor="editor" />
                                 </div>
                                 <div v-else-if="editor_type === 'codemirror'"
                                     style="padding:10px 10px 9px 30px;flex-grow: 1;">
+                                    <!-- codemirror editor -->
                                     <div style="display: flex;">
                                         <GraphqlBar class="graphql_bar_id" ref="graphql_ref" @change="onChange"
                                             :code="code" :prop_option="{ mode: 'graphql' }" :height="auto"></GraphqlBar>
@@ -52,6 +66,17 @@
                     <!-- llm chat box -->
                     <div id="llm_chat_context" class="shadow-box"
                         style="height:45px;display: flex;flex-grow: 1;position: absolute;background-color: #eeeae6;width: 100%;border-radius:30px;z-index: 9;bottom:0;left:0;right:0;">
+
+
+                        <!-- chevron open llm history -->
+                        <div style="position: absolute; left: 50%; transform: translate(-50%,-85%);">
+                            <span class="chevron-llm-history" @click="switch_llm_history(is_llm_chat_context_open ? 'close' : 'open')">
+                                <n-icon
+                                    :component="is_llm_chat_context_open ? ChevronDown28Regular : ChevronUp28Regular"
+                                    color="#4c5467" size="24"></n-icon>
+                            </span>
+                        </div>
+
                         <div id="temp_history_text" style="height: fit-content;width: 100%;">
                             <div v-for="(item, index) in temp_history" :key="index">
 
@@ -105,6 +130,7 @@ import { NIcon, NGrid, NGi, NSelect, NDivider, NButton } from 'naive-ui'
 import { DismissCircle20Regular } from '@vicons/fluent'
 import { useEventBus } from '@/components_shared/event_bus_promise';
 import GraphqlBar from './GraphqlBar.vue'
+import { ChevronUp28Regular, ChevronDown28Regular } from '@vicons/fluent'
 
 
 const { on, emit } = useEventBus();
@@ -171,29 +197,35 @@ onBeforeUnmount(() => {
 });
 
 
-function submit() {
-    let user_input = editor.value.getText()
-    const llm_chat_context = document.getElementById('llm_chat_context'); // Select the div by its ID
 
-
-    console.log('llm_chat_context', llm_chat_context)
-    console.log('llm_chat_context', llm_chat_context.style.height)
-
-    let current_heigth = window.getComputedStyle(llm_chat_context).height
-
-
-    temp_history.value.push({ user: 'human', message: user_input })
-
-    setTimeout(() => {
+function switch_llm_history(way='open') {
+        const llm_chat_context = document.getElementById('llm_chat_context'); // Select the div by its ID
         const temp_history_text = document.getElementById('temp_history_text');
         let rect = temp_history_text.getBoundingClientRect()
-        const last_item = document.getElementById('last-conv-item');
+        let current_heigth = window.getComputedStyle(llm_chat_context).height
 
-        console.log('current_heigth', current_heigth)
-        console.log('rect.height', rect.height)
-        // if (is_llm_chat_context_open.value === false) {
+        if (way === 'close') {
+            llm_chat_context.animate([
+                    { height: current_heigth },
+                    { height: `45px` }
+                ], {
+                    duration: 500,
+                    fill: 'forwards',
+                    easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
+                });
 
-        if ((100 + rect.height) < (window.innerHeight - 200))
+            llm_chat_context.animate([
+                { 'paddingBottom': `100px` },
+                { 'paddingBottom': `0px` }
+            ], {
+                duration: 500,
+                fill: 'forwards',
+                easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
+            });
+
+            is_llm_chat_context_open.value = false
+        } else {
+
             llm_chat_context.animate([
                 { height: current_heigth },
                 { height: `${100 + rect.height}px` }
@@ -201,40 +233,87 @@ function submit() {
                 duration: 500,
                 fill: 'forwards',
                 easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
-                // easing: 'cubic-bezier(0.7, 0.7, 0.1, 0.1)'
             });
 
-        llm_chat_context.animate([
-            { 'paddingBottom': `0px` },
-            { 'paddingBottom': `100px` }
-        ], {
-            duration: 500,
-            fill: 'forwards',
-            easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
-            // easing: 'cubic-bezier(0.7, 0.7, 0.1, 0.1)'
-        });
-
-
-        is_llm_chat_context_open.value = true
-        // }
-
-
-
-        setTimeout(() => {
-            last_item.animate([
-                { opacity: 0 },
-                { opacity: 1 }
+            llm_chat_context.animate([
+                { 'paddingBottom': `0px` },
+                { 'paddingBottom': `100px` }
             ], {
-                duration: 350,
+                duration: 500,
                 fill: 'forwards',
                 easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
             });
-        }, 500);
+
+            is_llm_chat_context_open.value = true
+
+        }
+}
 
 
-    }, 300);
+// function switch_llm_history(way='open') {
+//     setTimeout(() => {
+//         const llm_chat_context = document.getElementById('llm_chat_context'); // Select the div by its ID
+//         const temp_history_text = document.getElementById('temp_history_text');
+//         let rect = temp_history_text.getBoundingClientRect()
+//         let current_heigth = window.getComputedStyle(llm_chat_context).height
+//         const last_item = document.getElementById('last-conv-item');
+
+//         if (way === 'close') {
+//             llm_chat_context.animate([
+//                     { height: current_heigth },
+//                     { height: `${100}px` }
+//                 ], {
+//                     duration: 500,
+//                     fill: 'forwards',
+//                     easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
+//                     // easing: 'cubic-bezier(0.7, 0.7, 0.1, 0.1)'
+//                 });
+//         } else {
+
+//             // if ((100 + rect.height) < (window.innerHeight - 200))
+
+//                 llm_chat_context.animate([
+//                     { height: current_heigth },
+//                     { height: `${100 + rect.height}px` }
+//                 ], {
+//                     duration: 500,
+//                     fill: 'forwards',
+//                     easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
+//                     // easing: 'cubic-bezier(0.7, 0.7, 0.1, 0.1)'
+//                 });
+
+//             llm_chat_context.animate([
+//                 { 'paddingBottom': `0px` },
+//                 { 'paddingBottom': `100px` }
+//             ], {
+//                 duration: 500,
+//                 fill: 'forwards',
+//                 easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
+//                 // easing: 'cubic-bezier(0.7, 0.7, 0.1, 0.1)'
+//             });
+
+//             is_llm_chat_context_open.value = true
+
+//             setTimeout(() => {
+//                 last_item.animate([
+//                     { opacity: 0 },
+//                     { opacity: 1 }
+//                 ], {
+//                     duration: 350,
+//                     fill: 'forwards',
+//                     easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
+//                 });
+//             }, 500);
+//         }
+//     }, 0);
+// }
 
 
+function submit() {
+    let user_input = editor.value.getText()
+    const llm_chat_context = document.getElementById('llm_chat_context'); // Select the div by its ID
+    temp_history.value.push({ user: 'human', message: user_input })
+    switch_llm_history()
 }
 
 
@@ -495,6 +574,9 @@ function on_show_select_clt(state) {
     /* width: fit-content; */
 }
 
+.CodeMirror-hints.yeti {
+    z-index: 999999999999;
+}
 
 .n-base-selection {
     max-width: 100px !important;
@@ -623,7 +705,7 @@ function on_show_select_clt(state) {
     position: relative;
     width: 50vw;
     top: 50%;
-    z-index: 99999999999;
+    z-index: 999999;
 }
 
 .bottom_display_config {
@@ -738,5 +820,16 @@ function on_show_select_clt(state) {
 .v-enter-from,
 .v-leave-to {
     opacity: 0;
+}
+
+
+
+.chevron-llm-history {
+    opacity: 0.1;
+    transition: opacity 1s;
+}
+
+.chevron-llm-history:hover {
+    opacity: 1;
 }
 </style>

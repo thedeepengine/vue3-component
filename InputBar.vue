@@ -45,7 +45,7 @@
                                     style="padding:10px 10px 9px 30px;flex-grow: 1;">
                                     <!-- codemirror editor -->
                                     <div style="display: flex;">
-                                        <GraphqlBar class="graphql_bar_id" ref="graphql_ref" @change="onChange"
+                                        <GraphqlBar @editor_change_request="editor_type = 'tiptap'" class="graphql_bar_id" ref="graphql_ref" @change="onChange"
                                             :code="code" :prop_option="{ mode: 'graphql' }" :height="auto"></GraphqlBar>
                                     </div>
                                 </div>
@@ -146,8 +146,8 @@ const up_down_position = ref(0)
 const temp_save = ref('')
 const select_clt_open = ref(false)
 const is_llm_chat_context_open = ref(false)
-// const editor_type = ref('tiptap')
-const editor_type = ref('codemirror')
+const editor_type = ref('tiptap')
+// const editor_type = ref('codemirror')
 const code = ref(``)
 
 const clt_options = computed(() => {
@@ -418,7 +418,7 @@ const editor = useEditor({
     },
     onUpdate: ({ editor }) => {
         if (editor.getText() === '```') {
-            console.log('hey')
+            editor.commands.setContent('');
             editor_type.value = 'codemirror'
         }
 
@@ -574,7 +574,7 @@ function on_show_select_clt(state) {
     /* width: fit-content; */
 }
 
-.CodeMirror-hints.yeti {
+.CodeMirror-hints.dracula {
     z-index: 999999999999;
 }
 

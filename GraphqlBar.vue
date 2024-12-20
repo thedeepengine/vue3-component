@@ -1,7 +1,7 @@
 <template>
     <Codemirror class="fmw-graphql-bar-codemirror" ref="cm_ref"
-    @ready="onReady"
-    v-model:value="props.code" :options="cmOptions" placeholder="" :height="props.height" />
+    @ready="onReady" @change="onChange"
+    v-model:value="code" :options="cmOptions" placeholder="" :height="props.height" />
 </template>
 
 <script setup>
@@ -38,20 +38,34 @@ const cmOptions = ref()
 // const code = ref(``);
 const props = defineProps({
     prop_option: Object,
-    code: String,
     height: Number || String
 });
 
-function getCode() {
-    return props.code
-}
+const code = ref('')
+
+// function onChange(val) {
+//     code.value = val
+// }
 
 function get_cm_instance() {
     return cm_ref.value.cminstance
 }
 
+import { defineEmits } from 'vue';
 
-defineExpose({ getCode, get_cm_instance });
+const emit = defineEmits(['message']);
+
+function onChange() {
+    const content = cm_ref.value.cminstance.getValue()
+    if (content.startsWith('```')) {
+        code.value = ''
+        emit('editor_change_request', '');
+  }
+}
+
+
+
+defineExpose({ get_cm_instance });
 
 
 function fetchSchema(url) {
@@ -93,7 +107,7 @@ onMounted(() => {
                     hintOptions: {
                         schema: myGraphqlSchema
                     },
-                    theme: "yeti",
+                    theme: "dracula",
                 }
                 const merged_object = Object.assign({}, base_option, props.prop_option);
                 cmOptions.value = merged_object
@@ -103,8 +117,13 @@ onMounted(() => {
 
                 cm_ref.value.cminstance.setOption("extraKeys", {
                     "Cmd-Enter": function(cm) {
-                        console.log("Cmd+Enter was pressed", cm_ref.value.cminstance.getValue());
-                        dim_store.conversation_history.push({ message: cm_ref.value.cminstance.getValue(), user: 'human' })
+                        let user_input = cm_ref.value.cminstance.getValue()
+                        console.log("Cmd+Enter was pressed", user_input);
+                        dim_store.conversation_history.push({ message: user_input, user: 'human' })
+                        dim_store.user_input = user_input
+                        dim_store.set_all_object_dirty()
+                        dim_store.fetch_data(dim_store.selected_clt, dim_store.user_input)
+                        code.value = ''
                     }
                     });
 
@@ -121,6 +140,9 @@ watch(() => dim_store.conv_full_screen, () => {
     cm_ref.value.cminstance.focus()
 })
 
+
+
+
 </script>
 
 
@@ -134,4 +156,13 @@ watch(() => dim_store.conv_full_screen, () => {
 .CodeMirror-scroll {
     font-family: monospace !important;
 }
+
+/* .fmw-graphql-bar-codemirror .cm-s-yeti.CodeMirror-activeline-background {
+    background: none!important;
+} */
+
+.fmw-graphql-bar-codemirror .CodeMirror-activeline-background.CodeMirror-linebackground {
+    background: none!important;
+}
+
 </style>

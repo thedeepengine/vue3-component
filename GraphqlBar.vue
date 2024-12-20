@@ -1,7 +1,7 @@
 <template>
-    <Codemirror class="fmw-codemirror" ref="cm_ref"
+    <Codemirror class="fmw-graphql-bar-codemirror" ref="cm_ref"
     @ready="onReady"
-    v-model:value="props.code" :options="cmOptions" placeholder="" :height="props.height || 600" />
+    v-model:value="props.code" :options="cmOptions" placeholder="" :height="props.height" />
 </template>
 
 <script setup>
@@ -39,7 +39,7 @@ const cmOptions = ref()
 const props = defineProps({
     prop_option: Object,
     code: String,
-    height: Number
+    height: Number || String
 });
 
 function getCode() {
@@ -110,10 +110,10 @@ watch(() => dim_store.conv_full_screen, () => {
 
 
 <style>
-.fmw-codemirror .CodeMirror {
+.fmw-graphql-bar-codemirror .CodeMirror {
     opacity: 0;
     transition: opacity 0.3s;
-    padding: 14px;
+    /* padding: 14px; */
 }
 
 .CodeMirror-scroll {

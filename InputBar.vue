@@ -1,25 +1,42 @@
 <template>
+    <n-button style="z-index:99999999999999;position: fixed;top:400px;left:400px"
+        @click="editor_type = editor_type === 'codemirror' ? 'tiptap' : 'codemirror'">AAAAA</n-button>
+
     <div id="fmw-llm-bar" :class="{
         home_display_config: dim_store.dimension === 'home',
         bottom_display_config: dim_store.dimension !== 'home'
     }">
         <div>
             <n-grid>
+                <!-- collection selector -->
                 <n-gi span="24">
                     <n-select style="z-index: 999999999" id="fmw-select-clt" :show-checkmark="false" placement="top"
                         size="tiny" placeholder="" v-model:value="dim_store.selected_clt"
                         @updateShow="on_show_select_clt" :options="clt_options" filterable />
                 </n-gi>
+                <!-- input bar -->
                 <n-gi span="24">
                     <div id="fm_input_container">
+                        <!-- divider -->
                         <div v-if="is_llm_chat_context_open"
                             style="width:auto;display:block;flex-grow: 24;z-index: 99999;height:2px;margin-right:20px;margin-left:20px;background-color: #f9f7f5;border-radius: 5px;">
                         </div>
+                        <!-- tiptap or codemirror editor -->
                         <div style="display:flex">
                             <div style="flex-grow: 1;">
-                                <editor-content class="editor" @animationend="handleAnimationEnd" ref="editor_ref"
-                                    style="padding:12px 10px 12px 30px;flex-grow: 1;" :editor="editor" />
+                                <div v-if="editor_type === 'tiptap'" style="padding:12px 10px 12px 30px;flex-grow: 1;">
+                                    <editor-content class="editor" @animationend="handleAnimationEnd" ref="editor_ref"
+                                        :editor="editor" />
+                                </div>
+                                <div v-else-if="editor_type === 'codemirror'"
+                                    style="padding:10px 10px 9px 30px;flex-grow: 1;">
+                                    <div style="display: flex;">
+                                        <GraphqlBar class="graphql_bar_id" ref="graphql_ref" @change="onChange"
+                                            :code="code" :prop_option="{ mode: 'graphql' }" :height="auto"></GraphqlBar>
+                                    </div>
+                                </div>
                             </div>
+                            <!-- icon pushed at the end -->
                             <div style="cursor: pointer;flex-grow: 0;align-content: center;width: 22px;height:22px;margin:auto;margin-right:3vh;"
                                 @click="graphql_search_panel">
                                 <svg fill="#4c5467" width="22px" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
@@ -30,15 +47,18 @@
                         </div>
 
                     </div>
+
+
+                    <!-- llm chat box -->
                     <div id="llm_chat_context" class="shadow-box"
                         style="height:45px;display: flex;flex-grow: 1;position: absolute;background-color: #eeeae6;width: 100%;border-radius:30px;z-index: 9;bottom:0;left:0;right:0;">
                         <div id="temp_history_text" style="height: fit-content;width: 100%;">
                             <div v-for="(item, index) in temp_history" :key="index">
 
 
-                                <div style="display: flex;width: 100%;padding:16px 16px 0px 16px;" 
-                                :id="index === temp_history.length - 1 ? 'last-conv-item' : undefined"
-                                :style="{opacity: index === temp_history.length - 1 ? 0 : 1}">
+                                <div style="display: flex;width: 100%;padding:16px 16px 0px 16px;"
+                                    :id="index === temp_history.length - 1 ? 'last-conv-item' : undefined"
+                                    :style="{ opacity: index === temp_history.length - 1 ? 0 : 1 }">
                                     <div v-if="item.user === 'ai'" style="display: flex;width:100%">
                                         <!-- <div
                                             style="width: 0%;background-color: #1F2937;padding-top: 5%;border-radius: 30px;margin-top:10px;margin-bottom:10px">
@@ -49,42 +69,22 @@
                                             {{ item.message }}
                                         </div>
                                     </div>
-                                    <div v-if="item.user === 'human'" style="display: flex;width:100%;padding-right:15px">
-                                    <div style="width: 99.8%;align-items:center;"
-                                        :class="{ ai_style: item.user === 'ai', human_style: item.user === 'human' }"
-                                        class="">
-                                        <div
-                                            style="background-color: #eeeae6;border-radius: 5px;font-weight: 300;">
-                                            {{ item.message }}</div>
-                                    </div>
-                                    <!-- <div
+                                    <div v-if="item.user === 'human'"
+                                        style="display: flex;width:100%;padding-right:15px">
+                                        <div style="width: 99.8%;align-items:center;"
+                                            :class="{ ai_style: item.user === 'ai', human_style: item.user === 'human' }"
+                                            class="">
+                                            <div style="background-color: #eeeae6;border-radius: 5px;font-weight: 300;">
+                                                {{ item.message }}</div>
+                                        </div>
+                                        <!-- <div
                                         style="width: 0%;background-color: #d4af37;padding-top: 5%;border-radius: 30px;margin-top:10px;margin-bottom:10px">
                                     </div> -->
+                                    </div>
                                 </div>
-                            </div>
-<!-- 
-<div v-if="index === temp_history.length - 1" 
-id="last-conv-item" 
-style="opacity:0;transform: translate('-15px','0');">
-     {{ item }}
-</div>
-<div v-else>
-    {{ item }}
-</div> -->
 
                             </div>
-                            
-
-
- 
-
-                                
-
-
-                            
-                        </div> 
-
-
+                        </div>
                     </div>
                 </n-gi>
             </n-grid>
@@ -101,9 +101,11 @@ import { markdownToHtml } from '@/components_shared/utils.js'
 import { onMounted, onUnmounted, ref, watch, onBeforeUnmount, computed } from 'vue';
 import { Extension } from '@tiptap/core'
 import { nextTick } from 'vue';
-import { NIcon, NGrid, NGi, NSelect, NDivider } from 'naive-ui'
+import { NIcon, NGrid, NGi, NSelect, NDivider, NButton } from 'naive-ui'
 import { DismissCircle20Regular } from '@vicons/fluent'
 import { useEventBus } from '@/components_shared/event_bus_promise';
+import GraphqlBar from './GraphqlBar.vue'
+
 
 const { on, emit } = useEventBus();
 
@@ -118,12 +120,21 @@ const up_down_position = ref(0)
 const temp_save = ref('')
 const select_clt_open = ref(false)
 const is_llm_chat_context_open = ref(false)
+// const editor_type = ref('tiptap')
+const editor_type = ref('codemirror')
+const code = ref(``)
 
 const clt_options = computed(() => {
     let distinct = Array.from(new Set(dim_store.allowed_clt_fields.map(x => x.clt)))
     let all = distinct.map(item => ({ label: item, value: item }))
     return all
 })
+
+
+function onChange(val) {
+    code.value = val
+}
+
 
 // dim_store.allowed_clt_fields.map(item=>({label: item['field'], value: item['field']}))
 
@@ -181,11 +192,11 @@ function submit() {
         console.log('current_heigth', current_heigth)
         console.log('rect.height', rect.height)
         // if (is_llm_chat_context_open.value === false) {
-        
+
         if ((100 + rect.height) < (window.innerHeight - 200))
             llm_chat_context.animate([
-            { height: current_heigth }, 
-            { height: `${100 + rect.height}px` } 
+                { height: current_heigth },
+                { height: `${100 + rect.height}px` }
             ], {
                 duration: 500,
                 fill: 'forwards',
@@ -193,31 +204,31 @@ function submit() {
                 // easing: 'cubic-bezier(0.7, 0.7, 0.1, 0.1)'
             });
 
-            llm_chat_context.animate([
-            { 'paddingBottom': `0px` }, 
-            { 'paddingBottom': `100px` } 
-            ], {
-                duration: 500,
-                fill: 'forwards',
-                easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
-                // easing: 'cubic-bezier(0.7, 0.7, 0.1, 0.1)'
-            });
+        llm_chat_context.animate([
+            { 'paddingBottom': `0px` },
+            { 'paddingBottom': `100px` }
+        ], {
+            duration: 500,
+            fill: 'forwards',
+            easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
+            // easing: 'cubic-bezier(0.7, 0.7, 0.1, 0.1)'
+        });
 
 
-            is_llm_chat_context_open.value = true
+        is_llm_chat_context_open.value = true
         // }
 
 
 
         setTimeout(() => {
             last_item.animate([
-            { opacity: 0 },
-            { opacity: 1 } 
-        ], {
-            duration: 350,
-            fill: 'forwards',
-            easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
-        });
+                { opacity: 0 },
+                { opacity: 1 }
+            ], {
+                duration: 350,
+                fill: 'forwards',
+                easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
+            });
         }, 500);
 
 
@@ -327,6 +338,11 @@ const editor = useEditor({
         spellcheck: "false"
     },
     onUpdate: ({ editor }) => {
+        if (editor.getText() === '```') {
+            console.log('hey')
+            editor_type.value = 'codemirror'
+        }
+
         let html = editor.getHTML()
         if (html !== box_input_html.value) {
             box_input_html.value = html
@@ -471,14 +487,10 @@ function on_show_select_clt(state) {
 
 
 <style>
-/* #llm_chat_content {
-    display: flex;flex-grow: 1;position: absolute;background-color: #eeeae6;width: 100%;border-radius:30px;z-index: 9;bottom:0;left:0;right:0
-} */
-
 #fmw-select-clt {
     padding-bottom: 10px;
     padding-left: 20px !important;
-    height: 30px;
+    height: 40px;
     min-width: 100px;
     /* width: fit-content; */
 }
@@ -576,22 +588,6 @@ function on_show_select_clt(state) {
     width: 0;
 }
 
-
-
-
-/* .field-indicator {
-  background-color: #1f2937;
-  color: white;
-  border-radius: 0.1rem;
-  position: relative;
-  border: none;
-  padding: 2px 25px;
-  font-size: 16px;
-  cursor: pointer;
-  outline: none;
-  font-size: 12px;
-  font-weight: 300;
-} */
 
 
 .conv_item {

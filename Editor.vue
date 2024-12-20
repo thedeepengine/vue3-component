@@ -53,7 +53,7 @@ import { useEditor, Editor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { all, createLowlight } from 'lowlight'
-import { CustomHeading, getTrackHeadingsExtension } from '@/components_shared/tiptap_custom.js'
+import { CustomHeading, getTrackHeadingsExtension, TripleBacktickLogger } from '@/components_shared/tiptap_custom.js'
 import { dimStore } from '@/components_shared/dimStore'
 import { markdownToHtml } from '@/components_shared/utils.js'
 import Link from '@tiptap/extension-link'
@@ -218,10 +218,12 @@ const editor = useEditor({
     }),
     CustomHeading,
     getTrackHeadingsExtension(dim_store, dim_store.html_content),
-    trackMentionDeletionsPlugin
+    trackMentionDeletionsPlugin,
+    
   ],
   content: dim_store.html_content,
   onUpdate: ({ editor }) => {
+
     if (dim_store.is_dirty === false) {
       dim_store.is_dirty = true
     }

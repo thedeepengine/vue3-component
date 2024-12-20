@@ -122,17 +122,12 @@ onMounted(() => {
                         dim_store.conversation_history.push({ message: user_input, user: 'human' })
                         dim_store.user_input = user_input
                         dim_store.set_all_object_dirty()
+                        dim_store.run_graphql_query(dim_store.user_input)
                         dim_store.fetch_data(dim_store.selected_clt, dim_store.user_input)
                         code.value = ''
+
                     }
                     });
-
-
-
-
-
-
-                console.log('cm_ref.value', cm_ref.value)
             })
 })
 

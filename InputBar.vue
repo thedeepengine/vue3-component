@@ -1,7 +1,4 @@
 <template>
-    <n-button style="z-index:99999999999999;position: fixed;top:400px;left:400px"
-        @click="editor_type = editor_type === 'codemirror' ? 'tiptap' : 'codemirror'">AAAAA</n-button>
-
     <div id="fmw-llm-bar" :class="{
         home_display_config: dim_store.dimension === 'home',
         bottom_display_config: dim_store.dimension !== 'home'

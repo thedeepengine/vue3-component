@@ -601,6 +601,16 @@ watch(() => dimension.value,
   }
 
 
+  function run_graphql_query(query) {
+    apiClient
+      .post("https://localhost:8002/v1/api/graphql/", {query: query})
+      .then(response => {
+        graphql_output.value = response.data
+        is_object_dirty.value.graphql_output = false
+      })
+}
+
+
   return {
     loading_flag,
     is_object_dirty,
@@ -659,6 +669,7 @@ watch(() => dimension.value,
     graphql,
     graphql_input,
     graphql_output,
+    run_graphql_query,
 
     //popup box
     isVisible,

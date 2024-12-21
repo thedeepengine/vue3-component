@@ -209,15 +209,11 @@ const TripleBacktickLogger = Extension.create({
     return [
       new Plugin({
         appendTransaction: (transactions, oldState, newState) => {
-          // Check all transactions for text input
           transactions.forEach(transaction => {
             if (transaction.docChanged) {
-              // Check the first node of the document
               const firstNode = newState.doc.content.firstChild;
               if (firstNode && firstNode.isTextblock) {
-                // Get the text of the first node
                 const text = firstNode.textContent;
-                // Check if the text starts with "```"
                 if (text.startsWith("```")) {
                   console.log("hey");
                 }

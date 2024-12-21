@@ -42,7 +42,10 @@
                                     style="padding:10px 10px 9px 30px;flex-grow: 1;">
                                     <!-- codemirror editor -->
                                     <div style="display: flex;">
-                                        <GraphqlBar @editor_change_request="editor_type = 'tiptap'" class="graphql_bar_id" ref="graphql_ref" @change="onChange"
+                                        <GraphqlBar @editor_change_request="editor_type = 'tiptap'" 
+                                        
+
+                                        class="graphql_bar_id" ref="graphql_ref" @change="onChange"
                                             :code="code" :prop_option="{ mode: 'graphql' }" :height="auto"></GraphqlBar>
                                     </div>
                                 </div>
@@ -125,9 +128,10 @@ import { Extension } from '@tiptap/core'
 import { nextTick } from 'vue';
 import { NIcon, NGrid, NGi, NSelect, NDivider, NButton } from 'naive-ui'
 import { DismissCircle20Regular } from '@vicons/fluent'
-import { useEventBus } from '@/components_shared/event_bus_promise';
+import { useEventBus } from '@/components_shared/event_bus';
 import GraphqlBar from './GraphqlBar.vue'
 import { ChevronUp28Regular, ChevronDown28Regular } from '@vicons/fluent'
+import TiptapCodemirrorExtension from '@/components_shared/TiptapCodemirrorExtension.js';
 
 
 const { on, emit } = useEventBus();
@@ -159,6 +163,21 @@ function onChange(val) {
 }
 
 
+import { TextSelection } from 'prosemirror-state';
+
+function move_down() {
+    const { state, dispatch } = editor.value
+    const { selection } = state
+    const { $head } = selection
+    
+    const posAfter = $head.after()
+          if (posAfter !== undefined) {
+            const transaction = state.tr.setSelection(TextSelection.near(state.doc.resolve(posAfter)))
+            dispatch(transaction)
+            return true
+          }
+}
+
 // dim_store.allowed_clt_fields.map(item=>({label: item['field'], value: item['field']}))
 
 const temp_history = ref([
@@ -175,7 +194,39 @@ function close_llm_history() {
 }
 
 
+watch(() => editor_type.value, () => {
+    setTimeout(() => {
+    if (editor_type.value === 'tiptap') {
+        editor.value.commands.focus()
+    }
+    }, 400);
+})
+
 onMounted(() => {
+    // on('back_to_tiptap', (idx) => {
+
+    //     const { state, commands } = editor.value
+    // const { selection } = state
+    // const { $head } = selection
+
+
+
+    // const endOfDocPos = state.doc.content.size;
+    //     if ($head.pos < endOfDocPos) {
+    //       // Move cursor to the next node if it exists
+    //       const posAfter = $head.after();
+    //       if (posAfter !== undefined) {
+    //         commands.setSelection($head.after());
+    //         return true;
+    //       }
+    //     } else {
+    //         // state.tr.insert(endOfDocPos, state.schema.nodes.paragraph.createAndFill());
+    //         commands.insertContent({ type: 'paragraph' });
+
+    //       return true;
+    //     }
+
+    // });
 
     watch(() => box_input_md, (newValue) => {
         if (editor.value && editor.value.getHTML() !== newValue.value && newValue.value !== '') {
@@ -383,18 +434,72 @@ const EnterKeyHandler = Extension.create({
 });
 
 
+// const ShiftEnterHandler = Extension.create({
+//     name: 'shiftEnterHandler',
+//     addKeyboardShortcuts() {
+//         return {
+//             'Cmd-Enter': ({ editor }) => {
+//                 const { $from } = editor.state.selection;
+//                 const pos = $from.end(); 
+//                 const { tr } = editor.state;
+
+//                 const paragraphNode = editor.state.schema.nodes.paragraph.create();
+//                 editor.state.tr.insert(pos, paragraphNode)
+//                 .setSelection(TextSelection.create(tr.doc, 1)); 
+
+//                 return true; 
+//             }
+//         };
+//     },
+// });
+
+
 const ShiftEnterHandler = Extension.create({
     name: 'shiftEnterHandler',
 
     addKeyboardShortcuts() {
         return {
-            'Shift-Enter': () => {
-                this.editor.commands.insertContent('\n'); // Inserts a newline at the cursor position
-                return true; // Prevents the default handling to only apply this effect
+            'Cmd-Enter': ({ editor }) => {
+                const { tr, selection, schema } = editor.state;
+                const { $from } = selection;
+                const pos = $from.end(); // Position after the current node
+
+                // Create a new paragraph node
+                const paragraphNode = schema.nodes.paragraph.create();
+
+                // Insert the new paragraph node at the calculated position
+                const transaction = tr.insert(pos, paragraphNode);
+
+                // Move the cursor to the start of the new paragraph
+                const newSelection = TextSelection.create(transaction.doc, pos + 1);
+                editor.view.dispatch(transaction.setSelection(newSelection).scrollIntoView());
+
+
+
+
+
+
+
+                return true;
             }
         };
     },
 });
+
+
+function graphql_search_panel() {
+    // :class="{'full-screen': dim_store.conv_full_screen}"
+    // :style="{ height: computedHeight + 'px' }"
+    let conv_elt = window.document.getElementById('fmw-llm-bar')
+    let menu_elt = window.document.getElementById('clt-menu')
+
+    dim_store.conv_full_screen = (dim_store.conv_full_screen ? false : true)
+    if (dim_store.conv_full_screen) {
+        dim_store.content_type = 'graphql'
+    } else {
+        dim_store.loading_flag = true
+    }
+}
 
 
 const editor = useEditor({
@@ -403,6 +508,7 @@ const editor = useEditor({
         EnterKeyHandler,
         // UpAndDownKeyHandler,
         ShiftEnterHandler,
+        TiptapCodemirrorExtension,
     ],
     content: box_input_html.value,
     editorProps: {
@@ -414,10 +520,10 @@ const editor = useEditor({
         spellcheck: "false"
     },
     onUpdate: ({ editor }) => {
-        if (editor.getText() === '```') {
-            editor.commands.setContent('');
-            editor_type.value = 'codemirror'
-        }
+        // if (editor.getText() === '```') {
+        //     editor.commands.setContent('');
+        //     editor_type.value = 'codemirror'
+        // }
 
         let html = editor.getHTML()
         if (html !== box_input_html.value) {
@@ -427,15 +533,33 @@ const editor = useEditor({
     onBlur({ event }) {
     },
     onTransaction: ({ editor, transaction }) => {
-        const { state } = editor;
-        const selection = state.selection;
-        const from = selection.from;
+        // const { state } = editor;
+        // const selection = state.selection;
+        // const from = selection.from;
 
-        const all = state.doc.textBetween(0, from, ' ');
+        // const all = state.doc.textBetween(0, from, ' ');
 
-        dim_store.user_input = all
+        // dim_store.user_input = all
     }
 });
+
+
+function on_show_select_clt(state) {
+    if (state) {
+        select_clt_open.value = true
+    } else {
+        select_clt_open.value = false
+    }
+}
+
+
+
+
+
+
+
+
+
 
 
 
@@ -509,22 +633,6 @@ const editor = useEditor({
 //     }
 // }
 
-function graphql_search_panel() {
-    // :class="{'full-screen': dim_store.conv_full_screen}"
-    // :style="{ height: computedHeight + 'px' }"
-    let conv_elt = window.document.getElementById('fmw-llm-bar')
-    let menu_elt = window.document.getElementById('clt-menu')
-
-    dim_store.conv_full_screen = (dim_store.conv_full_screen ? false : true)
-    if (dim_store.conv_full_screen) {
-        dim_store.content_type = 'graphql'
-    } else {
-        dim_store.loading_flag = true
-    }
-
-}
-
-
 // watch(() => dim_store.user_input, (n, o) => {
 //     const pattern = /^(\w+)([\.:=])/;
 //     const is_metal_query = dim_store.user_input.match(pattern);
@@ -549,16 +657,6 @@ function graphql_search_panel() {
 //     });
 // }
 
-
-function on_show_select_clt(state) {
-    if (state) {
-        select_clt_open.value = true
-    } else {
-        select_clt_open.value = false
-    }
-}
-
-// function
 </script>
 
 

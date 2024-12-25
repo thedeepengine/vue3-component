@@ -55,9 +55,11 @@ export default Node.create({
     return VueNodeViewRenderer(GraphqlBar)
   },
 
-  addKeyboardShortcuts() {
+  addKeyboardShortcuts() { // shortcut to trigger get graphql codeblock in main tiptap editor
     return {
       Enter: ({ editor }) => {
+
+
         const { state, view } = editor;
         const { selection } = state;
         const { $from } = selection;
@@ -75,18 +77,10 @@ export default Node.create({
 
                 const insertPos = startPos;
                 const customNode = this.type.create();
-
+                
                 tr.insert(startPos, customNode);
                 tr.setSelection(TextSelection.create(tr.doc, startPos + customNode.nodeSize));
                 editor.view.dispatch(tr);
-
-                // const tt = schema.nodes.paragraph.create()
-                // const paragraphNode = schema.nodes.paragraph.create({}, tt);
-
-                // tr.insert(insertPos, paragraphNode);
-                // tr.setSelection(TextSelection.create(tr.doc, insertPos + 1));
-                // editor.view.dispatch(tr);
-
                 return true;
             }
             return false; 

@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { ref, onMounted, watch, computed } from "vue";
+import { ref, onMounted, watch, computed, onBeforeUnmount, onUnmounted } from "vue";
 import { defineStore, acceptHMRUpdate } from "pinia";
 import TurndownService from 'turndown';
 import { test_click_utils } from '@/components_shared/utils'
@@ -12,6 +12,8 @@ export const dimStore = defineStore("dimStore", () => {
   // const is_menu_open = ref(true)
   // const dimension = ref('menu')
   // const left_panel = ref('loading')
+
+  const websocket = ref()
 
   const APP_TYPE = ref('fmw')
 
@@ -147,13 +149,24 @@ export const dimStore = defineStore("dimStore", () => {
     Object.keys(is_object_dirty.value).forEach(key => is_object_dirty.value[key] = true);
   }
 
-  function fetch_data(clt, request) {
-    let bundle = { clt: clt, request: request, dimension: dimension.value, legacy_data: legacy_data.value }
+
+  function run_graphql_query(query) {
+    apiClient
+      .post("https://localhost:8002/v1/api/graphql/", {query: query})
+      .then(response => {
+        graphql_output.value = response.data
+        is_object_dirty.value.graphql_output = false
+      })
+}
+
+  function fetch_data(request_bundle) {
+    // let bundle = { dimension: dimension.value, legacy_data: legacy_data.value }
 
     
     apiClient
-      .post("https://localhost:8002/v1/api/query/", bundle)
+      .post("https://localhost:8002/v1/api/query/", request_bundle)
       .then(response => {
+        console.log('AAAA', response)
         
         if (response.data !== null && 'error_info' in response.data) {
           
@@ -171,6 +184,13 @@ export const dimStore = defineStore("dimStore", () => {
             info_pop.style.opacity = 1
           }, 0);
         }
+
+        if (response.data !== null && 'fmw_info' in response.data) {
+          if (response.data.fmw_info === 'start_websocket') {
+            open_websocket_con()
+          }
+        }
+
         if (response.data?.legacy_data) {
           legacy_data.value = response.data.legacy_data
         }
@@ -601,14 +621,90 @@ watch(() => dimension.value,
   }
 
 
-  function run_graphql_query(query) {
-    apiClient
-      .post("https://localhost:8002/v1/api/graphql/", {query: query})
-      .then(response => {
-        graphql_output.value = response.data
-        is_object_dirty.value.graphql_output = false
-      })
+
+
+
+
+
+
+
+
+function open_websocket_con() {
+  console.log('CONNEC SOCKET')
+  let websocketUrl = 'ws://localhost:8765'
+  websocket.value = new WebSocket(websocketUrl);
+
+  websocket.value.onopen = () => {
+    console.log('WebSocket connection is ready');
+    websocket.value.send({ type: 'ready_notification' }) //query: conversation_history.value.at(-1).message
+  };
+
+  websocket.value.onmessage = (event) => {
+    console.log('Received data:', event.data);
+  };
+
+  websocket.value.onerror = (event) => {
+    console.error('WebSocket error:', event);
+  };
+
+  websocket.value.onclose = (event) => {
+    console.log('WebSocket is closed now.');
+  };
 }
+
+onMounted(() => {
+  open_websocket_con();
+});
+
+onUnmounted(() => {
+  if (websocket) {
+    websocket.close();
+  }
+});
+
+
+
+
+ 
+// function open_websocket_con() {
+//       websocket.value = new WebSocket('wss://localhost:8002/ws/send_to_vue');
+//       console.log('connection socket')
+
+//       websocket.value.addEventListener('open', () => {
+//         console.log('WebSocket connection opened');
+//         // send_event({ type: 'query', query: conversation_history.value.at(-1).message });
+//       });
+
+//       websocket.value.addEventListener('message', (event) => {
+//         console.log('event.data', event.data)
+//         // messages.value.push(event.data); 
+//       });
+
+//       websocket.value.addEventListener('error', (error) => {
+//         console.error('WebSocket error:', error);
+//       });
+
+//       websocket.value.addEventListener('close', () => {
+//         console.log('WebSocket connection closed');
+//       });
+// }
+
+
+// function send_event(message) {
+//   if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
+//       websocket.value.send(JSON.stringify(message)); // Convert the message to a JSON string if needed
+//       console.log('Message sent:', message);
+//   } else {
+//       console.error('WebSocket is not open. Cannot send message.');
+//   }
+// }
+
+// function close_websocket_con() {
+//   if (websocket.value) {
+//     websocket.value.close();
+//   }
+// }
+
 
 
   return {

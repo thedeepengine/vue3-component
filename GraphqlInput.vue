@@ -6,7 +6,7 @@
             <div>
                 <span class="fmw-graphql-input-button" >
                     <n-icon 
-                    @click="dim_store.run_graphql_query(childRef.getCode().trim())"
+                    @click="run_query"
                     :component="PlayCircle48Regular" 
                     color="#4c5467" size="40"></n-icon>
                 </span>
@@ -40,6 +40,14 @@ const apiClient = axios.create({
     }
   });
 
+function run_query() {
+    dim_store.user_input = childRef.value.getCode().trim()
+    dim_store.conversation_history.push({ message: dim_store.user_input, user: 'human', type: 'last', message_type: 'graphql' })
+    dim_store.set_all_object_dirty()
+    dim_store.fetch_data({dimension: dim_store.dimension, 
+            query_type: 'graphql',
+            query_bundle: {query: dim_store.user_input}})
+}
 
 function onChange(val) {
     code.value = val

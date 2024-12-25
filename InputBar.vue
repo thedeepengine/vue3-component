@@ -44,6 +44,7 @@
                                     <div style="display: flex;">
                                         <GraphqlBar @editor_change_request="editor_type = 'tiptap'" 
                                         
+                                        
 
                                         class="graphql_bar_id" ref="graphql_ref" @change="onChange"
                                             :code="code" :prop_option="{ mode: 'graphql' }" :height="auto"></GraphqlBar>
@@ -132,6 +133,7 @@ import { useEventBus } from '@/components_shared/event_bus';
 import GraphqlBar from './GraphqlBar.vue'
 import { ChevronUp28Regular, ChevronDown28Regular } from '@vicons/fluent'
 import TiptapCodemirrorExtension from '@/components_shared/TiptapCodemirrorExtension.js';
+import { TextSelection } from 'prosemirror-state';
 
 
 const { on, emit } = useEventBus();
@@ -163,7 +165,45 @@ function onChange(val) {
 }
 
 
-import { TextSelection } from 'prosemirror-state';
+import axios from 'axios'
+
+const apiClient = axios.create({
+    baseURL: 'https://localhost:8002/',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+
+
+function submit(user_input, type_input) {
+    dim_store.user_input = user_input
+    dim_store.set_all_object_dirty()
+
+    if (type_input === 'graphql') {
+        add_message_to_history(user_input, 'human', 'graphql')
+        dim_store.fetch_data({dimension: dim_store.dimension, 
+            query_type: 'graphql',
+            query_bundle: {query: dim_store.user_input}})
+        emit('clean_graphql_input')
+    } if (user_input.startsWith('::')) {
+        dim_store.fetch_data({dimension: dim_store.dimension, 
+            query_type: 'fmw',
+            query_bundle: {clt_name: dim_store.selected_clt, request: dim_store.user_input.replace('::', '')}})
+            editor.value.commands.setContent('')
+    } if(user_input.startsWith('llm::')) {
+        apiClient.post("https://localhost:8002/v1/api/set_llm_url/", {url: user_input.replace('llm::', '')})
+    //   .then(response => {})
+    } else {
+        add_message_to_history(user_input, 'human')
+        dim_store.fetch_data({dimension: dim_store.dimension, 
+            query_type: 'unknown',
+            query_bundle: {clt_name: dim_store.selected_clt, request: dim_store.user_input}})
+        editor.value.commands.setContent('')
+    }
+}
+
+
 
 function move_down() {
     const { state, dispatch } = editor.value
@@ -356,13 +396,20 @@ function switch_llm_history(way='open') {
 //     }, 0);
 // }
 
+on('submit_graphql_query', (idx) => {
+    submit(idx, 'graphql')
+})
 
-function submit() {
-    let user_input = editor.value.getText()
-    const llm_chat_context = document.getElementById('llm_chat_context'); // Select the div by its ID
-    temp_history.value.push({ user: 'human', message: user_input })
-    switch_llm_history()
-}
+
+
+
+
+// function submit() {
+//     let user_input = editor.value.getText()
+//     const llm_chat_context = document.getElementById('llm_chat_context'); // Select the div by its ID
+//     temp_history.value.push({ user: 'human', message: user_input })
+//     switch_llm_history()
+// }
 
 
 // function submit() {
@@ -413,78 +460,40 @@ const show_new_history_message = async (message) => {
     }
 }
 
-const add_message_to_history = async (message, role) => {
-    history.value.push({ message: message, user: role, type: 'last' })
+const add_message_to_history = async (message, role, message_type) => {
+    history.value.push({ message: message, user: role, type: 'last', message_type: message_type })
     dim_store.conversation_history = history.value
 }
 
 
-const EnterKeyHandler = Extension.create({
-    name: 'enterKeyHandler',
-    addKeyboardShortcuts() {
-        return {
-            'Enter': () => {
-                if (show_menu.value === false) {
-                    submit()
-                }
-                return true;
-            },
-        };
-    },
-});
 
-
-// const ShiftEnterHandler = Extension.create({
-//     name: 'shiftEnterHandler',
-//     addKeyboardShortcuts() {
-//         return {
-//             'Cmd-Enter': ({ editor }) => {
-//                 const { $from } = editor.state.selection;
-//                 const pos = $from.end(); 
-//                 const { tr } = editor.state;
-
-//                 const paragraphNode = editor.state.schema.nodes.paragraph.create();
-//                 editor.state.tr.insert(pos, paragraphNode)
-//                 .setSelection(TextSelection.create(tr.doc, 1)); 
-
-//                 return true; 
-//             }
-//         };
-//     },
-// });
-
-
-const ShiftEnterHandler = Extension.create({
-    name: 'shiftEnterHandler',
-
+const KeyHandler = Extension.create({
+    name: 'KeyHandler',
     addKeyboardShortcuts() {
         return {
             'Cmd-Enter': ({ editor }) => {
                 const { tr, selection, schema } = editor.state;
                 const { $from } = selection;
-                const pos = $from.end(); // Position after the current node
-
-                // Create a new paragraph node
+                const pos = $from.end();
                 const paragraphNode = schema.nodes.paragraph.create();
-
-                // Insert the new paragraph node at the calculated position
                 const transaction = tr.insert(pos, paragraphNode);
-
-                // Move the cursor to the start of the new paragraph
                 const newSelection = TextSelection.create(transaction.doc, pos + 1);
                 editor.view.dispatch(transaction.setSelection(newSelection).scrollIntoView());
-
-
-
-
-
-
-
+                return true;
+            },
+            'Enter': () => {
+                if (show_menu.value === false) {
+                    let user_input = editor.value.getText()
+                    submit(user_input)
+                }
                 return true;
             }
-        };
+        }
     },
 });
+
+
+
 
 
 function graphql_search_panel() {
@@ -504,10 +513,10 @@ function graphql_search_panel() {
 
 const editor = useEditor({
     extensions: [
-        StarterKit,
-        EnterKeyHandler,
+        StarterKit.configure({codeBlock: false}),
+        KeyHandler,
+        // EnterKeyHandler,
         // UpAndDownKeyHandler,
-        ShiftEnterHandler,
         TiptapCodemirrorExtension,
     ],
     content: box_input_html.value,

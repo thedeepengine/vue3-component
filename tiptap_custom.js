@@ -143,6 +143,10 @@ function getTrackHeadingsExtension(store, html_content) {
         return [
           new Plugin({
             appendTransaction(transactions, oldState, newState) {
+
+              if (oldState.doc.eq(newState.doc)) {
+                return
+              }
               const { $from } = newState.selection;
               const nodeAtPos = $from.node();
               // this is most likely what should be useed to check to make it ontologically sound

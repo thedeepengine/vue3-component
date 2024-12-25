@@ -49,9 +49,9 @@ const checkElement = () => {
 };
 
 watch(() => [dim_store.w_data, 
-dim_store.d3_network_data, 
-isElementPresent.value, 
-dim_store.dimension],
+            dim_store.d3_network_data, 
+            isElementPresent.value, 
+            dim_store.dimension],
     ([refresh_network, s, old_data], [q, h, w]) => {
         if (isElementPresent.value) {
             if (dim_store.dimension === 'network' && !dim_store.is_object_dirty.d3_network_data) {

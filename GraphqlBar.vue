@@ -49,6 +49,9 @@ const props = defineProps({
 // function onChange(val) {
 //     code.value = val
 // }
+on('clean_graphql_input', (idx) => {
+    code.value = ''
+})
 
 function get_cm_instance() {
     return cm_ref.value.cminstance
@@ -139,22 +142,25 @@ onMounted(() => {
             cm_ref.value.cminstance.focus()
 
 
+            // cm_ref.value.cminstance.setOption("extraKeys", {
+            //     "Cmd-Enter": function (cm) {
+            //         let user_input = cm_ref.value.cminstance.getValue()
+            //         dim_store.conversation_history.push({ message: user_input, user: 'human' })
+            //         dim_store.user_input = user_input
+            //         dim_store.set_all_object_dirty()
+            //         dim_store.fetch_data(dim_store.selected_clt, dim_store.user_input)
+            //         code.value = ''
+
+            //     }
+            // });
+
+
             cm_ref.value.cminstance.setOption("extraKeys", {
-                "Cmd-Enter": function (cm) {
+                "Cmd-Enter": function () {
                     let user_input = cm_ref.value.cminstance.getValue()
-                    console.log("Cmd+Enter was pressed", user_input);
-                    dim_store.conversation_history.push({ message: user_input, user: 'human' })
-                    dim_store.user_input = user_input
-                    dim_store.set_all_object_dirty()
-                    dim_store.run_graphql_query(dim_store.user_input)
-                    dim_store.fetch_data(dim_store.selected_clt, dim_store.user_input)
-                    code.value = ''
-
-                }
-            });
-
-
-            cm_ref.value.cminstance.setOption("extraKeys", {
+                    emit('submit_graphql_query', user_input)
+                    return false
+                },
                 "Down": function (cm) {
 
                     const lastLine = cm.lineCount() - 1; // Get the index of the last line

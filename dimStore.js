@@ -4,6 +4,7 @@ import { defineStore, acceptHMRUpdate } from "pinia";
 import TurndownService from 'turndown';
 import { test_click_utils } from '@/components_shared/utils'
 import { marked } from "marked";
+import { tdeStore } from '@/tde/tdeStore.js'
 
 // const APP_TYPE = 'fmw'
 // const APP_TYPE = 'tde'
@@ -13,8 +14,7 @@ export const dimStore = defineStore("dimStore", () => {
   // const dimension = ref('menu')
   // const left_panel = ref('loading')
 
-  const websocket = ref()
-
+  const tde_store = tdeStore()
   const APP_TYPE = ref('fmw')
 
   const dimension = ref(APP_TYPE.value === 'fmw' ? 'hierarchy':'home')
@@ -187,7 +187,7 @@ export const dimStore = defineStore("dimStore", () => {
 
         if (response.data !== null && 'fmw_info' in response.data) {
           if (response.data.fmw_info === 'start_websocket') {
-            open_websocket_con()
+            tde_store.open_websocket_con()
           }
         }
 
@@ -619,92 +619,6 @@ watch(() => dimension.value,
   function set_dimension(dimension_to_set) {
     dimension.value = dimension_to_set
   }
-
-
-
-
-
-
-
-
-
-
-function open_websocket_con() {
-  console.log('CONNEC SOCKET')
-  let websocketUrl = 'ws://localhost:8765'
-  websocket.value = new WebSocket(websocketUrl);
-
-  websocket.value.onopen = () => {
-    console.log('WebSocket connection is ready');
-    websocket.value.send({ type: 'ready_notification' }) //query: conversation_history.value.at(-1).message
-  };
-
-  websocket.value.onmessage = (event) => {
-    console.log('Received data:', event.data);
-  };
-
-  websocket.value.onerror = (event) => {
-    console.error('WebSocket error:', event);
-  };
-
-  websocket.value.onclose = (event) => {
-    console.log('WebSocket is closed now.');
-  };
-}
-
-onMounted(() => {
-  open_websocket_con();
-});
-
-onUnmounted(() => {
-  if (websocket) {
-    websocket.close();
-  }
-});
-
-
-
-
- 
-// function open_websocket_con() {
-//       websocket.value = new WebSocket('wss://localhost:8002/ws/send_to_vue');
-//       console.log('connection socket')
-
-//       websocket.value.addEventListener('open', () => {
-//         console.log('WebSocket connection opened');
-//         // send_event({ type: 'query', query: conversation_history.value.at(-1).message });
-//       });
-
-//       websocket.value.addEventListener('message', (event) => {
-//         console.log('event.data', event.data)
-//         // messages.value.push(event.data); 
-//       });
-
-//       websocket.value.addEventListener('error', (error) => {
-//         console.error('WebSocket error:', error);
-//       });
-
-//       websocket.value.addEventListener('close', () => {
-//         console.log('WebSocket connection closed');
-//       });
-// }
-
-
-// function send_event(message) {
-//   if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
-//       websocket.value.send(JSON.stringify(message)); // Convert the message to a JSON string if needed
-//       console.log('Message sent:', message);
-//   } else {
-//       console.error('WebSocket is not open. Cannot send message.');
-//   }
-// }
-
-// function close_websocket_con() {
-//   if (websocket.value) {
-//     websocket.value.close();
-//   }
-// }
-
 
 
   return {

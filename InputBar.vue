@@ -67,7 +67,8 @@
 
 
 
-                    <div id="llm_chat_context" style="height:48px;flex-grow: 1;position: absolute;background-color: #eeeae6;width: 100%;border-radius:30px;z-index: 9;bottom:0;left:0;right:0">
+                    <div id="llm_chat_context"
+                        style="height:48px;flex-grow: 1;position: absolute;background-color: #eeeae6;width: 100%;border-radius:30px;z-index: 9;bottom:0;left:0;right:0">
                         <!-- chevron open llm history -->
                         <div style="position: absolute; left: 50%; transform: translate(-50%,-85%);">
                             <span class="chevron-llm-history"
@@ -80,7 +81,7 @@
 
                         <!-- llm chat box -->
                         <div id="llm_chat_context_child" class="shadow-box"
-                            style="display:none;opacity:0;height:100%;flex-grow: 1;position: absolute;background-color: #eeeae6;width: 100%;border-radius:30px;z-index: 9;bottom:0;left:0;right:0;overflow: hidden;">
+                            style="display:none;opacity:0;height:100%;flex-grow: 1;background-color: #eeeae6;width: 100%;border-radius:30px;z-index: 9;bottom:0;left:0;right:0;overflow: hidden;">
 
 
 
@@ -88,11 +89,8 @@
                                 <div v-for="(item, index) in dim_store.conversation_history" :key="index">
 
                                     <div style="display: flex;width: 100%;padding:16px 16px 0px 16px;overflow-wrap: anywhere;"
-                                        :id="item.type === 'last' ? 'last-conv-item' : undefined">
+                                        :class="item.type === 'last' ? item.user === 'human' ? 'last human-item' : 'last ai-item' : undefined">
                                         <div v-if="item.user === 'ai'" style="display: flex;width:100%">
-                                            <!-- <div
-                                            style="width: 0%;background-color: #1F2937;padding-top: 5%;border-radius: 30px;margin-top:10px;margin-bottom:10px">
-                                        </div> -->
                                             <div style="width: 99.8%;align-items:center;"
                                                 :class="{ ai_style: item.user === 'ai', human_style: item.user === 'human' }"
                                                 class="conv_item">
@@ -108,9 +106,6 @@
                                                     style="background-color: #eeeae6;border-radius: 5px;font-weight: 300;">
                                                     {{ item.message }}</div>
                                             </div>
-                                            <!-- <div
-                                        style="width: 0%;background-color: #d4af37;padding-top: 5%;border-radius: 30px;margin-top:10px;margin-bottom:10px">
-                                    </div> -->
                                         </div>
                                     </div>
 
@@ -160,7 +155,12 @@ const is_llm_chat_context_open = ref(false)
 const editor_type = ref('tiptap')
 // const editor_type = ref('codemirror')
 const code = ref(``)
+const should_display_llm_context = ref(false)
 
+on('should_display_llm_context', (val) => {
+    switch_llm_history()
+    should_display_llm_context.value = val
+})
 
 const clt_options = computed(() => {
     let distinct = Array.from(new Set(dim_store.allowed_clt_fields.map(x => x.clt)))
@@ -288,7 +288,7 @@ function switch_llm_history(way = 'open') {
         });
 
 
-        close_anim.onfinish = function() {
+        close_anim.onfinish = function () {
             // llm_chat_context_child.style.display = 'none'
             is_llm_chat_context_open.value = false
         };
@@ -298,7 +298,7 @@ function switch_llm_history(way = 'open') {
 
         const temp_history_text = document.getElementById('temp_history_text');
 
-        
+
         llm_chat_context_child.style.display = 'flex'
         // llm_chat_context_child.style.opacity = 1
         let rect = temp_history_text.getBoundingClientRect()
@@ -330,9 +330,9 @@ function switch_llm_history(way = 'open') {
             duration: 50,
             fill: 'forwards',
             easing: 'cubic-bezier(0.1, 0.7, 0.9, 1)'
-        }); 
+        });
 
-        
+
         is_llm_chat_context_open.value = true
 
     }
@@ -350,7 +350,7 @@ function update_llm_context_position() {
 
         llm_chat_context.animate([
             { height: current_heigth },
-            { height: `${100 + 40 + rect.height}px` }
+            { height: `${100 + rect.height}px` }
         ], {
             duration: 500,
             fill: 'forwards',
@@ -371,11 +371,11 @@ function update_llm_context_position() {
 }
 
 
-function update_llm_last_item_opacity(is_human_turn) {
-    setTimeout(() => {
-        const last_item = document.getElementById('last-conv-item');
+function update_llm_last_item_opacity(elt) {
 
-        let opacity_animation = last_item.animate([
+        console.log('alast_item', elt)
+
+        let opacity_animation = elt.animate([
             { opacity: 0 },
             { opacity: 1 }
         ], {
@@ -384,14 +384,9 @@ function update_llm_last_item_opacity(is_human_turn) {
             easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
         });
 
-        if (is_human_turn) {
-            opacity_animation.onfinish = function () {
-                document.getElementById('last-conv-item').removeAttribute('id');
-                last_item_elt.value = undefined
-            };
-        }
-    }, 100);
-
+        opacity_animation.onfinish = function () {
+            elt.classList.remove("last", "human-item")
+        };
 
 }
 
@@ -401,15 +396,6 @@ on('submit_graphql_query', (idx) => {
 })
 
 
-function ttt() {
-    console.log('aaaa')
-    let a = document.getElementById('temp_history_text');
-    const last_item = document.getElementById('last-conv-item');
-    console.log('last_item.scrollWidth', last_item.scrollWidth)
-    console.log('last_item.clientHeight', last_item.clientHeight)
-    last_item.removeAttribute('id');
-
-}
 
 const add_message_to_history = async (message, role, message_type) => {
     history.value.push({ message: message, user: role, type: 'last', message_type: message_type })
@@ -420,39 +406,59 @@ const add_message_to_history = async (message, role, message_type) => {
 const last_item_elt = ref()
 const last_item_height = ref(0)
 
+function waitForElement(selector) {
+    return new Promise(resolve => {
+        function check() {
+            const element = document.getElementsByClassName(selector)[0];
+            if (element) {
+                resolve(element);
+            } else {
+                requestAnimationFrame(check);
+            }
+        }
+        check();
+    });
+}
+
 watch(dim_store.conversation_history, (new_val, old_val) => {
-    if (last_item_elt.value === null || last_item_elt.value === undefined) {
-        last_item_elt.value = document.getElementById('last-conv-item');
 
-        if (dim_store.conversation_history.at(-1).user === 'human') {
-            update_llm_last_item_opacity(true)
-        }
-        else {
-            update_llm_last_item_opacity(false)
-        }
+    if (dim_store.conversation_history.at(-1).user === 'human') {
+        waitForElement('human-item').then((elt) => {
+            update_llm_last_item_opacity(elt)
+        }) 
+    } else {
 
-    }
-    if (is_llm_chat_context_open.value) {
-        if (dim_store.conversation_history.at(-1).user === 'human') {
-            update_llm_context_position()
+        if (last_item_elt.value === null || last_item_elt.value === undefined) {
+            
+            waitForElement('ai-item').then((elt) => {
+                last_item_elt.value = elt
+            })
         } else {
-            console.log('last_item_elt.value.clientHeight', last_item_elt.value.clientHeight)
             if (last_item_height.value < last_item_elt.value.clientHeight) {
                 update_llm_context_position()
             }
             last_item_height.value = last_item_elt.value.clientHeight
-
         }
+
+        
+        // document.getElementsByClassName('ai-item')[0];
     }
 
+    // if (is_llm_chat_context_open.value) {
+    //     if (dim_store.conversation_history.at(-1).user === 'human') {
+    //         update_llm_context_position()
+    //     } 
+    // }
 })
 
 
 watch(() => dim_store.stream_status, () => {
-    console.log('lllllaala')
     if (dim_store.stream_status === 'end') {
         console.log('clear')
-        document.getElementById('last-conv-item').removeAttribute('id');
+        let elt = document.getElementsByClassName("last");
+        if (elt.length > 0) {
+            elt[0].classList.remove("last", "ai-item", "human-item")
+        }
         last_item_elt.value = undefined
         dim_store.stream_status = 'ready'
     }
@@ -780,7 +786,7 @@ function on_show_select_clt(state) {
     opacity: 1;
 }
 
-#last-conv-item {
+.human-item {
     opacity: 0;
 }
 </style>

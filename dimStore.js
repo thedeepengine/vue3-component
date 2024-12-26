@@ -5,6 +5,7 @@ import TurndownService from 'turndown';
 import { test_click_utils } from '@/components_shared/utils'
 import { marked } from "marked";
 import { tdeStore } from '@/tde/tdeStore.js'
+import { useEventBus } from '@/components_shared/event_bus';
 
 // const APP_TYPE = 'fmw'
 // const APP_TYPE = 'tde'
@@ -13,6 +14,9 @@ export const dimStore = defineStore("dimStore", () => {
   // const is_menu_open = ref(true)
   // const dimension = ref('menu')
   // const left_panel = ref('loading')
+
+  const { on, emit } = useEventBus();
+
 
   const tde_store = tdeStore()
   const APP_TYPE = ref('fmw')
@@ -197,6 +201,7 @@ export const dimStore = defineStore("dimStore", () => {
             // last_item_elt.value = document.getElementById('last-conv-item');
             setTimeout(() => {
               tde_store.open_websocket_con()
+              emit('should_display_llm_context', true)
             }, 300);
           }
         }

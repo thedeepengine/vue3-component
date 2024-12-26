@@ -3,9 +3,9 @@
         home_display_config: dim_store.dimension === 'home',
         bottom_display_config: dim_store.dimension !== 'home'
     }">
-    <div style="position: fixed;left: 300px;top:300px;">
-        <n-button @click="ttt">aaa</n-button>
-    </div>
+        <div style="position: fixed;left: 300px;top:300px;">
+            <n-button @click="switch_llm_history(is_llm_chat_context_open ? 'close' : 'open')">aaa</n-button>
+        </div>
         <div>
             <n-grid>
 
@@ -30,9 +30,9 @@
                 <n-gi span="24">
                     <div id="fm_input_container">
                         <!-- divider -->
-                        <div v-if="is_llm_chat_context_open"
+                        <!-- <div v-if="is_llm_chat_context_open"
                             style="width:auto;display:block;flex-grow: 24;z-index: 99999;height:2px;margin-right:20px;margin-left:20px;background-color: #f9f7f5;border-radius: 5px;">
-                        </div>
+                        </div> -->
                         <!-- tiptap or codemirror editor -->
                         <div style="display:flex">
                             <div style="flex-grow: 1;">
@@ -45,12 +45,9 @@
                                     style="padding:10px 10px 9px 30px;flex-grow: 1;">
                                     <!-- codemirror editor -->
                                     <div style="display: flex;">
-                                        <GraphqlBar @editor_change_request="editor_type = 'tiptap'" 
-                                        
-                                        
-
-                                        class="graphql_bar_id" ref="graphql_ref" @change="onChange"
-                                            :code="code" :prop_option="{ mode: 'graphql' }" :height="auto"></GraphqlBar>
+                                        <GraphqlBar @editor_change_request="editor_type = 'tiptap'"
+                                            class="graphql_bar_id" ref="graphql_ref" @change="onChange" :code="code"
+                                            :prop_option="{ mode: 'graphql' }" :height="auto"></GraphqlBar>
                                     </div>
                                 </div>
                             </div>
@@ -67,49 +64,57 @@
                     </div>
 
 
-                    <!-- llm chat box -->
-                    <div id="llm_chat_context" class="shadow-box"
-                        style="height:45px;display: flex;flex-grow: 1;position: absolute;background-color: #eeeae6;width: 100%;border-radius:30px;z-index: 9;bottom:0;left:0;right:0;">
 
 
+
+                    <div id="llm_chat_context" style="height:48px;flex-grow: 1;position: absolute;background-color: #eeeae6;width: 100%;border-radius:30px;z-index: 9;bottom:0;left:0;right:0">
                         <!-- chevron open llm history -->
                         <div style="position: absolute; left: 50%; transform: translate(-50%,-85%);">
-                            <span class="chevron-llm-history" @click="switch_llm_history(is_llm_chat_context_open ? 'close' : 'open')">
+                            <span class="chevron-llm-history"
+                                @click="switch_llm_history(is_llm_chat_context_open ? 'close' : 'open')">
                                 <n-icon
                                     :component="is_llm_chat_context_open ? ChevronDown28Regular : ChevronUp28Regular"
                                     color="#4c5467" size="24"></n-icon>
                             </span>
                         </div>
 
-                        <div id="temp_history_text" style="height: fit-content;width: 100%;">
-                            <div v-for="(item, index) in dim_store.conversation_history" :key="index">
+                        <!-- llm chat box -->
+                        <div id="llm_chat_context_child" class="shadow-box"
+                            style="display:none;opacity:0;height:100%;flex-grow: 1;position: absolute;background-color: #eeeae6;width: 100%;border-radius:30px;z-index: 9;bottom:0;left:0;right:0;overflow: hidden;">
 
-                                <div style="display: flex;width: 100%;padding:16px 16px 0px 16px;overflow-wrap: anywhere;"
-                                    :id="item.type === 'last' ? 'last-conv-item' : undefined">
-                                    <div v-if="item.user === 'ai'" style="display: flex;width:100%">
-                                        <!-- <div
+
+
+                            <div id="temp_history_text" style="height: fit-content;width: 100%;">
+                                <div v-for="(item, index) in dim_store.conversation_history" :key="index">
+
+                                    <div style="display: flex;width: 100%;padding:16px 16px 0px 16px;overflow-wrap: anywhere;"
+                                        :id="item.type === 'last' ? 'last-conv-item' : undefined">
+                                        <div v-if="item.user === 'ai'" style="display: flex;width:100%">
+                                            <!-- <div
                                             style="width: 0%;background-color: #1F2937;padding-top: 5%;border-radius: 30px;margin-top:10px;margin-bottom:10px">
                                         </div> -->
-                                        <div style="width: 99.8%;align-items:center;"
-                                            :class="{ ai_style: item.user === 'ai', human_style: item.user === 'human' }"
-                                            class="conv_item">
-                                            {{ item.message }}
+                                            <div style="width: 99.8%;align-items:center;"
+                                                :class="{ ai_style: item.user === 'ai', human_style: item.user === 'human' }"
+                                                class="conv_item">
+                                                {{ item.message }}
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div v-if="item.user === 'human'"
-                                        style="display: flex;width:100%;padding-right:15px">
-                                        <div style="width: 99.8%;align-items:center;"
-                                            :class="{ ai_style: item.user === 'ai', human_style: item.user === 'human' }"
-                                            class="">
-                                            <div style="background-color: #eeeae6;border-radius: 5px;font-weight: 300;">
-                                                {{ item.message }}</div>
-                                        </div>
-                                        <!-- <div
+                                        <div v-if="item.user === 'human'"
+                                            style="display: flex;width:100%;padding-right:15px">
+                                            <div style="width: 99.8%;align-items:center;"
+                                                :class="{ ai_style: item.user === 'ai', human_style: item.user === 'human' }"
+                                                class="">
+                                                <div
+                                                    style="background-color: #eeeae6;border-radius: 5px;font-weight: 300;">
+                                                    {{ item.message }}</div>
+                                            </div>
+                                            <!-- <div
                                         style="width: 0%;background-color: #d4af37;padding-top: 5%;border-radius: 30px;margin-top:10px;margin-bottom:10px">
                                     </div> -->
+                                        </div>
                                     </div>
-                                </div>
 
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -171,11 +176,11 @@ function onChange(val) {
 const apiClient = axios.create({
     baseURL: 'https://localhost:8002/',
     headers: {
-      'Content-Type': 'application/json'
+        'Content-Type': 'application/json'
     }
-  });
+});
 
-  watch(() => editor_type.value, () => {
+watch(() => editor_type.value, () => {
     setTimeout(() => {
         if (editor_type.value === 'tiptap') {
             editor.value.commands.focus()
@@ -208,7 +213,7 @@ function submit(user_input, type_input) {
     dim_store.user_input = user_input
     dim_store.set_all_object_dirty()
 
-        if (dim_store.dimension === 'home') {
+    if (dim_store.dimension === 'home') {
         let user_input = editor.value.getText()
         dim_store.one_shot_home = user_input
         add_message_to_history(user_input, 'human')
@@ -216,79 +221,121 @@ function submit(user_input, type_input) {
         dim_store.left_panel = 'markdown'
     } else {
         if (type_input === 'graphql') {
-        add_message_to_history(user_input, 'human', 'graphql')
-        dim_store.fetch_data({dimension: dim_store.dimension, 
-            query_type: 'graphql',
-            query_bundle: {query: dim_store.user_input}})
-        emit('clean_graphql_input')
-    } if (user_input.startsWith('::')) {
-        dim_store.fetch_data({dimension: dim_store.dimension, 
-            query_type: 'fmw',
-            query_bundle: {clt_name: dim_store.selected_clt, request: dim_store.user_input.replace('::', '')}})
+            add_message_to_history(user_input, 'human', 'graphql')
+            dim_store.fetch_data({
+                dimension: dim_store.dimension,
+                query_type: 'graphql',
+                query_bundle: { query: dim_store.user_input }
+            })
+            emit('clean_graphql_input')
+        } if (user_input.startsWith('::')) {
+            dim_store.fetch_data({
+                dimension: dim_store.dimension,
+                query_type: 'fmw',
+                query_bundle: { clt_name: dim_store.selected_clt, request: dim_store.user_input.replace('::', '') }
+            })
             editor.value.commands.setContent('')
-    } if(user_input.startsWith('llm::')) {
-        apiClient.post("https://localhost:8002/v1/api/set_llm_url/", {url: user_input.replace('llm::', '')})
-    //   .then(response => {})
-    } else {
-        add_message_to_history(user_input, 'human')
-        dim_store.fetch_data({dimension: dim_store.dimension, 
-            query_type: 'unknown',
-            query_bundle: {clt_name: dim_store.selected_clt, request: dim_store.user_input}})
-        editor.value.commands.setContent('')
-    }
+        } if (user_input.startsWith('llm::')) {
+            apiClient.post("https://localhost:8002/v1/api/set_llm_url/", { url: user_input.replace('llm::', '') })
+            //   .then(response => {})
+        } else {
+            add_message_to_history(user_input, 'human')
+            dim_store.fetch_data({
+                dimension: dim_store.dimension,
+                query_type: 'unknown',
+                query_bundle: { clt_name: dim_store.selected_clt, request: dim_store.user_input }
+            })
+            editor.value.commands.setContent('')
+        }
     }
 }
 
 
-function switch_llm_history(way='open') {
-        const llm_chat_context = document.getElementById('llm_chat_context'); // Select the div by its ID
-        const temp_history_text = document.getElementById('temp_history_text');
-        let rect = temp_history_text.getBoundingClientRect()
-        let current_heigth = window.getComputedStyle(llm_chat_context).height
+function switch_llm_history(way = 'open') {
+    const llm_chat_context = document.getElementById('llm_chat_context'); // Select the div by its ID
+    const llm_chat_context_child = document.getElementById('llm_chat_context_child'); // Select the div by its ID
 
-        if (way === 'close') {
-            llm_chat_context.animate([
-                    { height: current_heigth },
-                    { height: `45px` }
-                ], {
-                    duration: 500,
-                    fill: 'forwards',
-                    easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
-                });
+    let current_heigth = window.getComputedStyle(llm_chat_context).height
 
-            llm_chat_context.animate([
-                { 'paddingBottom': `100px` },
-                { 'paddingBottom': `0px` }
-            ], {
-                duration: 500,
-                fill: 'forwards',
-                easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
-            });
+    console.log('current_heigth', current_heigth)
 
+    if (way === 'close') {
+        let close_anim = llm_chat_context.animate([
+            { height: current_heigth },
+            { height: `48px` }
+        ], {
+            duration: 500,
+            fill: 'forwards',
+            easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
+        });
+
+        llm_chat_context.animate([
+            { 'paddingBottom': `100px` },
+            { 'paddingBottom': `0px` }
+        ], {
+            duration: 500,
+            fill: 'forwards',
+            easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
+        });
+
+        llm_chat_context_child.animate([
+            { 'opacity': 1 },
+            { 'opacity': 0 }
+        ], {
+            duration: 100,
+            fill: 'forwards',
+            easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
+        });
+
+
+        close_anim.onfinish = function() {
+            // llm_chat_context_child.style.display = 'none'
             is_llm_chat_context_open.value = false
-        } else {
+        };
 
-            llm_chat_context.animate([
-                { height: current_heigth },
-                { height: `${100 + rect.height}px` }
-            ], {
-                duration: 500,
-                fill: 'forwards',
-                easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
-            });
 
-            llm_chat_context.animate([
-                { 'paddingBottom': `0px` },
-                { 'paddingBottom': `100px` }
-            ], {
-                duration: 500,
-                fill: 'forwards',
-                easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
-            });
+    } else {
 
-            is_llm_chat_context_open.value = true
+        const temp_history_text = document.getElementById('temp_history_text');
 
-        }
+        
+        llm_chat_context_child.style.display = 'flex'
+        // llm_chat_context_child.style.opacity = 1
+        let rect = temp_history_text.getBoundingClientRect()
+
+        console.log('current_heigthAAAA', current_heigth)
+        llm_chat_context.animate([
+            { height: current_heigth },
+            { height: `${100 + rect.height}px` }
+        ], {
+            duration: 500,
+            fill: 'forwards',
+            easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
+        });
+
+        llm_chat_context.animate([
+            { 'paddingBottom': `0px` },
+            { 'paddingBottom': `100px` }
+        ], {
+            duration: 500,
+            fill: 'forwards',
+            easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
+        });
+
+
+        llm_chat_context_child.animate([
+            { 'opacity': 0 },
+            { 'opacity': 1 }
+        ], {
+            duration: 50,
+            fill: 'forwards',
+            easing: 'cubic-bezier(0.1, 0.7, 0.9, 1)'
+        }); 
+
+        
+        is_llm_chat_context_open.value = true
+
+    }
 }
 
 
@@ -299,27 +346,27 @@ function update_llm_context_position() {
         let rect = temp_history_text.getBoundingClientRect()
         let current_heigth = window.getComputedStyle(llm_chat_context).height
 
-            // if ((100 + rect.height) < (window.innerHeight - 200))
+        // if ((100 + rect.height) < (window.innerHeight - 200))
 
-            llm_chat_context.animate([
-                { height: current_heigth },
-                { height: `${100 + 40 + rect.height}px` }
-            ], {
-                duration: 500,
-                fill: 'forwards',
-                easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
-                // easing: 'cubic-bezier(0.7, 0.7, 0.1, 0.1)'
-            });
+        llm_chat_context.animate([
+            { height: current_heigth },
+            { height: `${100 + 40 + rect.height}px` }
+        ], {
+            duration: 500,
+            fill: 'forwards',
+            easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
+            // easing: 'cubic-bezier(0.7, 0.7, 0.1, 0.1)'
+        });
 
-            llm_chat_context.animate([
-                { 'paddingBottom': `0px` },
-                { 'paddingBottom': `100px` }
-            ], {
-                duration: 500,
-                fill: 'forwards',
-                easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
-                // easing: 'cubic-bezier(0.7, 0.7, 0.1, 0.1)'
-            });        
+        llm_chat_context.animate([
+            { 'paddingBottom': `0px` },
+            { 'paddingBottom': `100px` }
+        ], {
+            duration: 500,
+            fill: 'forwards',
+            easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
+            // easing: 'cubic-bezier(0.7, 0.7, 0.1, 0.1)'
+        });
     }, 0);
 }
 
@@ -328,22 +375,22 @@ function update_llm_last_item_opacity(is_human_turn) {
     setTimeout(() => {
         const last_item = document.getElementById('last-conv-item');
 
-                let opacity_animation = last_item.animate([
-                    { opacity: 0 },
-                    { opacity: 1 }
-                ], {
-                    duration: 350,
-                    fill: 'forwards',
-                    easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
-                });
+        let opacity_animation = last_item.animate([
+            { opacity: 0 },
+            { opacity: 1 }
+        ], {
+            duration: 350,
+            fill: 'forwards',
+            easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
+        });
 
-                if (is_human_turn) {
-                opacity_animation.onfinish = function() {
-                    document.getElementById('last-conv-item').removeAttribute('id');
-                    last_item_elt.value = undefined
-                };
-            }
-            }, 100);
+        if (is_human_turn) {
+            opacity_animation.onfinish = function () {
+                document.getElementById('last-conv-item').removeAttribute('id');
+                last_item_elt.value = undefined
+            };
+        }
+    }, 100);
 
 
 }
@@ -376,16 +423,16 @@ const last_item_height = ref(0)
 watch(dim_store.conversation_history, (new_val, old_val) => {
     if (last_item_elt.value === null || last_item_elt.value === undefined) {
         last_item_elt.value = document.getElementById('last-conv-item');
-        
+
         if (dim_store.conversation_history.at(-1).user === 'human') {
             update_llm_last_item_opacity(true)
-        } 
+        }
         else {
             update_llm_last_item_opacity(false)
         }
 
     }
-    if(is_llm_chat_context_open.value) {
+    if (is_llm_chat_context_open.value) {
         if (dim_store.conversation_history.at(-1).user === 'human') {
             update_llm_context_position()
         } else {
@@ -401,7 +448,7 @@ watch(dim_store.conversation_history, (new_val, old_val) => {
 })
 
 
-watch(()=>dim_store.stream_status, () => {
+watch(() => dim_store.stream_status, () => {
     console.log('lllllaala')
     if (dim_store.stream_status === 'end') {
         console.log('clear')
@@ -457,7 +504,7 @@ function graphql_search_panel() {
 
 const editor = useEditor({
     extensions: [
-        StarterKit.configure({codeBlock: false}),
+        StarterKit.configure({ codeBlock: false }),
         KeyHandler,
         // EnterKeyHandler,
         // UpAndDownKeyHandler,
@@ -734,6 +781,6 @@ function on_show_select_clt(state) {
 }
 
 #last-conv-item {
-    opacity:0;
+    opacity: 0;
 }
 </style>

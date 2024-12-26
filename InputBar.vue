@@ -180,7 +180,14 @@ function submit(user_input, type_input) {
     dim_store.user_input = user_input
     dim_store.set_all_object_dirty()
 
-    if (type_input === 'graphql') {
+        if (dim_store.dimension === 'home') {
+        let user_input = editor.value.getText()
+        dim_store.one_shot_home = user_input
+        add_message_to_history(user_input, 'human')
+        dim_store.dimension = 'hierarchy'
+        dim_store.left_panel = 'markdown'
+    } else {
+        if (type_input === 'graphql') {
         add_message_to_history(user_input, 'human', 'graphql')
         dim_store.fetch_data({dimension: dim_store.dimension, 
             query_type: 'graphql',
@@ -200,6 +207,7 @@ function submit(user_input, type_input) {
             query_type: 'unknown',
             query_bundle: {clt_name: dim_store.selected_clt, request: dim_store.user_input}})
         editor.value.commands.setContent('')
+    }
     }
 }
 
@@ -400,35 +408,6 @@ on('submit_graphql_query', (idx) => {
     submit(idx, 'graphql')
 })
 
-
-
-
-
-// function submit() {
-//     let user_input = editor.value.getText()
-//     const llm_chat_context = document.getElementById('llm_chat_context'); // Select the div by its ID
-//     temp_history.value.push({ user: 'human', message: user_input })
-//     switch_llm_history()
-// }
-
-
-// function submit() {
-//     if (dim_store.dimension === 'home') {
-//         let user_input = editor.value.getText()
-//         dim_store.one_shot_home = user_input
-//         add_message_to_history(user_input, 'human')
-//         dim_store.dimension = 'hierarchy'
-//         dim_store.left_panel = 'markdown'
-//     } else {
-//         if (dim_store.selected_clt === '') {
-//         dim_store.bus_event = 'header.show_clt_options' + Math.random().toString(36).substring(2, 6)
-//     } else {
-//         dim_store.right_panel_message = undefined
-//         up_down_position.value = 0
-//         toggleAnimation(editor_ref.value.$el, 'blur')
-//     }
-//     }
-// }
 
 function toggleAnimation(element, type) {
     element.classList.remove('blur', 'unblur');

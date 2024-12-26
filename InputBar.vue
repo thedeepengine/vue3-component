@@ -3,6 +3,9 @@
         home_display_config: dim_store.dimension === 'home',
         bottom_display_config: dim_store.dimension !== 'home'
     }">
+    <div style="position: fixed;left: 300px;top:300px;">
+        <n-button @click="ttt">aaa</n-button>
+    </div>
         <div>
             <n-grid>
 
@@ -79,12 +82,10 @@
                         </div>
 
                         <div id="temp_history_text" style="height: fit-content;width: 100%;">
-                            <div v-for="(item, index) in temp_history" :key="index">
+                            <div v-for="(item, index) in dim_store.conversation_history" :key="index">
 
-
-                                <div style="display: flex;width: 100%;padding:16px 16px 0px 16px;"
-                                    :id="index === temp_history.length - 1 ? 'last-conv-item' : undefined"
-                                    :style="{ opacity: index === temp_history.length - 1 ? 0 : 1 }">
+                                <div style="display: flex;width: 100%;padding:16px 16px 0px 16px;overflow-wrap: anywhere;"
+                                    :id="item.type === 'last' ? 'last-conv-item' : undefined">
                                     <div v-if="item.user === 'ai'" style="display: flex;width:100%">
                                         <!-- <div
                                             style="width: 0%;background-color: #1F2937;padding-top: 5%;border-radius: 30px;margin-top:10px;margin-bottom:10px">
@@ -126,7 +127,7 @@ import StarterKit from '@tiptap/starter-kit'
 import { markdownToHtml } from '@/components_shared/utils.js'
 import { onMounted, onUnmounted, ref, watch, onBeforeUnmount, computed } from 'vue';
 import { Extension } from '@tiptap/core'
-import { nextTick } from 'vue';
+import { nextTick, reactive, watchEffect } from 'vue';
 import { NIcon, NGrid, NGi, NSelect, NDivider, NButton } from 'naive-ui'
 import { DismissCircle20Regular } from '@vicons/fluent'
 import { useEventBus } from '@/components_shared/event_bus';
@@ -134,9 +135,11 @@ import GraphqlBar from './GraphqlBar.vue'
 import { ChevronUp28Regular, ChevronDown28Regular } from '@vicons/fluent'
 import TiptapCodemirrorExtension from '@/components_shared/TiptapCodemirrorExtension.js';
 import { TextSelection } from 'prosemirror-state';
+import axios from 'axios'
 
 
 const { on, emit } = useEventBus();
+
 
 const dim_store = dimStore()
 const editor_ref = ref()
@@ -153,6 +156,7 @@ const editor_type = ref('tiptap')
 // const editor_type = ref('codemirror')
 const code = ref(``)
 
+
 const clt_options = computed(() => {
     let distinct = Array.from(new Set(dim_store.allowed_clt_fields.map(x => x.clt)))
     let all = distinct.map(item => ({ label: item, value: item }))
@@ -164,9 +168,6 @@ function onChange(val) {
     code.value = val
 }
 
-
-import axios from 'axios'
-
 const apiClient = axios.create({
     baseURL: 'https://localhost:8002/',
     headers: {
@@ -174,9 +175,36 @@ const apiClient = axios.create({
     }
   });
 
+  watch(() => editor_type.value, () => {
+    setTimeout(() => {
+        if (editor_type.value === 'tiptap') {
+            editor.value.commands.focus()
+        }
+    }, 400);
+})
+
+onMounted(() => {
+    watch(() => box_input_md, (newValue) => {
+        if (editor.value && editor.value.getHTML() !== newValue.value && newValue.value !== '') {
+            box_input_html.value = markdownToHtml(newValue.value)
+            editor.value.commands.setContent(box_input_html.value);
+        }
+    }, { immediate: true });
+});
+
+onBeforeUnmount(() => {
+    if (editor) {
+        setTimeout(() => {
+            editor.value.destroy();
+        }, 500);
+    }
+});
+
+
 
 
 function submit(user_input, type_input) {
+    if (user_input === '') return
     dim_store.user_input = user_input
     dim_store.set_all_object_dirty()
 
@@ -210,88 +238,6 @@ function submit(user_input, type_input) {
     }
     }
 }
-
-
-
-function move_down() {
-    const { state, dispatch } = editor.value
-    const { selection } = state
-    const { $head } = selection
-    
-    const posAfter = $head.after()
-          if (posAfter !== undefined) {
-            const transaction = state.tr.setSelection(TextSelection.near(state.doc.resolve(posAfter)))
-            dispatch(transaction)
-            return true
-          }
-}
-
-// dim_store.allowed_clt_fields.map(item=>({label: item['field'], value: item['field']}))
-
-const temp_history = ref([
-    // { user: 'human', message: 'Hey' },
-    // { user: 'ai', message: `In Vue 3, to apply different styles based on the value of item.user, you can modify your class binding to include both conditions directly within the template. Here's how you can adjust your <div> to apply a style for when item.user equals 'ai' and another style for when it equals 'human'` },
-    // { user: 'human', message: 'I am good thansk and you' },
-    // { user: 'ai', message: 'I\'m alright. How can I help you today?' }
-])
-
-
-function close_llm_history() {
-    const clt_menu = document.getElementById('shadow-box-container');
-
-}
-
-
-watch(() => editor_type.value, () => {
-    setTimeout(() => {
-    if (editor_type.value === 'tiptap') {
-        editor.value.commands.focus()
-    }
-    }, 400);
-})
-
-onMounted(() => {
-    // on('back_to_tiptap', (idx) => {
-
-    //     const { state, commands } = editor.value
-    // const { selection } = state
-    // const { $head } = selection
-
-
-
-    // const endOfDocPos = state.doc.content.size;
-    //     if ($head.pos < endOfDocPos) {
-    //       // Move cursor to the next node if it exists
-    //       const posAfter = $head.after();
-    //       if (posAfter !== undefined) {
-    //         commands.setSelection($head.after());
-    //         return true;
-    //       }
-    //     } else {
-    //         // state.tr.insert(endOfDocPos, state.schema.nodes.paragraph.createAndFill());
-    //         commands.insertContent({ type: 'paragraph' });
-
-    //       return true;
-    //     }
-
-    // });
-
-    watch(() => box_input_md, (newValue) => {
-        if (editor.value && editor.value.getHTML() !== newValue.value && newValue.value !== '') {
-            box_input_html.value = markdownToHtml(newValue.value)
-            editor.value.commands.setContent(box_input_html.value);
-        }
-    }, { immediate: true });
-});
-
-onBeforeUnmount(() => {
-    if (editor) {
-        setTimeout(() => {
-            editor.value.destroy();
-        }, 500);
-    }
-});
-
 
 
 function switch_llm_history(way='open') {
@@ -346,105 +292,124 @@ function switch_llm_history(way='open') {
 }
 
 
-// function switch_llm_history(way='open') {
-//     setTimeout(() => {
-//         const llm_chat_context = document.getElementById('llm_chat_context'); // Select the div by its ID
-//         const temp_history_text = document.getElementById('temp_history_text');
-//         let rect = temp_history_text.getBoundingClientRect()
-//         let current_heigth = window.getComputedStyle(llm_chat_context).height
-//         const last_item = document.getElementById('last-conv-item');
+function update_llm_context_position() {
+    setTimeout(() => {
+        const llm_chat_context = document.getElementById('llm_chat_context'); // Select the div by its ID
+        const temp_history_text = document.getElementById('temp_history_text');
+        let rect = temp_history_text.getBoundingClientRect()
+        let current_heigth = window.getComputedStyle(llm_chat_context).height
 
-//         if (way === 'close') {
-//             llm_chat_context.animate([
-//                     { height: current_heigth },
-//                     { height: `${100}px` }
-//                 ], {
-//                     duration: 500,
-//                     fill: 'forwards',
-//                     easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
-//                     // easing: 'cubic-bezier(0.7, 0.7, 0.1, 0.1)'
-//                 });
-//         } else {
+            // if ((100 + rect.height) < (window.innerHeight - 200))
 
-//             // if ((100 + rect.height) < (window.innerHeight - 200))
+            llm_chat_context.animate([
+                { height: current_heigth },
+                { height: `${100 + 40 + rect.height}px` }
+            ], {
+                duration: 500,
+                fill: 'forwards',
+                easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
+                // easing: 'cubic-bezier(0.7, 0.7, 0.1, 0.1)'
+            });
 
-//                 llm_chat_context.animate([
-//                     { height: current_heigth },
-//                     { height: `${100 + rect.height}px` }
-//                 ], {
-//                     duration: 500,
-//                     fill: 'forwards',
-//                     easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
-//                     // easing: 'cubic-bezier(0.7, 0.7, 0.1, 0.1)'
-//                 });
+            llm_chat_context.animate([
+                { 'paddingBottom': `0px` },
+                { 'paddingBottom': `100px` }
+            ], {
+                duration: 500,
+                fill: 'forwards',
+                easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
+                // easing: 'cubic-bezier(0.7, 0.7, 0.1, 0.1)'
+            });        
+    }, 0);
+}
 
-//             llm_chat_context.animate([
-//                 { 'paddingBottom': `0px` },
-//                 { 'paddingBottom': `100px` }
-//             ], {
-//                 duration: 500,
-//                 fill: 'forwards',
-//                 easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
-//                 // easing: 'cubic-bezier(0.7, 0.7, 0.1, 0.1)'
-//             });
 
-//             is_llm_chat_context_open.value = true
+function update_llm_last_item_opacity(is_human_turn) {
+    setTimeout(() => {
+        const last_item = document.getElementById('last-conv-item');
 
-//             setTimeout(() => {
-//                 last_item.animate([
-//                     { opacity: 0 },
-//                     { opacity: 1 }
-//                 ], {
-//                     duration: 350,
-//                     fill: 'forwards',
-//                     easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
-//                 });
-//             }, 500);
-//         }
-//     }, 0);
-// }
+                let opacity_animation = last_item.animate([
+                    { opacity: 0 },
+                    { opacity: 1 }
+                ], {
+                    duration: 350,
+                    fill: 'forwards',
+                    easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
+                });
+
+                if (is_human_turn) {
+                opacity_animation.onfinish = function() {
+                    document.getElementById('last-conv-item').removeAttribute('id');
+                    last_item_elt.value = undefined
+                };
+            }
+            }, 100);
+
+
+}
+
 
 on('submit_graphql_query', (idx) => {
     submit(idx, 'graphql')
 })
 
 
-function toggleAnimation(element, type) {
-    element.classList.remove('blur', 'unblur');
-    element.classList.add(type);
-}
+function ttt() {
+    console.log('aaaa')
+    let a = document.getElementById('temp_history_text');
+    const last_item = document.getElementById('last-conv-item');
+    console.log('last_item.scrollWidth', last_item.scrollWidth)
+    console.log('last_item.clientHeight', last_item.clientHeight)
+    last_item.removeAttribute('id');
 
-const handleAnimationEnd = async (role) => {
-    let user_input = getTextContent(box_input_html.value).trim()
-    editor_ref.value.$el.classList.remove('blur', 'unblur')
-    add_message_to_history(user_input, 'human')
-    show_new_history_message('box_input.value')
-    dim_store.user_input = user_input
-    dim_store.set_all_object_dirty()
-    dim_store.fetch_data(dim_store.selected_clt, dim_store.user_input)
-    editor.value.commands.setContent('');
-};
-
-function getTextContent(htmlString) {
-    const tempElement = document.createElement('div');
-    tempElement.innerHTML = htmlString;
-    return tempElement.innerText || tempElement.textContent;
-}
-
-
-const show_new_history_message = async (message) => {
-    await nextTick();
-    if (message === '') {
-        message = '_'
-    }
 }
 
 const add_message_to_history = async (message, role, message_type) => {
     history.value.push({ message: message, user: role, type: 'last', message_type: message_type })
-    dim_store.conversation_history = history.value
+    dim_store.conversation_history.push({ message: message, user: role, type: 'last', message_type: message_type })
+    console.log('ala', dim_store.conversation_history)
 }
 
+const last_item_elt = ref()
+const last_item_height = ref(0)
 
+watch(dim_store.conversation_history, (new_val, old_val) => {
+    if (last_item_elt.value === null || last_item_elt.value === undefined) {
+        last_item_elt.value = document.getElementById('last-conv-item');
+        
+        if (dim_store.conversation_history.at(-1).user === 'human') {
+            update_llm_last_item_opacity(true)
+        } 
+        else {
+            update_llm_last_item_opacity(false)
+        }
+
+    }
+    if(is_llm_chat_context_open.value) {
+        if (dim_store.conversation_history.at(-1).user === 'human') {
+            update_llm_context_position()
+        } else {
+            console.log('last_item_elt.value.clientHeight', last_item_elt.value.clientHeight)
+            if (last_item_height.value < last_item_elt.value.clientHeight) {
+                update_llm_context_position()
+            }
+            last_item_height.value = last_item_elt.value.clientHeight
+
+        }
+    }
+
+})
+
+
+watch(()=>dim_store.stream_status, () => {
+    console.log('lllllaala')
+    if (dim_store.stream_status === 'end') {
+        console.log('clear')
+        document.getElementById('last-conv-item').removeAttribute('id');
+        last_item_elt.value = undefined
+        dim_store.stream_status = 'ready'
+    }
+})
 
 const KeyHandler = Extension.create({
     name: 'KeyHandler',
@@ -508,10 +473,6 @@ const editor = useEditor({
         spellcheck: "false"
     },
     onUpdate: ({ editor }) => {
-        // if (editor.getText() === '```') {
-        //     editor.commands.setContent('');
-        //     editor_type.value = 'codemirror'
-        // }
 
         let html = editor.getHTML()
         if (html !== box_input_html.value) {
@@ -521,13 +482,6 @@ const editor = useEditor({
     onBlur({ event }) {
     },
     onTransaction: ({ editor, transaction }) => {
-        // const { state } = editor;
-        // const selection = state.selection;
-        // const from = selection.from;
-
-        // const all = state.doc.textBetween(0, from, ' ');
-
-        // dim_store.user_input = all
     }
 });
 
@@ -539,111 +493,6 @@ function on_show_select_clt(state) {
         select_clt_open.value = false
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-// const UpAndDownKeyHandler = Extension.create({
-//     name: 'UpAndDownKeyHandler',
-//     addKeyboardShortcuts() {
-//   return {
-//     'ArrowDown': () => {
-//         console.log('editor htlml,', editor.value.getText())
-//         if (editor.value.getText() === '') {
-//             if (upDownPosition.value >= 1 && dim_store.conversation_history.value.at(up_down_position.value-1)) {
-//                 editor.value.commands.setContent(dim_store.conversation_history.value.at(up_down_position.value-1).message)
-//                 upDownPosition.value-=1
-//             }
-//         }
-//       return true;
-//     },
-//     'ArrowUp': () => {
-//       console.log('editor htlml,', editor.value.getText())
-//         if (editor.value.getText() === '') {
-//             // if (upDownPosition.value < conversation_history.value.length && conversation_history.value.at(upDownPosition.value+1)) {
-//             console.log('dim_store.conversation_history: ',dim_store.conversation_history)
-//             if (upDownPosition.value < dim_store.conversation_history.length && dim_store.conversation_history.at(up_down_position.value).message) {
-//                 console.log('toset', dim_store.conversation_history.at(up_down_position.value).message)
-//                 editor.value.commands.setContent(dim_store.conversation_history.at(up_down_position.value).message)
-//                 upDownPosition.value+=1
-//             }
-//         }
-
-//       return true;
-//     }
-//   }
-// }
-// });
-
-
-// function focusout() {
-//     if (clt_options.value.length > 1) {
-//         clt_options.value = [dim_store?.selected_clt || '+']
-//     }
-// }
-
-
-// function set_clt(e) {
-//     let single_item_showing = clt_options.value.length === 1
-//     let no_clt_selected = clt_options.value[0] === '+'
-//     let is_selected_different = e.srcElement.innerText !== clt_options.value[0]
-//     if (is_selected_different) {
-//         clt_options.value = [e.srcElement.innerText]
-//         dim_store.selected_clt = e.srcElement.innerText
-//     } else if (single_item_showing || no_clt_selected) {
-
-//         const pattern = /^(\w+)([\.:=])/;
-//         const is_metal_query = dim_store.user_input.match(pattern);
-//         let matching_clt
-//         if (is_metal_query) {
-//             let first_word = is_metal_query[1]
-//             matching_clt = dim_store.allowed_clt_fields.filter(item => item['field'].toLowerCase().startsWith(first_word.toLowerCase()))
-//         } else {
-//             matching_clt = dim_store.allowed_clt_fields
-//         }
-
-//         matching_clt = Array.from(new Set(matching_clt.map(x => x.clt)))
-//         let i = 0
-//         matching_clt.sort().forEach(item => {
-//             if (!clt_options.value.includes(item)) {
-//                 clt_options.value.push(item)
-//             }
-//         });
-//     }
-// }
-
-// watch(() => dim_store.user_input, (n, o) => {
-//     const pattern = /^(\w+)([\.:=])/;
-//     const is_metal_query = dim_store.user_input.match(pattern);
-//     if (is_metal_query && dim_store.selected_clt === '') {
-//         let first_word = is_metal_query[1]
-//         show_clt_options(first_word)
-//     }
-// })
-
-// watch(() => dim_store.bus_event, (n, o) => {
-//     if (n.startsWith('header.show_clt_options')) {
-//         show_clt_options(dim_store.user_input)
-//     }
-// })
-
-// function show_clt_options(property_string) {
-//     let matching_clt = dim_store.allowed_clt_fields.filter(item => item['field'].toLowerCase().startsWith(property_string.toLowerCase()))
-//     matching_clt.forEach(item => {
-//         if (!clt_options.value.includes(item.clt)) {
-//             clt_options.value.push(item.clt)
-//         }
-//     });
-// }
 
 </script>
 
@@ -731,12 +580,7 @@ function on_show_select_clt(state) {
     /* --n-option-height: 30px!important; */
 }
 
-/* .n-base-select-menu .n-base-select-option {
-    min-height: 30px!important;
-} */
 
-
-/* --n-option-color-active */
 .n-base-select-option.n-base-select-option--pending {
     /* --n-color: rgb(84, 88, 92)!important; */
     color: var(--gold-color) !important;
@@ -801,16 +645,6 @@ function on_show_select_clt(state) {
     z-index: 99999999999;
 }
 
-/* #fmw-llm-bar {
-    transition: left 0.3s;
-    position: fixed;
-    bottom: 20px;
-    left: 25vw;
-    width: 47vw;
-    margin: auto;
-    z-index: 99999999999;
-} */
-
 #clt-menu {
     transition: left 0.3s;
 }
@@ -863,25 +697,9 @@ function on_show_select_clt(state) {
     /* This reverses the visual order of flex items */
 }
 
-
-
-
-
-
-
-
 .shadow-box {
-    /* width: 100%; */
-    /* height: 300px; */
     background: #f9f7f5;
-    /* background: #eeeae6; */
     border-radius: 10px;
-    /* box-shadow: -14px -10px 20px #FFFFFF, 11px 15px 20px #C8C8C8; */
-    /* padding: 10px;
-    padding-left: 20px;
-    padding-right: 20px; */
-
-    /* 0 0 12px rgba(0,0,0,.08) */
 }
 
 
@@ -892,7 +710,6 @@ function on_show_select_clt(state) {
     width: 47vw;
     height: auto;
 }
-
 
 
 .v-enter-active,
@@ -914,5 +731,9 @@ function on_show_select_clt(state) {
 
 .chevron-llm-history:hover {
     opacity: 1;
+}
+
+#last-conv-item {
+    opacity:0;
 }
 </style>

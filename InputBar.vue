@@ -80,9 +80,11 @@
                         </div>
 
                         <!-- llm chat box -->
-                        <div id="llm_chat_context_child" class="shadow-box"
-                            style="display:none;opacity:0;height:100%;flex-grow: 1;position: absolute;background-color: #eeeae6;width: 100%;border-radius:30px;z-index: 9;bottom:0;left:0;right:0;overflow: hidden;">
 
+                        
+                        <div id="llm_chat_context_child" class="shadow-box"
+                            style="padding:14px;display:none;opacity:0;height:100%;flex-grow: 1;position: absolute;background-color: #eeeae6;width: 100%;border-radius:30px;z-index: 9;bottom:0;left:0;right:0;">
+                            <div id="fmw-scroll-div" style="position:absolute;border-radius: 30px; overflow: scroll;display: flex;left:14px;right:14px;bottom:100px;top:14px;">
 
 
                             <div id="temp_history_text" style="height: fit-content;width: 100%;">
@@ -112,6 +114,7 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
                     </div>
                 </n-gi>
             </n-grid>
@@ -298,15 +301,26 @@ function switch_llm_history(way = 'open') {
     } else {
         with_last_transition.value = false
         const temp_history_text = document.getElementById('temp_history_text');
-
-
         llm_chat_context_child.style.display = 'flex'
-        // llm_chat_context_child.style.opacity = 1
         let rect = temp_history_text.getBoundingClientRect()
+        let height = rect.height
 
+        waitForElement('#fmw-scroll-div').then((elt) => {
+            elt.scrollTop = elt.scrollHeight
+        }) 
+
+        const screenHeight = window.innerHeight;
+        let MAX_HEIGHT_OFFSET = screenHeight - 250
+        if (height > MAX_HEIGHT_OFFSET) {
+            height = MAX_HEIGHT_OFFSET
+        }
+
+        let PADDING = 14
+        let EXTRA = 10
+        
         llm_chat_context.animate([
             { height: current_heigth },
-            { height: `${100 + rect.height}px` }
+            { height: `${100 + PADDING + EXTRA + height}px` }
         ], {
             duration: 500,
             fill: 'forwards',
@@ -343,14 +357,22 @@ function update_llm_context_position() {
     setTimeout(() => {
         const llm_chat_context = document.getElementById('llm_chat_context'); // Select the div by its ID
         const temp_history_text = document.getElementById('temp_history_text');
-        let rect = temp_history_text.getBoundingClientRect()
         let current_heigth = window.getComputedStyle(llm_chat_context).height
+        let rect = temp_history_text.getBoundingClientRect()
 
-        // if ((100 + rect.height) < (window.innerHeight - 200))
+        const screenHeight = window.innerHeight;
+        let MAX_HEIGHT_OFFSET = screenHeight - 250
 
+        let height = rect.height > MAX_HEIGHT_OFFSET ? MAX_HEIGHT_OFFSET : rect.height
+
+        if (height === MAX_HEIGHT_OFFSET) {
+            last_item_elt.value.scrollIntoView({ behavior: 'smooth' });
+        }
+        let PADDING = 14
+        let EXTRA = 10
         llm_chat_context.animate([
             { height: current_heigth },
-            { height: `${100 + rect.height}px` }
+            { height: `${100 + PADDING + EXTRA + height}px` }
         ], {
             duration: 500,
             fill: 'forwards',
@@ -403,12 +425,17 @@ const add_message_to_history = async (message, role, message_type) => {
 const last_item_elt = ref()
 const last_item_height = ref(0)
 
-function waitForElement(selector) {
-    return new Promise(resolve => {
+
+function waitForElement(selector, parent = document, useQuerySelectorAll = false, timeout = 10000) {
+    return new Promise((resolve, reject) => {
+        const startTime = Date.now();
+
         function check() {
-            const element = document.getElementsByClassName(selector)[0];
-            if (element) {
-                resolve(element);
+            const elements = useQuerySelectorAll ? parent.querySelectorAll(selector) : parent.querySelector(selector);
+            if ((useQuerySelectorAll && elements.length > 0) || (!useQuerySelectorAll && elements)) {
+                resolve(elements);
+            } else if (Date.now() - startTime >= timeout) {
+                reject(new Error(`Element(s) "${selector}" not found within ${timeout}ms`));
             } else {
                 requestAnimationFrame(check);
             }
@@ -420,13 +447,13 @@ function waitForElement(selector) {
 watch(dim_store.conversation_history, (new_val, old_val) => {
     if (dim_store.conversation_history.at(-1).user === 'human') {
         with_last_transition.value = true
-        waitForElement('human-item').then((elt) => {
+        waitForElement('.human-item').then((elt) => {
             update_llm_last_item_opacity(elt)
         }) 
     } else {
         if (last_item_elt.value === null || last_item_elt.value === undefined) {
             with_last_transition.value = true
-            waitForElement('ai-item').then((elt) => {
+            waitForElement('.ai-item').then((elt) => {
                 last_item_elt.value = elt
                 last_item_height.value = 0
             })
@@ -775,5 +802,23 @@ function on_show_select_clt(state) {
 
 .human-item {
     opacity: 0;
+}
+
+
+
+
+
+
+
+#fmw-scroll-div::-webkit-scrollbar {
+    display: none;
+}
+
+#fmw-scroll-div {
+    scrollbar-width: none;
+}
+
+#fmw-scroll-div {
+    -ms-overflow-style: none;
 }
 </style>

@@ -81,15 +81,15 @@
 
                         <!-- llm chat box -->
                         <div id="llm_chat_context_child" class="shadow-box"
-                            style="display:none;opacity:0;height:100%;flex-grow: 1;background-color: #eeeae6;width: 100%;border-radius:30px;z-index: 9;bottom:0;left:0;right:0;overflow: hidden;">
+                            style="display:none;opacity:0;height:100%;flex-grow: 1;position: absolute;background-color: #eeeae6;width: 100%;border-radius:30px;z-index: 9;bottom:0;left:0;right:0;overflow: hidden;">
 
 
 
                             <div id="temp_history_text" style="height: fit-content;width: 100%;">
-                                <div v-for="(item, index) in dim_store.conversation_history" :key="index">
+                                <div v-for="(item, index) in dim_store.conversation_history" :key="item.id">
 
                                     <div style="display: flex;width: 100%;padding:16px 16px 0px 16px;overflow-wrap: anywhere;"
-                                        :class="item.type === 'last' ? item.user === 'human' ? 'last human-item' : 'last ai-item' : undefined">
+                                    :class="with_last_transition && index === dim_store.conversation_history.length-1 ? item.user === 'human' ? 'last human-item' : 'last ai-item' : undefined">
                                         <div v-if="item.user === 'ai'" style="display: flex;width:100%">
                                             <div style="width: 99.8%;align-items:center;"
                                                 :class="{ ai_style: item.user === 'ai', human_style: item.user === 'human' }"
@@ -156,10 +156,13 @@ const editor_type = ref('tiptap')
 // const editor_type = ref('codemirror')
 const code = ref(``)
 const should_display_llm_context = ref(false)
+const with_last_transition = ref(true)
 
 on('should_display_llm_context', (val) => {
-    switch_llm_history()
-    should_display_llm_context.value = val
+    if (is_llm_chat_context_open.value === false) {
+        switch_llm_history()
+        should_display_llm_context.value = val
+    }
 })
 
 const clt_options = computed(() => {
@@ -257,8 +260,6 @@ function switch_llm_history(way = 'open') {
 
     let current_heigth = window.getComputedStyle(llm_chat_context).height
 
-    console.log('current_heigth', current_heigth)
-
     if (way === 'close') {
         let close_anim = llm_chat_context.animate([
             { height: current_heigth },
@@ -295,7 +296,7 @@ function switch_llm_history(way = 'open') {
 
 
     } else {
-
+        with_last_transition.value = false
         const temp_history_text = document.getElementById('temp_history_text');
 
 
@@ -303,7 +304,6 @@ function switch_llm_history(way = 'open') {
         // llm_chat_context_child.style.opacity = 1
         let rect = temp_history_text.getBoundingClientRect()
 
-        console.log('current_heigthAAAA', current_heigth)
         llm_chat_context.animate([
             { height: current_heigth },
             { height: `${100 + rect.height}px` }
@@ -373,8 +373,6 @@ function update_llm_context_position() {
 
 function update_llm_last_item_opacity(elt) {
 
-        console.log('alast_item', elt)
-
         let opacity_animation = elt.animate([
             { opacity: 0 },
             { opacity: 1 }
@@ -399,8 +397,7 @@ on('submit_graphql_query', (idx) => {
 
 const add_message_to_history = async (message, role, message_type) => {
     history.value.push({ message: message, user: role, type: 'last', message_type: message_type })
-    dim_store.conversation_history.push({ message: message, user: role, type: 'last', message_type: message_type })
-    console.log('ala', dim_store.conversation_history)
+    dim_store.conversation_history.push({ message: message, user: role, type: 'last', message_type: message_type, id: dim_store.conversation_history.length + 1 })
 }
 
 const last_item_elt = ref()
@@ -421,40 +418,30 @@ function waitForElement(selector) {
 }
 
 watch(dim_store.conversation_history, (new_val, old_val) => {
-
     if (dim_store.conversation_history.at(-1).user === 'human') {
+        with_last_transition.value = true
         waitForElement('human-item').then((elt) => {
             update_llm_last_item_opacity(elt)
         }) 
     } else {
-
         if (last_item_elt.value === null || last_item_elt.value === undefined) {
-            
+            with_last_transition.value = true
             waitForElement('ai-item').then((elt) => {
                 last_item_elt.value = elt
+                last_item_height.value = 0
             })
         } else {
             if (last_item_height.value < last_item_elt.value.clientHeight) {
                 update_llm_context_position()
             }
             last_item_height.value = last_item_elt.value.clientHeight
-        }
-
-        
-        // document.getElementsByClassName('ai-item')[0];
+        }        
     }
-
-    // if (is_llm_chat_context_open.value) {
-    //     if (dim_store.conversation_history.at(-1).user === 'human') {
-    //         update_llm_context_position()
-    //     } 
-    // }
 })
 
 
 watch(() => dim_store.stream_status, () => {
     if (dim_store.stream_status === 'end') {
-        console.log('clear')
         let elt = document.getElementsByClassName("last");
         if (elt.length > 0) {
             elt[0].classList.remove("last", "ai-item", "human-item")

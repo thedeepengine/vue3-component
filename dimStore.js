@@ -91,8 +91,8 @@ export const dimStore = defineStore("dimStore", () => {
   const stream_content = ref([])
   const user_input = ref('')
   const conversation_history = ref([
-    { user: 'human', message: 'Hey' },
-    { user: 'ai', message: `In Vue 3, to apply different styles based on the value of item.user, you can modify your class binding to include both conditions directly within the template. Here's how you can adjust your <div> to apply a style for when item.user equals 'ai' and another style for when it equals 'human'` },
+    { user: 'human', message: 'Hey', id: 0 },
+    { user: 'ai', message: `In Vue 3, to apply different styles based on the value of item.user, you can modify your class binding to include both conditions directly within the template. Here's how you can adjust your <div> to apply a style for when item.user equals 'ai' and another style for when it equals 'human'`, id: 1 },
     // { user: 'human', message: 'I am good thansk and you' },
     // { user: 'ai', message: 'I\'m alright. How can I help you today?' }
 ])
@@ -197,8 +197,7 @@ export const dimStore = defineStore("dimStore", () => {
 
         if (response.data !== null && 'fmw_info' in response.data) {
           if (response.data.fmw_info === 'start_websocket') {
-            conversation_history.value.push({ message: '', user: 'ai', type: 'last' })
-            // last_item_elt.value = document.getElementById('last-conv-item');
+            conversation_history.value.push({ message: '', user: 'ai', type: 'last', id: conversation_history.value.length + 1 })
             setTimeout(() => {
               tde_store.open_websocket_con()
               emit('should_display_llm_context', true)

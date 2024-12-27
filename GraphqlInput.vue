@@ -42,7 +42,7 @@ const apiClient = axios.create({
 
 function run_query() {
     dim_store.user_input = childRef.value.getCode().trim()
-    dim_store.conversation_history.push({ message: dim_store.user_input, user: 'human', type: 'last', message_type: 'graphql' })
+    dim_store.conversation_history.push({ message: dim_store.user_input, user: 'human', type: 'last', message_type: 'graphql', id: dim_store.conversation_history.length + 1 })
     dim_store.set_all_object_dirty()
     dim_store.fetch_data({dimension: dim_store.dimension, 
             query_type: 'graphql',

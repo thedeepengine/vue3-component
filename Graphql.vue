@@ -30,7 +30,6 @@ import 'codemirror-graphql/hint';
 import 'codemirror-graphql/lint';
 import 'codemirror-graphql/mode';
 
-import { buildClientSchema } from 'graphql';
 
 const dim_store = dimStore()
 const cm_ref = ref()
@@ -54,52 +53,36 @@ function get_cm_instance() {
 defineExpose({ getCode, get_cm_instance });
 
 
-function fetchSchema(url) {
-    return axios.get(url, {
-        headers: { 'Content-Type': 'application/json' }
-    }).then(response => {
-        const schema = buildClientSchema(response.data);
-        return schema;
-    });
-}
-
-
 const onReady = (cm) => {
     // is_cm_ready.value = true
 //   console.log(cm.focus());
 };
 
-
-
 onMounted(() => {
-    // setTimeout(() => {
-        fetchSchema('https://localhost:8002/v1/api/schema3/').then(
-            myGraphqlSchema => {
 
-                function showAutocomplete() {
-                    cm_ref.value.cminstance.showHint({ completeSingle: false });
-                }
+    function showAutocomplete() {
+        cm_ref.value.cminstance.showHint({ completeSingle: false });
+    }
 
-                cm_ref.value.cminstance.on("inputRead", showAutocomplete);
+    cm_ref.value.cminstance.on("inputRead", showAutocomplete);
 
-                let base_option = {
-                    mode: props.mode,
-                    autoCloseBrackets: true,
-                    lineNumbers: false,
-                    gutters: [],
-                    lint: {
-                        schema: myGraphqlSchema,
-                    },
-                    hintOptions: {
-                        schema: myGraphqlSchema
-                    },
-                    theme: "yeti",
-                }
-                const merged_object = Object.assign({}, base_option, props.prop_option);
-                cmOptions.value = merged_object
-                cm_ref.value.cminstance.getWrapperElement().style.opacity = 1
-                cm_ref.value.cminstance.focus()
-            })
+    let base_option = {
+        mode: props.mode,
+        autoCloseBrackets: true,
+        lineNumbers: false,
+        gutters: [],
+        lint: {
+            schema: dim_store.myGraphqlSchema,
+        },
+        hintOptions: {
+            schema: dim_store.myGraphqlSchema
+        },
+        theme: "yeti",
+    }
+    const merged_object = Object.assign({}, base_option, props.prop_option);
+    cmOptions.value = merged_object
+    cm_ref.value.cminstance.getWrapperElement().style.opacity = 1
+    cm_ref.value.cminstance.focus()
 })
 
 watch(() => dim_store.conv_full_screen, () => {

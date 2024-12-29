@@ -6,6 +6,7 @@ import { md_to_html } from '@/components_shared/utils'
 import { marked } from "marked";
 import { tdeStore } from '@/tde/tdeStore.js'
 import { useEventBus } from '@/components_shared/event_bus';
+import { buildClientSchema } from 'graphql';
 
 // const APP_TYPE = 'fmw'
 // const APP_TYPE = 'tde'
@@ -146,6 +147,9 @@ export const dimStore = defineStore("dimStore", () => {
 
   // left drawer
   const is_left_drawer_open = ref(false)
+  const graphql_shema = ref()
+
+
 
   const apiClient = axios.create({
     baseURL: 'https://localhost:8002/',
@@ -630,6 +634,24 @@ console.log('create_new_map: ', input)
         // selected_clt.value = distinct_clt.value[0]
         selected_clt.value = 'NodeTest2'
       })
+
+
+    async function fetchSchema(url) {
+      return axios.get(url, {
+          headers: { 'Content-Type': 'application/json' }
+      }).then(response => {
+          const schema = buildClientSchema(response.data);
+          return schema;
+      });
+    }
+
+
+  fetchSchema('https://localhost:8002/v1/api/schema3/').then(
+    myGraphqlSchema => {
+        graphql_shema.value = myGraphqlSchema
+      })
+
+
   })
 
 
@@ -797,7 +819,8 @@ watch(() => dimension.value,
     refresh_save_page,
 
     // left drawer
-    is_left_drawer_open
+    is_left_drawer_open,
+    graphql_shema
 
 
   }

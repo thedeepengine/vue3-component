@@ -1,5 +1,9 @@
 <template>
-    <div style="padding: 14px;">
+    <div :class="{ 'open': dim_store.is_left_drawer_open }" 
+    class="fmw-left-drawer"
+    @scroll="handle_scroll"
+    style="position:fixed;left:0;height:100vh;backdrop-filter: blur(10px); background-color: transparent;z-index: 9999999;overflow:scroll">
+    <div style="padding: 14px;width: 300px;">
         <NGrid :cols="1">
             <NGi style="padding: 6px;">
                 <div style="display: inline-flex;cursor: pointer;"
@@ -38,6 +42,7 @@
             </NGi>
         </NGrid>
     </div>
+</div>
 </template>
 
 
@@ -72,6 +77,21 @@ onMounted(() => {
         current_doc.value = new_doc
     }, 1000);
 })
+
+
+function handle_scroll(event) {
+      const childElement = event.target;
+
+      if (childElement.scrollTop === 0) {
+        event.preventDefault();
+        childElement.scrollTop = 1;
+      }
+
+      if (childElement.scrollTop + childElement.clientHeight >= childElement.scrollHeight) {
+        event.preventDefault();
+        childElement.scrollTop = childElement.scrollHeight - childElement.clientHeight - 1;
+      }
+}
 
 function click_field(field_name) {
     if (dim_store.graphql_shema) {
@@ -179,4 +199,28 @@ function get_field(obj) {
 .fmw-schema-item:hover {
     text-decoration: underline;
 }
+
+.fmw-left-drawer {
+  width: 0px;
+  transition: width 0.5s ease;
+  direction: rtl;
+}
+
+.fmw-left-drawer > * {
+  direction: ltr; /* Reset text direction for content */
+}
+
+.fmw-left-drawer.open {
+  width: 300px;
+}
+
+.fmw-panel-wrapper {
+transition: width 0.5s;  
+width: 100vw!important;
+}
+
+.fmw-panel-wrapper.shrink {
+width: 80vw!important;
+}
+
 </style>

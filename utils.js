@@ -1,10 +1,23 @@
-import { marked } from "marked";
+import { Marked } from "marked";
 import markedKatex from "marked-katex-extension";
 import customHeadingId from "marked-custom-heading-id";
-marked.use(customHeadingId());
-marked.use(markedKatex({throwOnError: false,displayMode: true}));
+import { markedHighlight } from "marked-highlight";
+import hljs from 'highlight.js';
+import graphql from 'highlight.js/lib/languages/graphql';
+// import 'highlight.js/styles/monokai-sublime.css';
 
-const renderer = {
+
+const marked_1 = new Marked(markedHighlight({
+  emptyLangClass: 'hljs',
+  langPrefix: 'hljs language-',
+  highlight(code, lang, info) {
+    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+    return hljs.highlight(code, { language }).value;
+  }
+}));
+
+
+const renderer_1 = {
   heading({ tokens, depth }) {
     let split_text_uuid = tokens[0].text.split('{#')
     let text = split_text_uuid[0]
@@ -23,45 +36,41 @@ const renderer = {
   }
 };
 
-marked.use({ renderer });
+
+marked_1.use(customHeadingId());
+marked_1.use(markedKatex({throwOnError: false,displayMode: true}));
+marked_1.use({ renderer: renderer_1 });
 
 
-function test_click_utils() {
-  const lexer = new marked.Lexer();
-  const originalLex = lexer.lex; 
-  
-  lexer.lex = function (src) {
-    const tokens = originalLex.call(this, src);    
-    // tokens.forEach(token => {
-    // });
-    
-    return tokens;
+const marked_2 = new Marked(markedHighlight({
+	  emptyLangClass: 'hljs',
+    langPrefix: 'hljs language-',
+    highlight(code, lang, info) {
+      const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+      return hljs.highlight(code, { language }).value;
+    }
+  }));
+
+  const renderer_2 = {
+    strong(token) {
+      if (token.text.startsWith('!!:')) {
+        const modifiedText = token.text.replace('!!:', ''); 
+        return `<span class="code-like-inline" style="background-color:#afb8c133;padding:.2em .4em;border-radius:6px">${modifiedText}</span>`;
+      }
+      return `<strong>${token.text}</strong>`; 
+    }
   };
 
-  const markdown = `
-# Main Heading
-## Subheading with **bold** text
-This is a paragraph with a [link](https://example.com).
-`;
-  const tokens = lexer.lex(markdown);
+  marked_2.use({ renderer: renderer_2 });
 
+function md_to_html(rawMarkdown) {  
+  return marked_1.parse(rawMarkdown);
 }
 
+function md_to_html_llm(rawMarkdown) {  
+  return marked_2.parse(rawMarkdown);
+}
 
-  
-function markdownToHtml(rawMarkdown) {  
-  marked.setOptions({
-    // renderer: renderer,
-    highlight: function (code, lang) {
-      const hljs = highlight.HighlightJS;
-      const language = lang;
-      return hljs.highlight(code, { language }).value;
-    },
-    langPrefix: "hljs language-",
-  });
-  return marked.parse(rawMarkdown);
-  }
-  
 function add_children_at_path(root, path, newObj) {
 
         function find_and_update(current, pathIndex) {
@@ -181,8 +190,8 @@ function f_log(tag, message) {
 
 
 export {
-    markdownToHtml,
-    test_click_utils,
+    md_to_html,
+    md_to_html_llm,
     find_path,
     add_children_at_path,
     insert_object_at_uuid,

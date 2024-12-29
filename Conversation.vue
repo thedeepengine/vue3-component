@@ -32,7 +32,7 @@ import { dimStore } from '@/components_shared/dimStore.js'
 
 import { useEditor, Editor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
-import { markdownToHtml } from '@/components_shared/utils.js'
+import { md_to_html } from '@/components_shared/utils.js'
 import { Underline as OriginalUnderline } from '@tiptap/extension-underline'
 
 
@@ -192,7 +192,7 @@ const selectOption = (key, option) => {
 onMounted(() => {
     watch(() => box_input_md, (newValue) => {
         if (editor.value && editor.value.getHTML() !== newValue.value && newValue.value !== '') {
-            box_input_html.value = markdownToHtml(newValue.value)
+            box_input_html.value = md_to_html(newValue.value)
             editor.value.commands.setContent(box_input_html.value);
         }
     }, { immediate: true });

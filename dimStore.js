@@ -2,7 +2,7 @@ import axios from 'axios'
 import { ref, onMounted, watch, computed, onBeforeUnmount, onUnmounted } from "vue";
 import { defineStore, acceptHMRUpdate } from "pinia";
 import TurndownService from 'turndown';
-import { test_click_utils } from '@/components_shared/utils'
+import { md_to_html } from '@/components_shared/utils'
 import { marked } from "marked";
 import { tdeStore } from '@/tde/tdeStore.js'
 import { useEventBus } from '@/components_shared/event_bus';
@@ -86,19 +86,22 @@ export const dimStore = defineStore("dimStore", () => {
   const things_space_data = ref([])
   const things_space_option = ref({})
 
+
   // conversation
   const stream_status = ref('')
   const stream_content = ref([])
   const user_input = ref('')
   const conversation_history = ref([
-    { user: 'human', message: 'Hey', id: 0 },
-    { user: 'ai', message: `In Vue 3, to apply different styles based on the value of item.user, you can modify your class binding to include both conditions directly within the template. Here's how you can adjust your <div> to apply a style for when item.user equals 'ai' and another style for when it equals 'human'`, id: 1 },
-    { user: 'human', message: `In Vue 3, to apply different styles based on the value of item.user, you can modify your class binding to include both conditions directly within the template. Here's how you can adjust your <div> to apply a style for when item.user equals 'ai' and another style for when it equals 'human'`, id: 2 },
-    { user: 'ai', message: `In Vue 3, to apply different styles based on the value of item.user, you can modify your class binding to include both conditions directly within the template. Here's how you can adjust your <div> to apply a style for when item.user equals 'ai' and another style for when it equals 'human'`, id: 3 },
-    { user: 'human', message: `In Vue 3, to apply different styles based on the value of item.user, you can modify your class binding to include both conditions directly within the template. Here's how you can adjust your <div> to apply a style for when item.user equals 'ai' and another style for when it equals 'human'`, id: 4 },
-    { user: 'ai', message: `In Vue 3, to apply different styles based on the value of item.user, you can modify your class binding to include both conditions directly within the template. Here's how you can adjust your <div> to apply a style for when item.user equals 'ai' and another style for when it equals 'human'`, id: 5 },
-    { user: 'human', message: `In Vue 3, to apply different styles based on the value of item.user, you can modify your class binding to include both conditions directly within the template. Here's how you can adjust your <div> to apply a style for when item.user equals 'ai' and another style for when it equals 'human'`, id: 6 },
-    { user: 'ai', message: `In Vue 3, to apply different styles based on the value of item.user, you can modify your class binding to include both conditions directly within the template. Here's how you can adjust your <div> to apply a style for when item.user equals 'ai' and another style for when it equals 'human'`, id: 7 },
+    // { user: 'human', message: 'Hey', id: 0 },
+    // { user: 'ai', message: md_to_html(`In Vue 3, to apply different styles based on the value of item.user, you can modify your class binding to include both conditions directly within the template. Here's how you can adjust your to apply a style for when item.user equals 'ai' and another style for when it equals 'human'`), id: 1 },
+    // { user: 'human', message: `this is a helper`, id: 2 },
+    // { user: 'ai', message: md_to_html("**fdsfddfs** ffs fd sfuds *fdfd*  fff `code block inline` fidsjfds"), id: 0 },
+    // { user: 'ai', message: md_to_html(test_help), id: 0 },
+    // { user: 'ai', message: `In Vue 3, to apply different styles based on the value of item.user, you can modify your class binding to include both conditions directly within the template. Here's how you can adjust your <div> to apply a style for when item.user equals 'ai' and another style for when it equals 'human'`, id: 3 },
+    // { user: 'human', message: `In Vue 3, to apply different styles based on the value of item.user, you can modify your class binding to include both conditions directly within the template. Here's how you can adjust your <div> to apply a style for when item.user equals 'ai' and another style for when it equals 'human'`, id: 4 },
+    // { user: 'ai', message: `In Vue 3, to apply different styles based on the value of item.user, you can modify your class binding to include both conditions directly within the template. Here's how you can adjust your <div> to apply a style for when item.user equals 'ai' and another style for when it equals 'human'`, id: 5 },
+    // { user: 'human', message: `In Vue 3, to apply different styles based on the value of item.user, you can modify your class binding to include both conditions directly within the template. Here's how you can adjust your <div> to apply a style for when item.user equals 'ai' and another style for when it equals 'human'`, id: 6 },
+    // { user: 'ai', message: `In Vue 3, to apply different styles based on the value of item.user, you can modify your class binding to include both conditions directly within the template. Here's how you can adjust your <div> to apply a style for when item.user equals 'ai' and another style for when it equals 'human'`, id: 7 },
 
     // { user: 'human', message: 'I am good thansk and you' },
     // { user: 'ai', message: 'I\'m alright. How can I help you today?' }
@@ -176,9 +179,66 @@ export const dimStore = defineStore("dimStore", () => {
       })
 }
 
-  function fetch_data(request_bundle) {
-    // let bundle = { dimension: dimension.value, legacy_data: legacy_data.value }
 
+
+const test_help = `
+This is a help message, type **!!:!help** to display it again.
+You can query data using 3 different ways:  
+<br>
+#### GraphQL syntax
+<br>
+
+
+Type **!!:\`\`\`+Enter** to start a terminal with syntax highlighting and hints  
+  <br>
+
+\`\`\`graphql
+{
+  Query {...}
+}
+\`\`\`  
+<br>
+
+#### Full Metal Weaviate  
+
+
+For simple queries, Full Metal query syntax comes handy and intuitive:
+
+- <a onclick="console.log('aaaa')">name,hasChildren:name,content</a> returns **!!:name**
+ and references **!!:hasChildren** along with children **!!:name** and **!!:content**
+ <br>
+
+#### AI generated queries  
+<br>
+
+If you need **AI query** generation assistance or **Weaviate Gorilla**, set up your API keys.  
+<br>
+`
+
+
+  function fetch_data(request_bundle) {
+
+    if (request_bundle.query_bundle.request === '!help') {
+      emit('should_display_llm_context', true)
+
+      setTimeout(() => {
+        
+        conversation_history.value.push({ message: '', user: 'ai', id: conversation_history.value.length + 1 })
+        let index = 0;
+        let to_send = test_help.split(' ')
+        const interval = setInterval(() => {
+          if (index < to_send.length) {
+            conversation_history.value[conversation_history.value.length - 1].message += to_send[index] + ' '
+            index++;
+          } else {
+            clearInterval(interval); 
+          }
+        }, 50);
+
+      }, 700);
+      
+      return
+    }
     
     apiClient
       .post("https://localhost:8002/v1/api/query/", request_bundle)

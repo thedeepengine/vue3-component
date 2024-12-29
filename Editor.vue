@@ -55,7 +55,7 @@ import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { all, createLowlight } from 'lowlight'
 import { CustomHeading, getTrackHeadingsExtension, TripleBacktickLogger } from '@/components_shared/tiptap_custom.js'
 import { dimStore } from '@/components_shared/dimStore'
-import { markdownToHtml } from '@/components_shared/utils.js'
+import { md_to_html } from '@/components_shared/utils.js'
 import Link from '@tiptap/extension-link'
 import ButtonNode from '@/components_shared/ButtonExtension.js';
 import Mention from '@tiptap/extension-mention'
@@ -249,7 +249,7 @@ const editor = useEditor({
   editorProps: {
     handlePaste(view, event, slice) {
       const markdownContent = event.clipboardData.getData('text/plain');
-      const htmlContent = markdownToHtml(markdownContent);
+      const htmlContent = md_to_html(markdownContent);
       editor.value.commands.insertContent(htmlContent);
       return true;
     }
@@ -267,7 +267,7 @@ onMounted(() => {
 
   watch(() => dim_store.md_content, (newValue) => {
     if (!dim_store.is_dirty && editor.value && editor.value.getHTML() !== newValue) {
-      dim_store.html_content = markdownToHtml(newValue)
+      dim_store.html_content = md_to_html(newValue)
       editor.value.commands.setContent(dim_store.html_content);
       dim_store.html_content_original = editor.value.getHTML()
     }

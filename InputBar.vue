@@ -1,11 +1,13 @@
 <template>
-    <div id="fmw-llm-bar" :class="{
+    <div id="fmw-llm-bar" 
+    @click.stop
+    :class="{
         home_display_config: dim_store.dimension === 'home',
         bottom_display_config: dim_store.dimension !== 'home'
     }">
-        <div style="position: fixed;left: 300px;top:300px;">
+        <!-- <div style="position: fixed;left: 300px;top:300px;">
             <n-button @click="switch_llm_history(is_llm_chat_context_open ? 'close' : 'open')">aaa</n-button>
-        </div>
+        </div> -->
         <div>
             <n-grid>
 
@@ -81,40 +83,44 @@
 
                         <!-- llm chat box -->
 
-                        
+
                         <div id="llm_chat_context_child" class="shadow-box"
                             style="padding:14px;display:none;opacity:0;height:100%;flex-grow: 1;position: absolute;background-color: #eeeae6;width: 100%;border-radius:30px;z-index: 9;bottom:0;left:0;right:0;">
-                            <div id="fmw-scroll-div" style="position:absolute;border-radius: 30px; overflow: scroll;display: flex;left:14px;right:14px;bottom:100px;top:14px;">
+                            <div id="fmw-scroll-div"
+                                style="position:absolute;border-radius: 30px; overflow: scroll;display: flex;left:14px;right:14px;bottom:100px;top:14px;">
 
 
-                            <div id="temp_history_text" style="height: fit-content;width: 100%;">
-                                <div v-for="(item, index) in dim_store.conversation_history" :key="item.id">
+                                <div id="temp_history_text" style="height: fit-content;width: 100%;">
+                                    <div v-for="(item, index) in dim_store.conversation_history" :key="item.id">
 
-                                    <div style="display: flex;width: 100%;padding:16px 16px 0px 16px;overflow-wrap: anywhere;"
-                                    :class="with_last_transition && index === dim_store.conversation_history.length-1 ? item.user === 'human' ? 'last human-item' : 'last ai-item' : undefined">
-                                        <div v-if="item.user === 'ai'" style="display: flex;width:100%">
-                                            <div style="width: 99.8%;align-items:center;"
-                                                :class="{ ai_style: item.user === 'ai', human_style: item.user === 'human' }"
-                                                class="conv_item">
-                                                {{ item.message }}
+                                        <div style="display: flex;width: 100%;padding:16px 16px 0px 16px;overflow-wrap: anywhere;"
+                                            :class="with_last_transition && index === dim_store.conversation_history.length - 1 ? item.user === 'human' ? 'last human-item' : 'last ai-item' : undefined">
+                                            <div v-if="item.user === 'ai'" style="display: flex;width:100%">
+                                                <div style="width: 99.8%;align-items:center;"
+                                                    :class="{ ai_style: item.user === 'ai', human_style: item.user === 'human' }"
+                                                    class="conv_item">
+                                                    <div id="ai_generated_data" 
+                                                    v-html="md_to_html_llm(item.message)">
+                                                    </div>
+                                                    <!-- {{ item.message }} -->
+                                                </div>
+                                            </div>
+                                            <div v-if="item.user === 'human'"
+                                                style="display: flex;width:100%;padding-right:15px">
+                                                <div style="width: 99.8%;align-items:center;"
+                                                    :class="{ ai_style: item.user === 'ai', human_style: item.user === 'human' }"
+                                                    class="">
+                                                    <div
+                                                        style="background-color: #eeeae6;border-radius: 5px;font-weight: 300;">
+                                                        {{ item.message }}</div>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div v-if="item.user === 'human'"
-                                            style="display: flex;width:100%;padding-right:15px">
-                                            <div style="width: 99.8%;align-items:center;"
-                                                :class="{ ai_style: item.user === 'ai', human_style: item.user === 'human' }"
-                                                class="">
-                                                <div
-                                                    style="background-color: #eeeae6;border-radius: 5px;font-weight: 300;">
-                                                    {{ item.message }}</div>
-                                            </div>
-                                        </div>
+
                                     </div>
-
                                 </div>
                             </div>
                         </div>
-                    </div>
                     </div>
                 </n-gi>
             </n-grid>
@@ -127,7 +133,7 @@
 import { dimStore } from '@/components_shared/dimStore.js'
 import { useEditor, Editor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
-import { markdownToHtml } from '@/components_shared/utils.js'
+import { md_to_html, md_to_html_llm } from '@/components_shared/utils.js'
 import { onMounted, onUnmounted, ref, watch, onBeforeUnmount, computed } from 'vue';
 import { Extension } from '@tiptap/core'
 import { nextTick, reactive, watchEffect } from 'vue';
@@ -158,14 +164,18 @@ const is_llm_chat_context_open = ref(false)
 const editor_type = ref('tiptap')
 // const editor_type = ref('codemirror')
 const code = ref(``)
-const should_display_llm_context = ref(false)
 const with_last_transition = ref(true)
 
-on('should_display_llm_context', (val) => {
+on('should_display_llm_context', () => {
     if (is_llm_chat_context_open.value === false) {
         switch_llm_history()
-        should_display_llm_context.value = val
-    }
+    } 
+})
+
+on('should_close_llm_context', () => {
+    if (is_llm_chat_context_open.value === true) {
+        switch_llm_history('close')
+    } 
 })
 
 const clt_options = computed(() => {
@@ -197,7 +207,7 @@ watch(() => editor_type.value, () => {
 onMounted(() => {
     watch(() => box_input_md, (newValue) => {
         if (editor.value && editor.value.getHTML() !== newValue.value && newValue.value !== '') {
-            box_input_html.value = markdownToHtml(newValue.value)
+            box_input_html.value = md_to_html(newValue.value)
             editor.value.commands.setContent(box_input_html.value);
         }
     }, { immediate: true });
@@ -260,7 +270,7 @@ function submit(user_input, type_input) {
 function switch_llm_history(way = 'open') {
     const llm_chat_context = document.getElementById('llm_chat_context'); // Select the div by its ID
     const llm_chat_context_child = document.getElementById('llm_chat_context_child'); // Select the div by its ID
-
+    llm_chat_context_child.style.display = 'flex'
     let current_heigth = window.getComputedStyle(llm_chat_context).height
 
     if (way === 'close') {
@@ -293,7 +303,6 @@ function switch_llm_history(way = 'open') {
 
 
         close_anim.onfinish = function () {
-            // llm_chat_context_child.style.display = 'none'
             is_llm_chat_context_open.value = false
         };
 
@@ -301,53 +310,59 @@ function switch_llm_history(way = 'open') {
     } else {
         with_last_transition.value = false
         const temp_history_text = document.getElementById('temp_history_text');
-        llm_chat_context_child.style.display = 'flex'
-        let rect = temp_history_text.getBoundingClientRect()
-        let height = rect.height
 
-        waitForElement('#fmw-scroll-div').then((elt) => {
-            elt.scrollTop = elt.scrollHeight
-        }) 
-
-        const screenHeight = window.innerHeight;
-        let MAX_HEIGHT_OFFSET = screenHeight - 250
-        if (height > MAX_HEIGHT_OFFSET) {
-            height = MAX_HEIGHT_OFFSET
-        }
-
-        let PADDING = 14
-        let EXTRA = 10
-        
-        llm_chat_context.animate([
-            { height: current_heigth },
-            { height: `${100 + PADDING + EXTRA + height}px` }
-        ], {
-            duration: 500,
-            fill: 'forwards',
-            easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
-        });
-
-        llm_chat_context.animate([
-            { 'paddingBottom': `0px` },
-            { 'paddingBottom': `100px` }
-        ], {
-            duration: 500,
-            fill: 'forwards',
-            easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
-        });
+        let rect;
+        waitForElement('#temp_history_text').then((elt) => {
+            rect = temp_history_text.getBoundingClientRect()
+            let height = rect.height
 
 
-        llm_chat_context_child.animate([
-            { 'opacity': 0 },
-            { 'opacity': 1 }
-        ], {
-            duration: 50,
-            fill: 'forwards',
-            easing: 'cubic-bezier(0.1, 0.7, 0.9, 1)'
-        });
+            waitForElement('#fmw-scroll-div').then((elt) => {
+                elt.scrollTop = elt.scrollHeight
+            })
+
+            const screenHeight = window.innerHeight;
+            let MAX_HEIGHT_OFFSET = screenHeight - 250
+            if (height > MAX_HEIGHT_OFFSET) {
+                height = MAX_HEIGHT_OFFSET
+            }
+
+            let PADDING = 14
+            let EXTRA = 10
+
+            let open_anim = llm_chat_context.animate([
+                { height: current_heigth },
+                { height: `${100 + PADDING + EXTRA + height}px` }
+            ], {
+                duration: 500,
+                fill: 'forwards',
+                easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
+            });
+
+            llm_chat_context.animate([
+                { 'paddingBottom': `0px` },
+                { 'paddingBottom': `100px` }
+            ], {
+                duration: 500,
+                fill: 'forwards',
+                easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
+            });
 
 
-        is_llm_chat_context_open.value = true
+            llm_chat_context_child.animate([
+                { 'opacity': 0 },
+                { 'opacity': 1 }
+            ], {
+                duration: 50,
+                fill: 'forwards',
+                easing: 'cubic-bezier(0.1, 0.7, 0.9, 1)'
+            });
+
+
+            open_anim.onfinish = function () {
+            is_llm_chat_context_open.value = true
+        };
+        })
 
     }
 }
@@ -361,20 +376,25 @@ function update_llm_context_position() {
         let rect = temp_history_text.getBoundingClientRect()
 
         const screenHeight = window.innerHeight;
-        let MAX_HEIGHT_OFFSET = screenHeight - 250
+        let MAX_HEIGHT_OFFSET = screenHeight - 300
 
         let height = rect.height > MAX_HEIGHT_OFFSET ? MAX_HEIGHT_OFFSET : rect.height
 
-        if (height === MAX_HEIGHT_OFFSET) {
-            last_item_elt.value.scrollIntoView({ behavior: 'smooth' });
-        }
         let PADDING = 14
-        let EXTRA = 10
+        let EXTRA = 50
+        let total_height = PADDING + EXTRA + height
+
+        total_height = total_height > MAX_HEIGHT_OFFSET ? MAX_HEIGHT_OFFSET : total_height
+
+        if (total_height === MAX_HEIGHT_OFFSET) {
+            last_item_elt.value.scrollIntoView({ behavior: 'auto' });
+        }
+
         llm_chat_context.animate([
             { height: current_heigth },
             { height: `${100 + PADDING + EXTRA + height}px` }
         ], {
-            duration: 500,
+            duration: 200,
             fill: 'forwards',
             easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
             // easing: 'cubic-bezier(0.7, 0.7, 0.1, 0.1)'
@@ -395,18 +415,18 @@ function update_llm_context_position() {
 
 function update_llm_last_item_opacity(elt) {
 
-        let opacity_animation = elt.animate([
-            { opacity: 0 },
-            { opacity: 1 }
-        ], {
-            duration: 350,
-            fill: 'forwards',
-            easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
-        });
+    let opacity_animation = elt.animate([
+        { opacity: 0 },
+        { opacity: 1 }
+    ], {
+        duration: 350,
+        fill: 'forwards',
+        easing: 'cubic-bezier(0.4, 0.3, 0.2, 1)'
+    });
 
-        opacity_animation.onfinish = function () {
-            elt.classList.remove("last", "human-item")
-        };
+    opacity_animation.onfinish = function () {
+        elt.classList.remove("last", "human-item")
+    };
 
 }
 
@@ -449,7 +469,7 @@ watch(dim_store.conversation_history, (new_val, old_val) => {
         with_last_transition.value = true
         waitForElement('.human-item').then((elt) => {
             update_llm_last_item_opacity(elt)
-        }) 
+        })
     } else {
         if (last_item_elt.value === null || last_item_elt.value === undefined) {
             with_last_transition.value = true
@@ -462,7 +482,7 @@ watch(dim_store.conversation_history, (new_val, old_val) => {
                 update_llm_context_position()
             }
             last_item_height.value = last_item_elt.value.clientHeight
-        }        
+        }
     }
 })
 

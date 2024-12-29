@@ -10,14 +10,21 @@
         </div> -->
         <div>
             <n-grid>
-
                 <n-gi span="24">
-                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                        <div style="align-self: flex-start;">
-                            <!-- collection selector -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;padding-bottom:10px">
+                        <div style="height: 100%;">
+                            <!-- COLLECTION SELECTOR -->
                             <n-select style="z-index: 999999999" id="fmw-select-clt" :show-checkmark="false"
                                 placement="top" size="tiny" placeholder="" v-model:value="dim_store.selected_clt"
                                 @updateShow="on_show_select_clt" :options="clt_options" filterable />
+                        </div>
+
+                        <!-- ICON BOOK OPEN INFORMATION DOCUMENTATION -->
+                          <div style="flex:auto;width: 20px;cursor: pointer;">
+                            <div @click="switch_left_drawer" style="flex:auto;padding-left: 10px;width: 20px;height:28px">
+                                <!-- <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="background-color: #f9f7f5;" viewBox="4 5 12 10" width="20px" height="28px"><g fill="none"><path d="M4 4v12a2 2 0 0 0 2 2h9.5a.5.5 0 0 0 0-1H6a1 1 0 0 1-1-1h10a1 1 0 0 0 1-1V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2zm10-1a1 1 0 0 1 1 1v11H5V4a1 1 0 0 1 1-1h8zm-3.25 2.75a.75.75 0 1 0-1.5 0a.75.75 0 0 0 1.5 0zm-.25 6.75a.5.5 0 0 1-1 0v-4a.5.5 0 0 1 1 0v4z" fill="currentColor"></path></g></svg> -->
+                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="background-color: #f9f7f5;" viewBox="4 2 12 16" width="20px" height="28px"><g fill="none"><path d="M4 4v12a2 2 0 0 0 2 2h9.5a.5.5 0 0 0 0-1H6a1 1 0 0 1-1-1h10a1 1 0 0 0 1-1V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2zm10-1a1 1 0 0 1 1 1v11H5V4a1 1 0 0 1 1-1h8zm-3.25 2.75a.75.75 0 1 0-1.5 0a.75.75 0 0 0 1.5 0zm-.25 6.75a.5.5 0 0 1-1 0v-4a.5.5 0 0 1 1 0v4z" fill="currentColor"></path></g></svg>
+                            </div>
                         </div>
                     </div>
 
@@ -40,7 +47,7 @@
                             <div style="flex-grow: 1;">
                                 <div v-if="editor_type === 'tiptap'" style="padding:12px 10px 12px 30px;flex-grow: 1;">
                                     <!-- tiptap editor -->
-                                    <editor-content class="editor" @animationend="handleAnimationEnd" ref="editor_ref"
+                                    <editor-content class="editor" ref="editor_ref"
                                         :editor="editor" />
                                 </div>
                                 <div v-else-if="editor_type === 'codemirror'"
@@ -221,6 +228,11 @@ onBeforeUnmount(() => {
     }
 });
 
+
+
+function switch_left_drawer() {
+    dim_store.is_left_drawer_open = dim_store.is_left_drawer_open ? false : true
+}
 
 
 
@@ -586,10 +598,11 @@ function on_show_select_clt(state) {
 
 <style>
 #fmw-select-clt {
-    padding-bottom: 10px;
+    /* padding-bottom: 10px; */
     padding-left: 20px !important;
     height: 40px;
     min-width: 100px;
+    align-content: center;
     /* width: fit-content; */
 }
 

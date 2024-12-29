@@ -144,6 +144,8 @@ export const dimStore = defineStore("dimStore", () => {
   //save
   const refresh_save_page = ref()
 
+  // left drawer
+  const is_left_drawer_open = ref(false)
 
   const apiClient = axios.create({
     baseURL: 'https://localhost:8002/',
@@ -792,7 +794,12 @@ watch(() => dimension.value,
 
     // save
     transaction_list,
-    refresh_save_page
+    refresh_save_page,
+
+    // left drawer
+    is_left_drawer_open
+
+
   }
 
 })

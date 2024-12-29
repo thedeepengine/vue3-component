@@ -1,5 +1,5 @@
 <template>
-  <div v-if="dim_store.left_panel === 'markdown'" style="z-index:10;padding-left:3vw;">
+  <div v-if="dim_store.left_panel === 'markdown'" style="z-index:10;padding-left:3vw;padding-bottom:120px">
     <div style="width: 100%;">
       <div class="editor-content-type" style="width:fit-content;margin:auto">
 
@@ -60,7 +60,7 @@ import Link from '@tiptap/extension-link'
 import ButtonNode from '@/components_shared/ButtonExtension.js';
 import Mention from '@tiptap/extension-mention'
 import suggestion from '@/components_shared/suggestion.js'
-import { NIcon, NPopover, NButton } from 'naive-ui'
+import { NIcon, NPopover, NButton, NText } from 'naive-ui'
 import { DocumentChevronDouble24Regular, AlignLeft24Regular } from '@vicons/fluent'
 import Graphql from '@/components_shared/Graphql.vue'
 import GraphqlInput from './GraphqlInput.vue';
@@ -82,7 +82,6 @@ const is_editor_ready = ref(false);
 
 const checkElement = () => {
     const element = document.querySelector('.tiptap.ProseMirror');
-    console.log('element', element)
     if (element) {
       is_editor_ready.value = true;
     } else if (retries < maxRetries) {

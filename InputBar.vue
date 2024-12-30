@@ -238,8 +238,31 @@ function switch_left_drawer() {
 
 function submit(user_input, type_input) {
     if (user_input === '') return
+    
     dim_store.user_input = user_input
     dim_store.set_all_object_dirty()
+
+    if (user_input === '!help') {
+      emit('should_display_llm_context', true)
+
+      setTimeout(() => {
+        
+        conversation_history.value.push({ message: '', user: 'ai', id: conversation_history.value.length + 1 })
+        let index = 0;
+        let to_send = test_help.split(' ')
+        const interval = setInterval(() => {
+          if (index < to_send.length) {
+            conversation_history.value[conversation_history.value.length - 1].message += to_send[index] + ' '
+            index++;
+          } else {
+            clearInterval(interval); 
+          }
+        }, 50);
+
+      }, 700);
+      
+      return
+    }
 
     if (dim_store.dimension === 'home') {
         let user_input = editor.value.getText()
@@ -252,15 +275,13 @@ function submit(user_input, type_input) {
             add_message_to_history(user_input, 'human', 'graphql')
             dim_store.fetch_data({
                 dimension: dim_store.dimension,
-                query_type: 'graphql',
-                query_bundle: { query: dim_store.user_input }
+                query_bundle: { query_type: 'graphql', query: dim_store.user_input }
             })
             emit('clean_graphql_input')
         } if (user_input.startsWith('::')) {
             dim_store.fetch_data({
                 dimension: dim_store.dimension,
-                query_type: 'fmw',
-                query_bundle: { clt_name: dim_store.selected_clt, request: dim_store.user_input.replace('::', '') }
+                query_bundle: { query_type: 'fmw', clt_name: dim_store.selected_clt, query: dim_store.user_input.replace('::', '') }
             })
             editor.value.commands.setContent('')
         } if (user_input.startsWith('llm::')) {
@@ -270,8 +291,7 @@ function submit(user_input, type_input) {
             add_message_to_history(user_input, 'human')
             dim_store.fetch_data({
                 dimension: dim_store.dimension,
-                query_type: 'unknown',
-                query_bundle: { clt_name: dim_store.selected_clt, request: dim_store.user_input }
+                query_bundle: { query_type: 'unknown', clt_name: dim_store.selected_clt, query: dim_store.user_input }
             })
             editor.value.commands.setContent('')
         }

@@ -45,6 +45,7 @@ export const dimStore = defineStore("dimStore", () => {
   const right_panel_message = ref(undefined)
   const show_llm_hist_box = ref(true)
   const one_shot_home = ref('')
+  const last_query = ref({})
 
   const bus_event = ref()
   
@@ -223,33 +224,11 @@ If you need **AI query** generation assistance or **Weaviate Gorilla**, set up y
 
 
   function fetch_data(request_bundle) {
-
-    if (request_bundle.query_bundle.request === '!help') {
-      emit('should_display_llm_context', true)
-
-      setTimeout(() => {
-        
-        conversation_history.value.push({ message: '', user: 'ai', id: conversation_history.value.length + 1 })
-        let index = 0;
-        let to_send = test_help.split(' ')
-        const interval = setInterval(() => {
-          if (index < to_send.length) {
-            conversation_history.value[conversation_history.value.length - 1].message += to_send[index] + ' '
-            index++;
-          } else {
-            clearInterval(interval); 
-          }
-        }, 50);
-
-      }, 700);
-      
-      return
-    }
     
     apiClient
       .post("https://localhost:8002/v1/api/query/", request_bundle)
       .then(response => {
-        console.log('AAAA', response)
+        last_query.value = request_bundle
         
         if (response.data !== null && 'error_info' in response.data) {
           
@@ -675,19 +654,14 @@ watch(() => dimension.value,
 (new_data, old_data) => {
   if (conversation_history.value.at(-1)) {
     if (dimension.value === 'network' && is_object_dirty.value.d3_network_data) {
-      fetch_data(selected_clt.value, conversation_history.value.at(-1).message)
+      fetch_data({...last_query.value, dimension: 'network'})
     } 
     if (dimension.value === 'hierarchy' && is_object_dirty.value.w_data) {
-      fetch_data(selected_clt.value, conversation_history.value.at(-1).message)
+      fetch_data({...last_query.value, dimension: 'hierarchy'})
     } 
     if (dimension.value === 'data_table' && is_object_dirty.value.data_table) {
-      fetch_data(selected_clt.value, conversation_history.value.at(-1).message)
+      fetch_data({...last_query.value, dimension: 'data_table'})
     } 
-    // if (dimension.value === 'graphql' && is_object_dirty.value.graphql_output) {
-    //   // fetch_data(selected_clt, conversation_history.value.at(-1).message)
-    // } else {
-
-    // }
   }
 });
 

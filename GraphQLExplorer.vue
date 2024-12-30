@@ -73,8 +73,10 @@ const current_doc = ref()
 
 onMounted(() => {
     setTimeout(() => { //TODO: quick fix to be changed
-        let new_doc = get_value_at_path(dim_store.graphql_shema, current_level.value)
-        current_doc.value = new_doc
+        if (dim_store.graphql_shema) {
+            let new_doc = get_value_at_path(dim_store.graphql_shema, current_level.value)
+            current_doc.value = new_doc
+        }
     }, 1000);
 })
 

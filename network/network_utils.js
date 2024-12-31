@@ -204,7 +204,7 @@ function draw_path_tree(root_nodes, root_links) {
 
 function displayStaticTree(store) {
     console.log('store.w_data---- ', store.w_data)
-    if (Object.keys(store.w_data).length > 0) {
+    if (store.w_data !== null && Object.keys(store.w_data).length > 0) {
         let { root_nodes, root_links } = compute_tree(store)
         draw_path_tree(root_nodes, root_links)
         draw_text_tree(store)
@@ -319,7 +319,7 @@ function draw_text_tree(store) {
             else if (d.side === 'left') return `hover-trace hover-trace-left`
             else if (d.side === 'right') return `hover-trace hover-trace-right`
         })
-        .html('<div>aaa</div>')
+        .html(add_icon)
 
     // .each(function(d) { console.log('updating:', d); });  
 
@@ -403,11 +403,6 @@ function show_map_menu(hierarchy, data) {
             .attr('opacity', 1)
             .style('transform', `translate(${x}px,${y}px)`)
 
-
-    icon_svg.on('click', function () {
-        handle_click_new_node(hierarchy, data, 'sibling')
-    })
-
     icon_svg.html(arrow_filled_down);
 
     if (data.side === 'right') {
@@ -423,11 +418,6 @@ function show_map_menu(hierarchy, data) {
             .attr('height', ICON_SIZE)
             .attr('viewBox', "0 0 512 512")
             
-
-        icon_svg.on('click', function () {
-            handle_click_new_node(hierarchy, data, 'children')
-        })
-
         icon_svg.html(arrow_filled_right)
 
         d3select('.icon-menu-right').transition()
@@ -436,25 +426,6 @@ function show_map_menu(hierarchy, data) {
         .style('transform', `translate(${x}px,${y}px)`)
         
     } else {
-        // const icon_svg = d3select('.network_class svg').append('rect')
-        //     .attr('x', data.y_start - 24 - 10)
-        //     .attr('y', data.x - 24 + 7)
-        //     .attr('class', 'append-node-icon')
-        //     .attr('width', ICON_SIZE)
-        //     .attr('height', ICON_SIZE)
-        //     // .attr('viewBox', "0 0 512 512")
-
-        // icon_svg.on('click', function () {
-        //     handle_click_new_node(hierarchy, data, 'children')
-        // })
-
-        // icon_svg.transition()
-        //     .duration(300)
-        //     .attr('opacity', 1)
-
-        // icon_svg.html(arrow_filled_left)
-
-
         const icon_svg = d3select('.network_class svg')
         .append('g')
             .attr('class', 'icon-menu icon-menu-left')
@@ -468,9 +439,6 @@ function show_map_menu(hierarchy, data) {
             .attr('viewBox', "0 0 512 512")
             
 
-        icon_svg.on('click', function () {
-            handle_click_new_node(hierarchy, data, 'children')
-        })
 
         icon_svg.html(arrow_filled_left)
 
@@ -481,11 +449,9 @@ function show_map_menu(hierarchy, data) {
 
     }
 
-
-    //     let a = d3select('.network_class svg')
-    // .select(`[data-pathid="${data.data.uuid_front}"]`)
-    // .select('input')
-    // .style('color', '#4a3d12')
+    d3selectAll('.network_class svg').on('click', function () {
+        handle_click_new_node(hierarchy, data, 'children')
+    })
 }
 
 

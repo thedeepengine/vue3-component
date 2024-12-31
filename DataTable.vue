@@ -31,21 +31,10 @@ import { Add24Regular, Subtract24Regular } from '@vicons/fluent'
 const dim_store = dimStore()
 import { shallowRef } from 'vue'
 
-const table = ref(null); //reference to your table element
-const table_wrapper = ref(null); //reference to your table element
-const tabulator = ref(null); //variable to hold your table
-// const tableData = reactive([
-//     { id: 1, name: "Oli Bob", age: "12", col: "red", dob: "" },
-//     { id: 2, name: "Mary May", age: "1", col: "blue", dob: "14/05/1982" },
-//     { id: 3, name: "Christine Lobowski", age: "42", col: "green", dob: "22/05/1982" },
-//     { id: 4, name: "Brendon Philips", age: "125", col: "orange", dob: "01/08/1980" },
-//     { id: 5, name: "Margret Marmajuke", age: "16", col: "yellow", dob: "31/01/1999" },
-// ]);
-// const tableData = reactive();
+const table = ref(null); 
+const table_wrapper = ref(null);
+const tabulator = ref(null); 
 const tableData = ref([]);
-
-
-
 const icon = shallowRef(Add24Regular);
 const is_shrunk = ref(false);
 const expand_button = ref(null);
@@ -102,101 +91,15 @@ watch(() => dim_store.data_table, () => {
     }
 
     setTimeout(() => {
-        // tabulator.value.setColumns([{ "title": 'id', "field": 'id' },
-        // { "title": 'name', "field": 'name' }]);
-        // tabulator.value.replaceData([{ id: 1, name: "Oli Bob" }]);
-
-        console.log('dim_store.data_table.column_meta', dim_store.data_table.column_meta.meta)
-
-    tabulator.value.setColumns(dim_store.data_table.column_meta.meta);
-    tabulator.value.replaceData(dim_store.data_table.data);
-
-    // tabulator.value.setOptions({
-    //     rowFormatter: add_row_formatter(dim_store.data_table.column_meta)
-    // });
-
-
-    console.log('table.value', tabulator.value)
-
-    tabulator.value.options.rowFormatter = add_row_formatter(dim_store.data_table.column_meta)
-    tabulator.value.redraw(true);
-
-
+        tabulator.value.setColumns(dim_store.data_table.column_meta.meta);
+        tabulator.value.replaceData(dim_store.data_table.data);
+        tabulator.value.options.rowFormatter = add_row_formatter(dim_store.data_table.column_meta)
+        tabulator.value.redraw(true);
     }, 500);
 
-
-    // data: dim_store.data_table.data,
-    //     columns: dim_store.data_table.column_meta.meta,
-    //     rowFormatter: add_row_formatter(dim_store.data_table.column_meta)
-
-    // tabulator.value.setColumns(dim_store.data_table.column_meta);
-    // tabulator.value.replaceData(dim_store.data_table.data);
 })
 
 onMounted(() => {
-
-    var tabledata = [
-        {
-            id: 1, make: "Ford", model: "focus", reg: "P232 NJP", color: "white",
-            serviceHistory: [
-                { date: "01/02/2016", engineer: "Steve Boberson" },
-                { date: "07/02/2017", engineer: "Martin Stevenson", actions: "Break light broken" },
-            ]
-        },
-        {
-            id: 1, make: "BMW", model: "m3", reg: "W342 SEF", color: "red", serviceHistory: [
-                { date: "22/05/2017", engineer: "Jimmy Brown", actions: "Aligned wheels" },
-                { date: "11/02/2018", engineer: "Lotty Ferberson", actions: "Changed Oil" },
-                { date: "04/04/2018", engineer: "Franco Martinez", actions: "Fixed Tracking" },
-            ]
-        },
-        {
-            id: 1, make: "BMW", model: "m3", reg: "W342 SEF", color: "red"
-        },
-        {
-            id: 1, make: "BMW", model: "m3", reg: "W342 SEF", color: "red", serviceHistory: [
-                { date: "22/05/2017", engineer: "Jimmy Brown", actions: "Aligned wheels" },
-                { date: "11/02/2018", engineer: "Lotty Ferberson", actions: "Changed Oil" },
-                { date: "04/04/2018", engineer: "Franco Martinez", actions: "Fixed Tracking" },
-            ]
-        },
-    ]
-
-
-    let ref_row = {
-        'prop': ['name'],
-        'ref': ['serviceHistory', 'serviceHistory2'],
-        'serviceHistory': {
-            'prop': ['name', 'content'],
-            'ref': [],
-            'meta': [
-                { title: "Date", field: "date", sorter: "date" },
-                { title: "Engineer", field: "engineer" },
-                { title: "Action", field: "actions" },
-            ]
-        },
-        'serviceHistory2': {
-            'prop': ['name'], 'ref': [],
-            'meta': [
-                { title: "Date", field: "date", sorter: "date" },
-                { title: "Engineer", field: "engineer" },
-                { title: "Action", field: "actions" },
-            ],
-        }
-    }
-
-
-
-
-
-console.log('dim_store.data_table.column_meta', dim_store.data_table)
-console.log('dim_store.data_table.data', dim_store.data_table)
-
-        // tabulator.value.setColumns(dim_store.data_table.column_meta);
-    // tabulator.value.replaceData(dim_store.data_table.data);
-
-
-
     tabulator.value = new Tabulator(table.value, {
         height: "611px",
         layout: "fitColumns",
@@ -205,85 +108,8 @@ console.log('dim_store.data_table.data', dim_store.data_table)
         },
         data: dim_store.data_table.data,
         columns: dim_store.data_table.column_meta.meta,
-        rowFormatter: add_row_formatter(dim_store.data_table.column_meta),
-
-
-    //     data:tabledata,
-    //     columns: [
-    //         { title: "Make", field: "make" },
-    //         { title: "Model", field: "model" },
-    //         { title: "Registration", field: "reg" },
-    //         { title: "Color", field: "color" },
-    //     ],
-    //     rowFormatter:function(row) {
-    //         if (row.getData().serviceHistory) {
-    //             var holderEl = document.createElement("div");
-    //         var tableEl = document.createElement("div");
-
-    //         holderEl.style.boxSizing = "border-box";
-    //         holderEl.style.padding = "10px 30px 10px 10px";
-    //         holderEl.style.borderTop = "1px solid #333";
-    //         holderEl.style.borderBotom = "1px solid #333";
-    //         tableEl.style.border = "1px solid #333";
-
-    //         holderEl.appendChild(tableEl);
-
-    //         row.getElement().appendChild(holderEl);
-
-    //         var subTable = new Tabulator(tableEl, {
-    //             layout:"fitColumns",
-    //             data:row.getData().serviceHistory,
-    //             columns:[
-    //             {title:"Date", field:"date", sorter:"date"},
-    //             {title:"Engineer", field:"engineer"},
-    //             {title:"Action", field:"actions"},
-    //             ]
-    //         })
-    //         }
-    // },
-
-        
+        rowFormatter: add_row_formatter(dim_store.data_table.column_meta),        
     });
-
-    setTimeout(() => {
-
-        //     tabulator.value.setColumns([{"title": 'id', "field": 'id'}, 
-        // {"title": 'name', "field": 'name'}]);
-
-        // tabulator.value.replaceData(tabledata);
-
-        //     tabulator.value.setColumns([{"title": 'id', "field": 'id'}, 
-        // {"title": 'name', "field": 'name'}]);
-        // tabulator.value.replaceData([{ id: 1, name: "Oli Bob" }]);
-
-        //     tabulator.value.setColumns([
-        //         {title:"Name", field:"name", sorter:"string", width:200},
-        //         {title:"Progress", field:"progress", sorter:"number", formatter:"progress"},
-        //         {title:"Gender", field:"gender", sorter:"string"},
-        //         {title:"Rating", field:"rating", formatter:"star", hozAlign:"center", width:100},
-        //         {title:"Favourite Color", field:"col", sorter:"string"},
-        //     ]);
-        // tabulator.value.replaceData(tabledata);            
-
-    }, 500);
-
-
-    // tabulator.value = new Tabulator(table.value, {
-    //     reactiveData: true,
-    //     layout: "fitColumns",
-    // });
-
-    // if (dim_store.data_table !== undefined) {
-    //     setTimeout(() => {
-    //         tabulator.value.setColumns(dim_store.data_table.column_meta);
-    //         tabulator.value.replaceData(dim_store.data_table.data);            
-    //     }, 0);
-    // }
-
-
-    // tabulator.value.setColumns([{"title": 'id', "field": 'id'}, 
-    // {"title": 'name', "field": 'name'}]);
-    // tabulator.value.replaceData([{ id: 1, name: "Oli Bob" }]);
 })
 
 
@@ -328,9 +154,6 @@ const expand = () => {
         }, 0)
     }
 };
-
-
-
 
 </script>
 
@@ -382,9 +205,6 @@ const expand = () => {
     align-content: center;
 }
 
-
-
-
 .fm-button {
     background-color: transparent;
     box-shadow: 0px;
@@ -424,3 +244,4 @@ const expand = () => {
     }
 }
 </style>
+ <!-- 427 -->

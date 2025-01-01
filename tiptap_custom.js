@@ -6,6 +6,13 @@ import { InputRule } from '@tiptap/core';
 import { TextSelection } from 'prosemirror-state'; // Correct import from ProseMirror
 
 
+let store = null
+
+function set_store_tiptap(val) {
+  store = val
+}
+
+
 class CustomInputRule extends InputRule {
   constructor(type, getAttrs) {
     super({
@@ -18,29 +25,11 @@ class CustomInputRule extends InputRule {
         const start = range.from;
         const end = range.to;
 
-        
-        // const paragraphNode = type.schema.nodes.paragraph.create();
-        // const headingNode = type.schema.nodes.heading.create({...attrs, class: 'fmw-title'});
-        // const headingPosition = start + paragraphNode.nodeSize;
-        // state.tr.delete(range.from, range.to)
-        // tr.insert(start, paragraphNode);
-        // tr.insert(start + paragraphNode.nodeSize, headingNode);
-        // const posInHeading = headingPosition + 1; 
-        // tr.setSelection(TextSelection.create(tr.doc, posInHeading));
-
-
-        // const headingNode = type.schema.nodes.heading.create({...attrs, class: 'fmw-title'});
-        // const headingPosition = start 
-        // tr.delete(range.from, range.to)
-        // tr.insert(start, headingNode);
-        // const posInHeading = headingPosition+1; 
-        // tr.setSelection(TextSelection.create(tr.doc, posInHeading));
-
-        const headingNode = type.schema.nodes.heading.create({...attrs, class: 'fmw-title'});
-const headingPosition = start;
-tr.delete(range.from, range.to)  // Delete the specified range
-  .insert(headingPosition, headingNode)  // Insert the new heading node at the start position
-  .setSelection(TextSelection.create(tr.doc, headingPosition + 2));  // Set cursor position inside the heading
+        const headingNode = type.schema.nodes.heading.create({ ...attrs });
+        const headingPosition = start;
+        tr.delete(range.from, range.to)  // Delete the specified range
+          .insert(headingPosition, headingNode)  // Insert the new heading node at the start position
+          .setSelection(TextSelection.create(tr.doc, headingPosition + 2));  // Set cursor position inside the heading
 
 
         return tr;
@@ -57,6 +46,10 @@ const CustomHeading = Heading.extend({
     return [
       new CustomInputRule(this.type, (match) => {
         const levels = match[1].length; // Calculate heading level from number of '#'
+        // store.html_to_hierarchy(store.html_content)
+        setTimeout(() => {
+          store.html_to_hierarchy(store.html_content)
+        }, 500);
         return { level: levels };
       })
     ];
@@ -76,15 +69,15 @@ const CustomHeading = Heading.extend({
         default: null,
         rendered: true,
       },
-      
+
       class: {
-        default: null, 
+        default: null,
         renderHTML: attributes => {
           return {
             class: attributes.class,
           }
         },
-        parseHTML: element => 
+        parseHTML: element =>
           element.getAttribute('class')
       }
     };
@@ -97,7 +90,7 @@ const CustomHeading = Heading.extend({
 
     let default_style = 'display: inline; align-items: baseline;'
     HTMLAttributes.id = node.attrs.id;
-    HTMLAttributes.class = (node.attrs.class ? `${node.attrs.class} fmw-title` : 'fmw-title').trim();
+    HTMLAttributes.class = (node.attrs.class ? `${node.attrs.class} custom-heading fmw-title` : 'custom-heading fmw-title').trim();
     HTMLAttributes.style = (node.attrs.style ? `${node.attrs.style};${default_style}` : `${default_style}`).trim();
 
     const elements = [
@@ -149,53 +142,11 @@ function getTrackHeadingsExtension(store, html_content) {
               }
               const { $from } = newState.selection;
               const nodeAtPos = $from.node();
-              // this is most likely what should be useed to check to make it ontologically sound
-              // const { $to } = oldState.selection;
-              // const nodePrev = $to.node();
-              // console.log('nodePrev', nodePrev)
-
-              // console.log('transactions', transactions)
               let old_heading = get_all_heading(oldState)
-              let new_heading = get_all_heading(newState)
-              // console.log('old_heading', old_heading)
-              // console.log('new_heading', new_heading)
-              let is_new_heading_in_html = new_heading.length > old_heading.length
-              let is_new_heading_removed_from_html = new_heading.length < old_heading.length
-              
-              // console.log('is_new_heading_in_html', is_new_heading_in_html)
-              // console.log('is_new_heading_removed_from_html', is_new_heading_removed_from_html)
-
-              // console.log('store.html_content', store.html_content)
-              // console.log('new_heading', new_heading)
-              // console.log('nodeAtPos', nodeAtPos)
-
               if (old_heading.length > 0) {
-                if (is_new_heading_in_html) {
-                  console.log('NEW HEADING')
-                  setTimeout(() => {
-                    store.html_to_hierarchy(store.html_content)
-                  }, 500);
-                } else {
                   update_node_property(store.w_data, nodeAtPos.attrs.id, store.header_prop_name, nodeAtPos.textContent)
-                  displayStaticTree(store)
-                }
+                  displayStaticTree(store) 
               }
-
-
-              // if (nodeAtPos.type.name === 'heading' || is_new_heading_removed_from_html) {
-              //     if (is_new_heading_removed_from_html) {
-              //       store.refresh_map = true
-              //     } else if (is_new_heading_in_html) {
-              //       store.refresh_map = true
-              //     } else { 
-              //         update_node_property(store.w_data, nodeAtPos.attrs.id, store.header_prop_name, nodeAtPos.textContent)
-              //         if (store.dimension === 'hierarchy') {
-              //           displayStaticTree(store)
-              //         }
-              //     }
-              //   return undefined;
-              // }
-
             }
           })
         ];
@@ -234,5 +185,6 @@ const TripleBacktickLogger = Extension.create({
 export {
   CustomHeading,
   getTrackHeadingsExtension,
-  TripleBacktickLogger
+  TripleBacktickLogger,
+  set_store_tiptap
 }

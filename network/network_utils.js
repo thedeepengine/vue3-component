@@ -449,39 +449,34 @@ function show_map_menu(hierarchy, data) {
 
     }
 
-    d3selectAll('.network_class svg').on('click', function () {
+    d3selectAll('.icon-menu-left').on('click', function () {
         handle_click_new_node(hierarchy, data, 'children')
+    })
+    
+    d3selectAll('.icon-menu-right').on('click', function () {
+        handle_click_new_node(hierarchy, data, 'children')
+    })
+
+    d3selectAll('.icon-menu-down').on('click', function () {
+        handle_click_new_node(hierarchy, data, 'sibling')
     })
 }
 
 
 function handle_click_new_node(hierarchy, node_data, position) {
-    console.log(node_data)
-    let rr = Math.random().toString(36).substring(2, 7)
-    let new_item = {uuid: rr, uuid_front: 'X_TEM_'+rr, name: 'new added node'}
-    // if (position === 'children') {
-    //     new_item.parent_ref = node_data.data.uuid_front
-    // } else if (position === 'sibling') {
-    //     let parent_uuid = find_parent_uuid(store.w_data, node_data.data.uuid_front);
-    //     console.log('parent_uuid,parent_uuidparent_uuid: ', parent_uuid)
-    //     new_item.parent_ref = parent_uuid
-    // }
-    
-    insert_object_at_uuid(new_item, 
-        hierarchy, node_data.data.uuid_front, position)
-        let temp = hierarchy
-        store.w_data = {}
+    let temp_uuid = Math.random().toString(36).substring(2, 7)
+    let new_item = {uuid: temp_uuid, uuid_front: 'X_TEM_'+temp_uuid, name: 'new added node'}
 
-        setTimeout(() => {
-            store.w_data = temp
-          }, 300);
+    insert_object_at_uuid(new_item, hierarchy, node_data.data.uuid_front, position)
 
-    apiClient
-        .post("https://localhost:8002/v1/api/hierarchy_to_markdown/", {hierarchy: temp, header_prop_name: store.header_prop_name})
-        .then(response => {
-            store.md_content = response.data.md
-        })
+    let temp = hierarchy
+    store.w_data = {}
 
+    setTimeout(() => {
+        store.w_data = temp
+    }, 300);
+
+    dim_store.update_md(temp, store.header_prop_name)
     remove_map_menu()
 }
 

@@ -292,7 +292,14 @@ If you need **AI query** generation assistance or **Weaviate Gorilla**, set up y
   }
 
 
+function update_md(hierarchy, header_prop_name) {
+  apiClient
+  .post("https://localhost:8002/v1/api/hierarchy_to_markdown/", {hierarchy: hierarchy, header_prop_name: header_prop_name})
+  .then(response => {
+      store.md_content = response.data.md
+  })
 
+}
 
 
   function note_click_event() {
@@ -679,8 +686,6 @@ watch(() => dimension.value,
   function html_to_hierarchy(html) {
     console.log('html', html)
 
-    //TODO: 
-
     if (header_prop_name.value === undefined) {
       header_prop_name.value = 'name'
     }
@@ -794,7 +799,10 @@ watch(() => dimension.value,
 
     // left drawer
     is_left_drawer_open,
-    graphql_shema
+    graphql_shema,
+
+
+    update_md
 
 
   }

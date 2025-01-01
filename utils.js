@@ -119,8 +119,7 @@ function find_path(headings, target) {
 }
 
 
-function insert_object_at_uuid(simpleObj, nestedObj, uuidFront, position) {
-    // Helper function to recursively find the target object and its path
+function insert_object_at_uuid(simpleObj, nestedObj, uuid_front, position) {
     function find_object_by_uuid(obj, uuid, parent = null) {
         if (obj.uuid_front === uuid) {
             return { target: obj, parent: parent };
@@ -134,8 +133,7 @@ function insert_object_at_uuid(simpleObj, nestedObj, uuidFront, position) {
         return null; 
     }
 
-    // Finding the target object by UUID
-    const found = find_object_by_uuid(nestedObj, uuidFront);
+    const found = find_object_by_uuid(nestedObj, uuid_front);
 
     if (!found) {
         console.error('UUID not found');
@@ -148,13 +146,14 @@ function insert_object_at_uuid(simpleObj, nestedObj, uuidFront, position) {
         // Ensure there is a children array
         target.children = target.children || [];
         // Append to the children array of the found object
+        simpleObj  = {...simpleObj, parent_ref: uuid_front}
         target.children.push(simpleObj);
     } else if (position === 'sibling') {
         if (parent) {
-            // Finding the index of the target object within its parent's children array
-            const index = parent.children.findIndex(child => child.uuid_front === uuidFront);
-            // Insert the simpleObj right after the target object in the parent's children array
-            parent.children.splice(index + 1, 0, simpleObj);
+          let parent_uuid = find_parent_uuid(nestedObj, uuid_front);
+          simpleObj  = {...simpleObj, parent_ref: parent_uuid}
+          const index = parent.children.findIndex(child => child.uuid_front === uuid_front);
+          parent.children.splice(index + 1, 0, simpleObj);
         } else {
             console.error('Sibling insertion not possible at root level.');
         }

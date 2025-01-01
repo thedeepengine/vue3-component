@@ -6,7 +6,7 @@ import { linkHorizontal, line as d3line } from 'd3-shape'
 import { transition } from 'd3-transition'
 import { toRaw } from 'vue';
 import { hierarchy, tree } from 'd3-hierarchy'
-import { insert_object_at_uuid, find_parent_uuid } from '@/components_shared/utils'
+import { highlight_new_node, insert_object_at_uuid, find_parent_uuid, assign_tree_side_and_order, physically_order_tree } from '@/components_shared/utils'
 
 const NODE_MIN_WIDTH = 50
 const stroke = "#555";
@@ -79,18 +79,6 @@ var adjust_tree_x = function (root_left, root_right) {
     root_left.descendants().map(item => { item.x -= diff_left })
 }
 
-var adjust_tree_y_graph = function (root_left, root_right, side) {
-    if (Object.keys(root_left).length === 0) return; // quit if root_left is empty as no adjustment is needed
-
-    if (side === 'left') {
-        var diff = root_right.y_start - root_left.y_end
-        root_left.descendants().map(item => { item.y_start += diff; item.y_end += diff })
-    } else {
-        var diff = root_right.y_end - root_left.y_start
-        root_right.descendants().map(item => { item.y_start -= diff; item.y_end -= diff })
-    }
-}
-
 function empty_static_tree() {
     d3selectAll(".front_text_container .node_text").remove()
     d3selectAll(".underlined_path_container .link").remove()
@@ -102,13 +90,9 @@ function empty_force_tree() {
     d3selectAll("#forcedtree g.back_node_container").remove()
     d3selectAll("#forcedtree g.back_text_container").remove()
     d3selectAll("#forcedtree g.back_link_container").remove()
-
-    
-    
-    // d3selectAll("#forcedtree line").remove()
-    // d3selectAll("#forcedtree circle").remove()
-    // d3selectAll("#forcedtree text").remove()
 }
+
+const TREE_UPDATE_DURATION = 300
 
 function draw_path_tree(root_nodes, root_links) {
 
@@ -140,7 +124,7 @@ function draw_path_tree(root_nodes, root_links) {
                 .style('opacity', 1),
             update => update
                 .transition()
-                .duration(300)
+                .duration(TREE_UPDATE_DURATION)
                 .attr("d", linkHorizontal()
                     .source(d => ({ ...d.source, 'type': 'source' }))
                     .target(d => ({ ...d.target, 'type': 'target' }))
@@ -187,7 +171,7 @@ function draw_path_tree(root_nodes, root_links) {
                 // }),
             update => update
                 .transition()  // Start a transition for update selection
-                .duration(50)
+                .duration(TREE_UPDATE_DURATION)
                 .attr("d", d => d3linew(d.coord)),
                 // .each(function (d) {
                 //     console.log("Updating:", d); // Logs data for updating elements
@@ -300,7 +284,7 @@ function draw_text_tree(store) {
             else if (d.side === 'right') return `node_text right-sided`
         })
         .transition()
-        .duration(0)
+        .duration(TREE_UPDATE_DURATION)
         .attr("transform", d => `translate(${d.y_start},${d.x - 14})`)
         .style('width', node_width)
         .select('body')
@@ -310,9 +294,6 @@ function draw_text_tree(store) {
         .attr("transform", d => `translate(${d.y_start},${d.x - 14})`)
         .style('width', node_width2)
 
-        console.log('llll', rr.select('.hover-trace'))
-        console.log('llll', rr)
-        
     rr.select('.hover-trace')
         .attr("class", d => {
             if (d.depth === 0) return
@@ -465,7 +446,7 @@ function show_map_menu(hierarchy, data) {
 
 function handle_click_new_node(hierarchy, node_data, position) {
     let temp_uuid = Math.random().toString(36).substring(2, 7)
-    let new_item = {uuid: temp_uuid, uuid_front: 'X_TEM_'+temp_uuid, name: 'new added node'}
+    let new_item = {uuid: temp_uuid, uuid_front: 'X_TEM_'+temp_uuid, name: ''}
 
     insert_object_at_uuid(new_item, hierarchy, node_data.data.uuid_front, position)
 
@@ -474,11 +455,38 @@ function handle_click_new_node(hierarchy, node_data, position) {
 
     setTimeout(() => {
         store.w_data = temp
+        highlight_new_node('X_TEM_'+temp_uuid, 'map')
     }, 300);
 
-    dim_store.update_md(temp, store.header_prop_name)
+    store.update_md(temp, store.header_prop_name)
     remove_map_menu()
 }
+
+
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+////////// tree compute //////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+
+function compute_tree(store) {
+    let { root_right, root_left } = compute_base_tree(store.w_data)
+    compute_text_length(store, root_right, root_left)
+
+    const root_nodes = [
+        ...root_right.descendants(),
+        ...(Object.keys(root_left).length === 0 ? [] : root_left.descendants())
+      ];
+    const root_links = [
+        ...root_right.links(),
+        ...(Object.keys(root_left).length === 0 ? [] : root_left.links())
+      ];
+
+    store.root_nodes = root_nodes
+    store.root_links = root_links
+    return { root_nodes, root_links }
+}
+
 
 function compute_base_tree(d) {
     let data_right = {}
@@ -490,11 +498,18 @@ function compute_base_tree(d) {
         data_right = { 'name': d.name, 'children': d.children, uuid: d.uuid, uuid_front: d.uuid_front }
         data_left = {}
     } else {
-        var [odds, evens] = splitOddEven(d.children.length)
-        let split_right = odds.map(x => d.children[x])
-        let split_left = evens.map(x => d.children[x])
-        data_right = { 'name': d.name, uuid: d.uuid, uuid_front: d.uuid_front, 'children': split_right }
-        data_left = { uuid: 'SPECIFIC_UUID_X', uuid_front: 'SPECIFIC_UUID_X_FRONT', 'children': split_left }
+
+        let right, left;
+        if (!('side' in d)) {
+            console.log('COMPUTING NEW SIDES++++++++')
+            assign_tree_side_and_order(d);
+            // ({left,right} = physically_order_tree(d));
+        }
+
+        right = d.children.filter(x=>x.side === 'right')
+        left = d.children.filter(x=>x.side === 'left')
+        data_right = { 'name': d.name, uuid: d.uuid, uuid_front: d.uuid_front, 'children': right }
+        data_left = { uuid: 'SPECIFIC_UUID_X', uuid_front: 'SPECIFIC_UUID_X_FRONT', 'children': left }
     }
 
     let root_right = compute_side(data_right, "right")
@@ -533,27 +548,6 @@ function compute_text_length(store, root_right, root_left) {
     root_left = draw_side_tree(store, root_left, "left")
     adjust_tree_x(root_left, root_right)
     return { root_right, root_left }
-}
-
-function compute_tree(store) {
-    let { root_right, root_left } = compute_base_tree(store.w_data)
-    compute_text_length(store, root_right, root_left)
-
-    console.log('root_left.length', root_left)
-    const root_nodes = [
-        ...root_right.descendants(),
-        ...(Object.keys(root_left).length === 0 ? [] : root_left.descendants())
-      ];
-    const root_links = [
-        ...root_right.links(),
-        ...(Object.keys(root_left).length === 0 ? [] : root_left.links())
-      ];
-
-    //   const root_nodes = [...root_right.descendants(), ...root_left.descendants()]
-    //   const root_links = [...root_right.links(), ...root_left.links()]
-    store.root_nodes = root_nodes
-    store.root_links = root_links
-    return { root_nodes, root_links }
 }
 
 function draw_side_tree(store, root, side) {
@@ -747,7 +741,6 @@ export {
     strokeWidth,
     strokeOpacity,
     adjust_tree_x,
-    adjust_tree_y_graph,
     displayStaticTree,
     getCorneredRectangle,
     deepEngineSpinner,

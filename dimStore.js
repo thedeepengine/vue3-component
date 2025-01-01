@@ -260,7 +260,7 @@ function update_md(hierarchy, header_prop_name) {
   apiClient
   .post("https://localhost:8002/v1/api/hierarchy_to_markdown/", {hierarchy: hierarchy, header_prop_name: header_prop_name})
   .then(response => {
-      store.md_content = response.data.md
+      md_content.value = response.data.md
   })
 
 }

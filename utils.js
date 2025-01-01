@@ -5,6 +5,7 @@ import { markedHighlight } from "marked-highlight";
 import hljs from 'highlight.js';
 import graphql from 'highlight.js/lib/languages/graphql';
 // import 'highlight.js/styles/monokai-sublime.css';
+import { select as d3select } from 'd3-selection'
 
 
 const marked_1 = new Marked(markedHighlight({
@@ -208,6 +209,207 @@ function wait_for_element(selector, parent = document, useQuerySelectorAll = fal
 }
 
 
+
+
+function insert_node(mindMap, existingUuid, newNode, insertionType) {
+    
+  function findNode(node, targetUuid) {
+      if (!node) return null; 
+
+      
+      if (node.uuid === targetUuid) {
+          return node;
+      }
+
+      
+      if (node.children && Array.isArray(node.children)) {
+          for (const child of node.children) {
+              const found = findNode(child, targetUuid);
+              if (found) return found;
+          }
+      }
+
+      return null; 
+  }
+
+  
+  function findParent(node, targetUuid) {
+      if (!node) return null; 
+
+      
+      if (node.children && Array.isArray(node.children)) {
+          for (const child of node.children) {
+              if (child.uuid === targetUuid) {
+                  return node; 
+              }
+          }
+
+          
+          for (const child of node.children) {
+              const parent = findParent(child, targetUuid);
+              if (parent) return parent;
+          }
+      }
+
+      return null; 
+  }
+
+  
+  if (!newNode.uuid) {
+      throw new Error("The new node must have a uuid");
+  }
+
+  
+  const existingNode = findNode(mindMap, existingUuid);
+  if (!existingNode) {
+      throw new Error("Node with the given uuid not found");
+  }
+
+  if (insertionType === "child") {
+      
+      if (!existingNode.children) {
+          existingNode.children = [];
+      }
+      newNode.side = existingNode.side; 
+      newNode.order = existingNode.children.length; 
+      existingNode.children.push(newNode);
+  } else if (insertionType === "sibling") {
+      
+      const parent = findParent(mindMap, existingUuid);
+      if (!parent) {
+          throw new Error("Parent of the existing node not found");
+      }
+
+      newNode.side = existingNode.side; 
+      newNode.order = existingNode.order + 1; 
+
+      
+      parent.children.forEach((child) => {
+          if (child.order > existingNode.order) {
+              child.order++;
+          }
+      });
+
+      
+      parent.children.splice(existingNode.order + 1, 0, newNode);
+  } else {
+      throw new Error("Invalid insertion type. Use 'child' or 'sibling'.");
+  }
+}
+
+
+function assign_tree_side_and_order(tree) {
+  // Helper function to recursively assign side and order
+  function assignSideAndOrderRecursive(node, parentSide = "center") {
+      if (!node) return; // Base case: if the node is null or undefined
+
+      // Assign side based on parent's side
+      node.side = parentSide;
+
+      // If the node has children, assign side and order to each child
+      if (node.children && Array.isArray(node.children)) {
+          let leftOrder = 0; // Order counter for left side
+          let rightOrder = 0; // Order counter for right side
+
+          node.children.forEach((child, index) => {
+              // Assign side for children of the center node (odd-even fashion)
+              if (node.side === "center") {
+                  child.side = index % 2 === 0 ? "right" : "left";
+              } else {
+                  // For deeply nested children, inherit the parent's side
+                  child.side = node.side;
+              }
+
+              // Assign order based on the side
+              if (child.side === "left") {
+                  child.order = leftOrder++;
+              } else if (child.side === "right") {
+                  child.order = rightOrder++;
+              }
+
+              // Recursively process the child
+              assignSideAndOrderRecursive(child, child.side);
+          });
+      }
+  }
+
+  // Start the recursion from the root of the tree
+  assignSideAndOrderRecursive(tree);
+}
+
+
+function physically_order_tree(tree) {
+  const left = [];
+  const right = [];
+
+  // Helper function to recursively process the tree
+  function processNode(node) {
+      if (!node) return; // Base case: if the node is null or undefined
+
+      // Create a new node object with the same data and side
+      const newNode = {
+          data: node.data,
+          side: node.side,
+          order: node.order,
+          children: [], // Initialize children array
+      };
+
+      // Add the node to the appropriate side array
+      if (node.side === "left") {
+          left.push(newNode);
+      } else if (node.side === "right") {
+          right.push(newNode);
+      }
+
+      // Recursively process children and add them to the new node's children array
+      if (node.children && Array.isArray(node.children)) {
+          node.children.forEach((child) => {
+              const childNode = processNode(child);
+              if (childNode) {
+                  newNode.children.push(childNode);
+              }
+          });
+      }
+
+      return newNode;
+  }
+
+  processNode(tree);
+  left.sort((a, b) => a.order - b.order);
+  right.sort((a, b) => a.order - b.order);
+
+  return { left, right };
+}
+
+
+
+function highlight_new_node(id, origin) {
+  console.log('origin originoriginorigin', origin)
+  wait_for_element(`[data-pathid="${id}"]`).then((e_map) => {
+    let elt = d3select(`[data-pathid="${id}"]`)
+    elt.style('transition', 'background-color 1s');
+    elt.style('background-color', '#F1E6FF');
+    if (origin === 'map') {
+      let input_elt = elt.select("body input");
+      console.log('input_elt: ', input_elt)
+      input_elt.node().focus();        
+    }
+
+    const handleKeyPress = (event) => {
+        requestAnimationFrame(() => {
+          
+          elt.style('background-color', '');
+        })
+        window.document.removeEventListener('keydown', handleKeyPress);
+    };
+      window.document.addEventListener('keydown', handleKeyPress);  
+})
+}
+
+
+
+
+
 export {
     md_to_html,
     md_to_html_llm,
@@ -216,5 +418,9 @@ export {
     insert_object_at_uuid,
     find_parent_uuid,
     f_log,
-    wait_for_element
+    wait_for_element,
+    insert_node,
+    assign_tree_side_and_order,
+    physically_order_tree,
+    highlight_new_node
 }

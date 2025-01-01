@@ -10,7 +10,6 @@ import { select as d3select, selectAll as d3selectAll, selection as d3selection 
 
 
 
-
 let store = null
 
 function set_store_tiptap(val) {
@@ -90,22 +89,8 @@ const CustomHeading = Heading.extend({
   renderHTML({ node, HTMLAttributes }) {
     if (!node.attrs.id) {
       node.attrs.id = `X_TEM_${Math.random().toString(36).substr(2, 9)}`;
+      highlight_new_node(node.attrs.id)
     }
-
-      wait_for_element(`[data-pathid="${node.attrs.id}"]`).then((e_map) => {
-        let elt = d3select(`[data-pathid="${node.attrs.id}"]`)
-        elt.style('transition', 'background-color 1s');
-        elt.style('background-color', '#F1E6FF');
-
-        const handleKeyPress = (event) => {
-            requestAnimationFrame(() => {
-              
-              elt.style('background-color', '');
-            })
-            window.document.removeEventListener('keydown', handleKeyPress);
-        };
-          window.document.addEventListener('keydown', handleKeyPress);    
-    })
 
     let default_style = 'display: inline; align-items: baseline;'
     HTMLAttributes.id = node.attrs.id;
@@ -127,6 +112,25 @@ const CustomHeading = Heading.extend({
     };
   },
 });
+
+
+function highlight_new_node(id) {
+  wait_for_element(`[data-pathid="${id}"]`).then((e_map) => {
+    let elt = d3select(`[data-pathid="${id}"]`)
+    elt.style('transition', 'background-color 1s');
+    elt.style('background-color', '#F1E6FF');
+
+    const handleKeyPress = (event) => {
+        requestAnimationFrame(() => {
+          
+          elt.style('background-color', '');
+        })
+        window.document.removeEventListener('keydown', handleKeyPress);
+    };
+      window.document.addEventListener('keydown', handleKeyPress);  
+      with_highlight = false  
+})
+}
 
 function get_all_heading(state) {
   let text = []

@@ -503,7 +503,7 @@ function compute_base_tree(d) {
 }
 
 function compute_side(data, side) {
-    if (Object.keys(data).length === 0) return hierarchy({});
+    if (Object.keys(data).length === 0) return {};
 
     var way = side === "right" ? 1 : -1
     var root = hierarchy(data);
@@ -538,15 +538,26 @@ function compute_text_length(store, root_right, root_left) {
 function compute_tree(store) {
     let { root_right, root_left } = compute_base_tree(store.w_data)
     compute_text_length(store, root_right, root_left)
-    const root_nodes = [...root_right.descendants(), ...root_left.descendants()]
-    const root_links = [...root_right.links(), ...root_left.links()]
+
+    console.log('root_left.length', root_left)
+    const root_nodes = [
+        ...root_right.descendants(),
+        ...(Object.keys(root_left).length === 0 ? [] : root_left.descendants())
+      ];
+    const root_links = [
+        ...root_right.links(),
+        ...(Object.keys(root_left).length === 0 ? [] : root_left.links())
+      ];
+
+    //   const root_nodes = [...root_right.descendants(), ...root_left.descendants()]
+    //   const root_links = [...root_right.links(), ...root_left.links()]
     store.root_nodes = root_nodes
     store.root_links = root_links
     return { root_nodes, root_links }
 }
 
 function draw_side_tree(store, root, side) {
-    if (Object.keys(root.data).length === 0) return hierarchy({});
+    if (Object.keys(root).length === 0) return hierarchy({});
 
     var SIDE_CONST = side === "right" ? 1 : -1
     var NODE_CLASS = "node_" + side

@@ -187,42 +187,6 @@ export const dimStore = defineStore("dimStore", () => {
 }
 
 
-
-const test_help = `
-This is a help message, type **!!:!help** to display it again.
-You can query data using 3 different ways:  
-<br>
-#### GraphQL syntax
-<br>
-
-
-Type **!!:\`\`\`+Enter** to start a terminal with syntax highlighting and hints  
-  <br>
-
-\`\`\`graphql
-{
-  Query {...}
-}
-\`\`\`  
-<br>
-
-#### Full Metal Weaviate  
-
-
-For simple queries, Full Metal query syntax comes handy and intuitive:
-
-- <a onclick="console.log('aaaa')">name,hasChildren:name,content</a> returns **!!:name**
- and references **!!:hasChildren** along with children **!!:name** and **!!:content**
- <br>
-
-#### AI generated queries  
-<br>
-
-If you need **AI query** generation assistance or **Weaviate Gorilla**, set up your API keys.  
-<br>
-`
-
-
   function fetch_data(request_bundle) {
     
     apiClient

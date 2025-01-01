@@ -3,7 +3,12 @@ import { Extension, mergeAttributes } from '@tiptap/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state'
 import { update_node_property, displayStaticTree } from '@/components_shared/network/network_utils.js'
 import { InputRule } from '@tiptap/core';
-import { TextSelection } from 'prosemirror-state'; // Correct import from ProseMirror
+import { TextSelection } from 'prosemirror-state';
+import { wait_for_element } from '@/components_shared/utils'
+import { nextTick } from 'vue';
+import { select as d3select, selectAll as d3selectAll, selection as d3selection } from 'd3-selection'
+
+
 
 
 let store = null
@@ -46,7 +51,6 @@ const CustomHeading = Heading.extend({
     return [
       new CustomInputRule(this.type, (match) => {
         const levels = match[1].length; // Calculate heading level from number of '#'
-        // store.html_to_hierarchy(store.html_content)
         setTimeout(() => {
           store.html_to_hierarchy(store.html_content)
         }, 500);
@@ -88,6 +92,21 @@ const CustomHeading = Heading.extend({
       node.attrs.id = `X_TEM_${Math.random().toString(36).substr(2, 9)}`;
     }
 
+      wait_for_element(`[data-pathid="${node.attrs.id}"]`).then((e_map) => {
+        let elt = d3select(`[data-pathid="${node.attrs.id}"]`)
+        elt.style('transition', 'background-color 1s');
+        elt.style('background-color', '#F1E6FF');
+
+        const handleKeyPress = (event) => {
+            requestAnimationFrame(() => {
+              
+              elt.style('background-color', '');
+            })
+            window.document.removeEventListener('keydown', handleKeyPress);
+        };
+          window.document.addEventListener('keydown', handleKeyPress);    
+    })
+
     let default_style = 'display: inline; align-items: baseline;'
     HTMLAttributes.id = node.attrs.id;
     HTMLAttributes.class = (node.attrs.class ? `${node.attrs.class} custom-heading fmw-title` : 'custom-heading fmw-title').trim();
@@ -125,7 +144,6 @@ function get_all_heading(state) {
 
   return text;
 }
-
 
 
 function getTrackHeadingsExtension(store, html_content) {

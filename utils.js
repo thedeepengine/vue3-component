@@ -188,6 +188,26 @@ function f_log(tag, message) {
 }
 
 
+
+function wait_for_element(selector, parent = document, useQuerySelectorAll = false, timeout = 10000) {
+  return new Promise((resolve, reject) => {
+      const startTime = Date.now();
+
+      function check() {
+          const elements = useQuerySelectorAll ? parent.querySelectorAll(selector) : parent.querySelector(selector);
+          if ((useQuerySelectorAll && elements.length > 0) || (!useQuerySelectorAll && elements)) {
+              resolve(elements);
+          } else if (Date.now() - startTime >= timeout) {
+              reject(new Error(`Element(s) "${selector}" not found within ${timeout}ms`));
+          } else {
+              requestAnimationFrame(check);
+          }
+      }
+      check();
+  });
+}
+
+
 export {
     md_to_html,
     md_to_html_llm,
@@ -195,5 +215,6 @@ export {
     add_children_at_path,
     insert_object_at_uuid,
     find_parent_uuid,
-    f_log
+    f_log,
+    wait_for_element
 }

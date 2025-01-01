@@ -140,7 +140,7 @@
 import { dimStore } from '@/components_shared/dimStore.js'
 import { useEditor, Editor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
-import { md_to_html, md_to_html_llm } from '@/components_shared/utils.js'
+import { md_to_html, md_to_html_llm, wait_for_element } from '@/components_shared/utils.js'
 import { onMounted, onUnmounted, ref, watch, onBeforeUnmount, computed } from 'vue';
 import { Extension } from '@tiptap/core'
 import { nextTick, reactive, watchEffect } from 'vue';
@@ -236,6 +236,42 @@ function switch_left_drawer() {
 
 
 
+
+const test_help = `
+This is a help message, type **!!:!help** to display it again.
+You can query data using 3 different ways:  
+<br>
+#### GraphQL syntax
+<br>
+
+
+Type **!!:\`\`\`+Enter** to start a terminal with syntax highlighting and hints  
+  <br>
+
+\`\`\`graphql
+{
+  Query {...}
+}
+\`\`\`  
+<br>
+
+#### Full Metal Weaviate  
+
+
+For simple queries, Full Metal query syntax comes handy and intuitive:
+
+- <a onclick="console.log('aaaa')">name,hasChildren:name,content</a> returns **!!:name**
+ and references **!!:hasChildren** along with children **!!:name** and **!!:content**
+ <br>
+
+#### AI generated queries  
+<br>
+
+If you need **AI query** generation assistance or **Weaviate Gorilla**, set up your API keys.  
+<br>
+`
+
+
 function submit(user_input, type_input) {
     if (user_input === '') return
     
@@ -247,12 +283,12 @@ function submit(user_input, type_input) {
 
       setTimeout(() => {
         
-        conversation_history.value.push({ message: '', user: 'ai', id: conversation_history.value.length + 1 })
+        dim_store.conversation_history.push({ message: '', user: 'ai', id: dim_store.conversation_history.length + 1 })
         let index = 0;
         let to_send = test_help.split(' ')
         const interval = setInterval(() => {
           if (index < to_send.length) {
-            conversation_history.value[conversation_history.value.length - 1].message += to_send[index] + ' '
+            dim_store.conversation_history[dim_store.conversation_history.length - 1].message += to_send[index] + ' '
             index++;
           } else {
             clearInterval(interval); 
@@ -344,12 +380,12 @@ function switch_llm_history(way = 'open') {
         const temp_history_text = document.getElementById('temp_history_text');
 
         let rect;
-        waitForElement('#temp_history_text').then((elt) => {
+        wait_for_element('#temp_history_text').then((elt) => {
             rect = temp_history_text.getBoundingClientRect()
             let height = rect.height
 
 
-            waitForElement('#fmw-scroll-div').then((elt) => {
+            wait_for_element('#fmw-scroll-div').then((elt) => {
                 elt.scrollTop = elt.scrollHeight
             })
 
@@ -477,35 +513,16 @@ const add_message_to_history = async (message, role, message_type) => {
 const last_item_elt = ref()
 const last_item_height = ref(0)
 
-
-function waitForElement(selector, parent = document, useQuerySelectorAll = false, timeout = 10000) {
-    return new Promise((resolve, reject) => {
-        const startTime = Date.now();
-
-        function check() {
-            const elements = useQuerySelectorAll ? parent.querySelectorAll(selector) : parent.querySelector(selector);
-            if ((useQuerySelectorAll && elements.length > 0) || (!useQuerySelectorAll && elements)) {
-                resolve(elements);
-            } else if (Date.now() - startTime >= timeout) {
-                reject(new Error(`Element(s) "${selector}" not found within ${timeout}ms`));
-            } else {
-                requestAnimationFrame(check);
-            }
-        }
-        check();
-    });
-}
-
 watch(dim_store.conversation_history, (new_val, old_val) => {
     if (dim_store.conversation_history.at(-1).user === 'human') {
         with_last_transition.value = true
-        waitForElement('.human-item').then((elt) => {
+        wait_for_element('.human-item').then((elt) => {
             update_llm_last_item_opacity(elt)
         })
     } else {
         if (last_item_elt.value === null || last_item_elt.value === undefined) {
             with_last_transition.value = true
-            waitForElement('.ai-item').then((elt) => {
+            wait_for_element('.ai-item').then((elt) => {
                 last_item_elt.value = elt
                 last_item_height.value = 0
             })

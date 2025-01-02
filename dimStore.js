@@ -38,6 +38,7 @@ export const dimStore = defineStore("dimStore", () => {
 
   const is_comp_mounted = ref({editor: false})
 
+  const last_dimension = ref('')
   // header
   const llm_message = ref('')
   const selected_clt = ref('')
@@ -158,6 +159,10 @@ export const dimStore = defineStore("dimStore", () => {
       'Content-Type': 'application/json'
     }
   });
+
+  watch(() => dimension.value, (new_value, old_value)=> {
+    last_dimension.value = old_value
+  })
 
 
 
@@ -766,7 +771,8 @@ watch(() => dimension.value,
     graphql_shema,
 
 
-    update_md
+    update_md,
+    last_dimension
 
 
   }

@@ -1,6 +1,6 @@
 <!-- TEMPLATE MUST HAVE A SINGLE CHILD EVEN COMMENT NOT ACCEPTED -->
 <template>
-    <n-grid cols=1 style="padding-top:120px;padding-right:3em">
+    <n-grid cols=1 style="padding-right:3em;padding-top:var(--fmw-left-selector-height)">
         <n-gi v-for="item, k in dim_store.transaction_list">
             <div v-if="item.length > 0">
                 <div style="font-weight: 600;font-size: 20px">{{ CATEGORY_MAPPING[k] }}</div>

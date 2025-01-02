@@ -125,7 +125,7 @@ function get_all_heading(state) {
   let text = []
   state.doc.descendants((node, pos) => {
     if (node.type.name === 'heading') {
-      text.push(`${'#'.repeat(node.attrs.level)} ${node.attrs.id} ${node.content.size}`)
+      text.push(`${'#'.repeat(node.attrs.level)} ${node.attrs.id} ${node.lastChild?.text}`)
     }
   });
   return text;

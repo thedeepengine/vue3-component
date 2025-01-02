@@ -265,7 +265,9 @@ onMounted(() => {
   })
 
   watch(() => dim_store.md_content, (newValue) => {
-    if (!dim_store.is_dirty && editor.value && editor.value.getHTML() !== newValue) {
+    // console.log(' && editor.value.getHTML() !== newValue', editor.value.getHTML() !== newValue)
+    // !dim_store.is_dirty && 
+    if (editor.value) {
       dim_store.html_content = md_to_html(newValue)
       editor.value.commands.setContent(dim_store.html_content);
       dim_store.html_content_original = editor.value.getHTML()

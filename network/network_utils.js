@@ -205,9 +205,9 @@ function draw_text_tree(store) {
     let node_width = d => { return `${Math.max(d.y_end - d.y_start, NODE_MIN_WIDTH )}px` }
     let node_width2 = d => { return `${Math.max(d.y_end - d.y_start, NODE_MIN_WIDTH)}px` }
 
-    const enteredElements = rr.enter()
+    rr.enter()
+        .filter(d => d.data.uuid !== 'SPECIFIC_UUID_X')
         .append('foreignObject')
-        .filter(d=> d.data.uuid !== 'SPECIFIC_UUID_X')
         .each(function (d) {
 
             let foreignObject = d3select(this)
@@ -275,24 +275,39 @@ function draw_text_tree(store) {
                     show_map_menu(store.w_data, data)
                  })
         })
+        // .each(function(d) { console.log('adding ++++++:', d.data.uuid_front); });  
 
     rr
+    .filter(d => d.data.uuid !== 'SPECIFIC_UUID_X')
         .attr('data-pathid', d => d.data.uuid_front)
         .attr("class", d => {
             if (d.depth === 0) return `node_text`
             else if (d.side === 'left') return `node_text left-sided`
             else if (d.side === 'right') return `node_text right-sided`
         })
-        .transition()
-        .duration(TREE_UPDATE_DURATION)
-        .attr("transform", d => `translate(${d.y_start},${d.x - 14})`)
-        .style('width', node_width)
-        .select('body')
-        .style('width', node_width)
         .select('input')
-        .attr('value', d => d.data[store.header_prop_name])
+          .property('value', d => {
+                // console.log('d.data[store.header_prop_name]', d.data[store.header_prop_name]); 
+                return d.data[store.header_prop_name];
+            })  
+            // .attr('value', d => {console.log('d.data[store.header_prop_name]', d.data[store.header_prop_name]); return d.data[store.header_prop_name]})
+            
+        rr
+            .transition()
+            .duration(TREE_UPDATE_DURATION)
         .attr("transform", d => `translate(${d.y_start},${d.x - 14})`)
-        .style('width', node_width2)
+            .style('width', node_width)
+        .select('body')
+            .style('width', node_width)
+        .select('input')
+            // .property('value', d => {
+            //     console.log('d.data[store.header_prop_name]', d.data[store.header_prop_name]); 
+            //     return d.data[store.header_prop_name];
+            // })  
+            // .attr('value', d => {console.log('d.data[store.header_prop_name]', d.data[store.header_prop_name]); return d.data[store.header_prop_name]})
+            .attr("transform", d => `translate(${d.y_start},${d.x - 14})`)
+            .style('width', node_width2)
+        // .each(function(d) { console.log('updating:', d.data.uuid_front); });  
 
     rr.select('.hover-trace')
         .attr("class", d => {

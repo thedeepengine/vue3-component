@@ -1,6 +1,6 @@
 <template>
     <div class="graphql-output-container">
-        <Graphql ref="graphql_elt" :code="graphql_output_computed" :prop_option="{mode: 'application/json'}"></Graphql>
+        <Graphql ref="graphql_elt" :code="graphql_output_computed" :prop_option="{ mode: 'application/json' }"></Graphql>
     </div>
 </template>
 
@@ -8,6 +8,8 @@
 import Graphql from './Graphql.vue'
 import { ref, onMounted, watch, computed } from "vue";
 import { dimStore } from '@/components_shared/dimStore'
+import { wait_for_element } from '@/components_shared/utils.js'
+
 
 const dim_store = dimStore()
 const graphql_output_computed = ref()
@@ -20,29 +22,45 @@ function animateElement() {
         { opacity: 1 },
         { opacity: 0 }
     ], {
-        duration: 200, 
+        duration: 200,
         fill: 'forwards'
     }).finished;
-    }
+}
 
-watch(() => dim_store.graphql_output, () => {
 
-animateElement().then(() => {
-    graphql_output_computed.value = JSON.stringify(dim_store.graphql_output, null, 2)
+function display_data() {
+    // animateElement().then(() => {
+                console.log('dim_store.graphql_output', dim_store.graphql_output)
+                graphql_output_computed.value = JSON.stringify(dim_store.graphql_output, null, 2)
 
-    const box = document.querySelector('.graphql-output-container');
+                wait_for_element('.graphql-output-container').then((elt)=> {
+                    elt.animate([
+                    { opacity: 0 },
+                    { opacity: 1 }
+                ], {
+                    duration: 200,
+                    fill: 'forwards'
+                });
+                })
+                // const box = document.querySelector('.graphql-output-container');
 
-    box.animate([
-        { opacity: 0 },
-        { opacity: 1 }
-    ], {
-        duration: 200, 
-        fill: 'forwards'
-    });
-  
-});
 
+
+            // });
+}
+
+onMounted(() => {
+    display_data()
+
+    watch(() => [dim_store.graphql_output, dim_store.dimension], () => {
+
+        console.log('dim_store.dimension', dim_store.dimension)
+        if (dim_store.dimension === 'graphql_output') {
+            display_data()
+        }
+    })
 })
+
 
 </script>
 

@@ -541,7 +541,6 @@ watch(() => dim_store.content_type, () => {
 
 <!-- 
 // dim_store.w_data.children.push({uuid: 'ffff', uuid_front: 'X_GHA_ffff', name: 'ddd'}) 
-// displayStaticTree(dim_store)
 
 
 
@@ -633,6 +632,5 @@ watch(() => dim_store.content_type, () => {
 // console.log('dim_store.w_ddddata', dim_store.w_data)
 // console.log('is_updated', is_updated)
 // if (is_updated) {
-//   displayStaticTree(dim_store)
 // }
  -->

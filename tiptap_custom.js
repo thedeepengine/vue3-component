@@ -125,19 +125,25 @@ function get_all_heading(state) {
   let text = []
   state.doc.descendants((node, pos) => {
     if (node.type.name === 'heading') {
-      text.push(`${'#'.repeat(node.attrs.level)} ${node.attrs.id}`)
+      text.push(`${'#'.repeat(node.attrs.level)} ${node.attrs.id} ${node.content.size}`)
     }
-
-    // const hashMatch = node.textContent.match(/^(#+)/);
-    // if (node.type.name === 'paragraph' && hashMatch) {
-    //   let target = hashMatch[0] + ' ' + '!TEMP_TARGET_FMW_FRONT_!'
-    //   text.push(target)
-    // }
   });
-
   return text;
 }
 
+function areArraysEqual(array1, array2) {
+  if (array1.length !== array2.length) {
+    return false;
+  }
+
+  for (let i = 0; i < array1.length; i++) {
+    if (array1[i] !== array2[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 function getTrackHeadingsExtension(store, html_content) {
   const TrackHeadingsExtension =
@@ -154,9 +160,12 @@ function getTrackHeadingsExtension(store, html_content) {
               const { $from } = newState.selection;
               const nodeAtPos = $from.node();
               let old_heading = get_all_heading(oldState)
+              let new_heading = get_all_heading(newState)
               if (old_heading.length > 0) {
+                if (!areArraysEqual(old_heading, new_heading)) {
                   update_node_property(store.w_data, nodeAtPos.attrs.id, store.header_prop_name, nodeAtPos.textContent)
                   displayStaticTree(store) 
+                }
               }
             }
           })

@@ -6,7 +6,7 @@ import { linkHorizontal, line as d3line } from 'd3-shape'
 import { transition } from 'd3-transition'
 import { toRaw } from 'vue';
 import { hierarchy, tree } from 'd3-hierarchy'
-import { highlight_new_node, insert_object_at_uuid, find_parent_uuid, assign_tree_side_and_order, physically_order_tree } from '@/components_shared/utils'
+import { highlight_new_node, insert_object_at_uuid, find_parent_uuid, assign_tree_side_and_order, restructure_tree } from '@/components_shared/utils'
 
 const NODE_MIN_WIDTH = 50
 const stroke = "#555";
@@ -492,20 +492,16 @@ function compute_base_tree(d) {
     let data_right = {}
     let data_left = {}
     if (d.children === undefined) {
-        data_right = { 'name': d.name, uuid: d.uuid, uuid_front: d.uuid_front }
-        data_left = {}
-    } else if (d.children.length === 1) {
-        data_right = { 'name': d.name, 'children': d.children, uuid: d.uuid, uuid_front: d.uuid_front }
+        data_right = { name: d.name, uuid: d.uuid, uuid_front: d.uuid_front, side: 'center' }
         data_left = {}
     } else {
 
         let right, left;
         if (!('side' in d)) {
-            console.log('COMPUTING NEW SIDES++++++++')
             assign_tree_side_and_order(d);
-            // ({left,right} = physically_order_tree(d));
         }
 
+        ({left,right} = restructure_tree(d));
         right = d.children.filter(x=>x.side === 'right')
         left = d.children.filter(x=>x.side === 'left')
         data_right = { 'name': d.name, uuid: d.uuid, uuid_front: d.uuid_front, 'children': right }

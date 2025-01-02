@@ -70,6 +70,14 @@ const CustomHeading = Heading.extend({
         default: null,
         rendered: true,
       },
+      'data-side': {
+        default: null,
+        rendered: true,
+      },
+      'data-order': {
+        default: null,
+        rendered: true,
+      },
 
       class: {
         default: null,

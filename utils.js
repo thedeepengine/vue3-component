@@ -25,7 +25,9 @@ const renderer_1 = {
     let uuid = split_text_uuid[1]
     let parent_ref = split_text_uuid[2]
     let clt_name = split_text_uuid[3]
-    return `<h${depth} class="custom-heading" id="${uuid}" data-parent-ref="${parent_ref}" data-clt-name="${clt_name}">${text}</h${depth}>`;
+    let side = split_text_uuid[4]
+    let order = split_text_uuid[5]
+    return `<h${depth} class="custom-heading" id="${uuid}" data-parent-ref="${parent_ref}" data-clt-name="${clt_name}" data-side="${side}" data-order="${order}">${text}</h${depth}>`;
   },
   paragraph(token) {
 
@@ -120,7 +122,7 @@ function find_path(headings, target) {
 }
 
 
-function insert_object_at_uuid(simpleObj, nestedObj, uuid_front, position) {
+function insert_object_at_uuid(new_obj, nestedObj, uuid_front, position) {
     function find_object_by_uuid(obj, uuid, parent = null) {
         if (obj.uuid_front === uuid) {
             return { target: obj, parent: parent };
@@ -144,17 +146,22 @@ function insert_object_at_uuid(simpleObj, nestedObj, uuid_front, position) {
     const { target, parent } = found;
 
     if (position === 'children') {
-        // Ensure there is a children array
         target.children = target.children || [];
-        // Append to the children array of the found object
-        simpleObj  = {...simpleObj, parent_ref: uuid_front}
-        target.children.push(simpleObj);
+        new_obj = {...new_obj, parent_ref: uuid_front, side: target.side, order: target.children.length}
+        target.children.push(new_obj);
     } else if (position === 'sibling') {
         if (parent) {
           let parent_uuid = find_parent_uuid(nestedObj, uuid_front);
-          simpleObj  = {...simpleObj, parent_ref: parent_uuid}
-          const index = parent.children.findIndex(child => child.uuid_front === uuid_front);
-          parent.children.splice(index + 1, 0, simpleObj);
+          new_obj  = {...new_obj, parent_ref: parent_uuid, side: target.side, order: target.order + 1}
+
+          parent.children.forEach((child) => {
+            if (child.order > target.order) {
+                child.order++;
+            }
+          });
+  
+          // const index = parent.children.findIndex(child => child.uuid_front === uuid_front);
+          parent.children.splice(target.order + 1, 0, new_obj);
         } else {
             console.error('Sibling insertion not possible at root level.');
         }
@@ -338,13 +345,49 @@ function assign_tree_side_and_order(tree) {
 }
 
 
-function physically_order_tree(tree) {
+
+
+
+function restructure_tree(tree) {
+  // Initialize left and right arrays
   const left = [];
   const right = [];
 
   // Helper function to recursively process the tree
   function processNode(node) {
       if (!node) return; // Base case: if the node is null or undefined
+
+      // Sort the children array by order
+      if (node.children && Array.isArray(node.children)) {
+          node.children.sort((a, b) => a.order - b.order);
+
+          // Recursively process each child
+          node.children.forEach((child) => processNode(child));
+      }
+
+      // Add the node to the appropriate side array
+      if (node.side === "left") {
+          left.push(node);
+      } else if (node.side === "right") {
+          right.push(node);
+      }
+  }
+
+  // Start processing from the root of the tree
+  processNode(tree);
+
+  // Sort the left and right arrays by order
+  left.sort((a, b) => a.order - b.order);
+  right.sort((a, b) => a.order - b.order);
+
+  return { left, right };
+}
+function physically_order_tree(tree) {
+  const left = [];
+  const right = [];
+
+  function processNode(node) {
+      if (!node) return; 
 
       // Create a new node object with the same data and side
       const newNode = {
@@ -421,6 +464,6 @@ export {
     wait_for_element,
     insert_node,
     assign_tree_side_and_order,
-    physically_order_tree,
+    restructure_tree,
     highlight_new_node
 }

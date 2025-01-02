@@ -15,13 +15,28 @@ export default Node.create({
       name: {
         default: '',
       },
-    }
+      class: {
+        default: null,
+        renderHTML: (attributes) => {
+          if (attributes.class) {
+            return { class: attributes.class };
+          }
+          return {};
+        },
+        parseHTML: (element) => element.getAttribute('class'), // Parse the class from HTML
+      }
+    };
   },
 
   parseHTML() {
     return [
       {
         tag: 'button-node',
+        getAttrs: (element) => {
+          return {
+            class: element.getAttribute('class')
+          };
+        },
       },
     ]
   },

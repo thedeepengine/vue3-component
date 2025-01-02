@@ -18,7 +18,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch } from 'vue';
+import { ref, reactive, onMounted, watch, onActivated, onDeactivated } from 'vue';
 import { TabulatorFull as Tabulator } from 'tabulator-tables'; //import Tabulator library
 // import 'tabulator-tables/dist/css/tabulator.min.css';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css'
@@ -79,6 +79,21 @@ function add_row_formatter(ref_row) {
     }
     return f
 }
+
+
+
+// onActivated(() => {
+//     console.log('aAACCCCCCC')
+// });
+
+
+
+// onDeactivated(() => {
+//     console.log('DEACC')
+// });
+
+
+
 
 
 watch(() => dim_store.data_table, () => {

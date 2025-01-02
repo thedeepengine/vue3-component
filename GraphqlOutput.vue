@@ -29,24 +29,16 @@ function animateElement() {
 
 
 function display_data() {
-    // animateElement().then(() => {
-                console.log('dim_store.graphql_output', dim_store.graphql_output)
-                graphql_output_computed.value = JSON.stringify(dim_store.graphql_output, null, 2)
-
-                wait_for_element('.graphql-output-container').then((elt)=> {
-                    elt.animate([
-                    { opacity: 0 },
-                    { opacity: 1 }
-                ], {
-                    duration: 200,
-                    fill: 'forwards'
-                });
-                })
-                // const box = document.querySelector('.graphql-output-container');
-
-
-
-            // });
+    graphql_output_computed.value = JSON.stringify(dim_store.graphql_output, null, 2)
+    wait_for_element('.graphql-output-container').then((elt)=> {
+        elt.animate([
+        { opacity: 0 },
+        { opacity: 1 }
+    ], {
+        duration: 200,
+        fill: 'forwards'
+    });
+    })
 }
 
 onMounted(() => {

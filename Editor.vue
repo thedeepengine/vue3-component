@@ -245,14 +245,14 @@ const editor = useEditor({
     if (editor.state.doc.content.leg)
       debounceTimer.value = setTimeout(() => findNearestHeading(editor), 300);
   },
-  editorProps: {
-    handlePaste(view, event, slice) {
-      const markdownContent = event.clipboardData.getData('text/plain');
-      const htmlContent = md_to_html(markdownContent);
-      editor.value.commands.insertContent(htmlContent);
-      return true;
-    }
-  }
+  // editorProps: {
+  //   handlePaste(view, event, slice) {
+  //     const markdownContent = event.clipboardData.getData('text/plain');
+  //     const htmlContent = md_to_html(markdownContent);
+  //     editor.value.commands.insertContent(htmlContent);
+  //     return true;
+  //   }
+  // }
 });
 
 

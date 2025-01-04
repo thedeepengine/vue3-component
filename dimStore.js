@@ -52,7 +52,7 @@ export const dimStore = defineStore("dimStore", () => {
   
 
   const is_menu_open = ref(false)
-  const transaction_list = ref()
+  const transaction_list = ref({})
 
   const legacy_data = ref()
   const header_prop_name = ref(undefined)

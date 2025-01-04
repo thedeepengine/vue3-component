@@ -450,8 +450,114 @@ function highlight_new_node(id, origin) {
 }
 
 
+function remove_entry_by_id(dataArray, entryId) {
+    // Helper function to recursively check and remove entries
+    function recursiveRemove(arr) {
+        for (let i = arr.length - 1; i >= 0; i--) {
+            if (arr[i].uuid === entryId) {
+                arr.splice(i, 1); // Remove the matching object
+            } else {
+                // Check for nested arrays
+                for (let key in arr[i]) {
+                    if (Array.isArray(arr[i][key])) {
+                        recursiveRemove(arr[i][key]);
+                    }
+                }
+            }
+        }
+    }
+
+    recursiveRemove(dataArray);
+    return dataArray
+}
 
 
+// function remove_entry_by_id(dataArray, entryId) {
+//     // Helper function to recursively filter out entries
+//     function recursiveFilter(arr) {
+//         return arr
+//             .filter(item => item.uuid !== entryId) // Filter out the matching object
+//             .map(item => {
+//                 // Create a new object for each item
+//                 const newItem = { ...item };
+//                 // Check for nested arrays and recursively filter them
+//                 for (let key in newItem) {
+//                     if (Array.isArray(newItem[key])) {
+//                         newItem[key] = recursiveFilter(newItem[key]);
+//                     }
+//                 }
+//                 return newItem;
+//             });
+//     }
+
+//     return recursiveFilter(dataArray);
+// }
+
+
+function append_new_obj(dataArray, entryId, new_obj) {
+    // Helper function to recursively search and append after the matching id
+    function recursiveAppend(arr) {
+        for (let i = 0; i < arr.length; i++) {
+            if (arr[i].uuid === entryId) {
+                arr.splice(i + 1, 0, new_obj); 
+                return true;
+            } else {
+                // Check for nested arrays
+                for (let key in arr[i]) {
+                    if (Array.isArray(arr[i][key])) {
+                        if (recursiveAppend(arr[i][key])) return true; // Stop recursion if appended
+                    }
+                }
+            }
+        }
+        return false; // Continue searching
+    }
+
+    recursiveAppend(dataArray);
+}
+
+
+function find_differences(arr1, arr2, uuids) {
+    // Create maps from UUID to object for quick access
+    const map1 = new Map(arr1.map(item => [item.uuid, item]));
+    const map2 = new Map(arr2.map(item => [item.uuid, item]));
+
+    // Initialize the result object
+    const result = {
+        added_obj: [],
+        removed_obj: [],
+        changed_prop: []
+    };
+
+    // Check for each UUID
+    for (const uuid of uuids) {
+        const obj1 = map1.get(uuid);
+        const obj2 = map2.get(uuid);
+
+        if (!obj1 && obj2) {
+            // UUID is in arr2 but not in arr1 (added)
+            result.added_obj.push(uuid);
+        } else if (obj1 && !obj2) {
+            // UUID is in arr1 but not in arr2 (removed)
+            result.removed_obj.push(uuid);
+        } else if (obj1 && obj2) {
+            // Compare fields of both objects
+            const keys = new Set([...Object.keys(obj1), ...Object.keys(obj2)]);
+            let hasChanged = false;
+            for (const key of keys) {
+                if (obj1[key] !== obj2[key]) {
+                    hasChanged = true;
+                    break; // Stop checking more fields if a difference is found
+                }
+            }
+            if (hasChanged) {
+                result.changed_prop.push(uuid);
+            }
+        }
+    }
+
+    return result;
+}
 
 export {
     md_to_html,
@@ -465,5 +571,8 @@ export {
     insert_node,
     assign_tree_side_and_order,
     restructure_tree,
-    highlight_new_node
+    highlight_new_node,
+    remove_entry_by_id,
+    append_new_obj,
+    find_differences
 }

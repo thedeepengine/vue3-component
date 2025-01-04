@@ -341,8 +341,8 @@ function clean_html() {
 }
 
 watch(() => dim_store.refresh_save_page, () => {
-
-  let html = dim_store.show_refs ? clean_html() : editor.value.getHTML()
+  if (dim_store.dimension === 'hierarchy') {
+    let html = dim_store.show_refs ? clean_html() : editor.value.getHTML()
   let bundle = { old_html: dim_store.html_content_original, new_html: html, header_prop_name: dim_store.header_prop_name, dry_run: true }
 
   apiClient
@@ -350,7 +350,7 @@ watch(() => dim_store.refresh_save_page, () => {
     .then(response => {
       dim_store.transaction_list = response.data
     })
-
+  }
 })
 
 onBeforeUnmount(() => {

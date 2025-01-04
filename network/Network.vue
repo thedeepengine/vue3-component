@@ -428,4 +428,8 @@ foreignObject body input {
 .hover-trace-right:hover {
     opacity: 1;
 }
+
+.network_class {
+    width: 50vw;
+}
 </style>

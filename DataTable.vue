@@ -4,12 +4,13 @@
             <n-space justify="end">
                 <button style="z-index:99999999999999999;position:relative" class='fm-button' @click="expand"
                     :class="{ shrink: is_shrunk, reverseShrunk: !is_shrunk }" ref="expand_button">
-                    <n-icon :component="icon" color="rgb(76, 84, 103)" size="30"></n-icon>
+                    <!-- <n-icon :component="icon" color="rgb(76, 84, 103)" size="30"></n-icon> -->
                 </button>
             </n-space>
         </n-gi>
         <n-gi>
-            <div ref="table_wrapper" style="border-radius: 10px;background-color: #eeeae6;padding:5px"
+            <div ref="table_wrapper" style="border-radius: 10px;background-color: #eeeae6;"
+            :style="{ padding : dim_store.data_table ? '5px': '0'}"
                 :class="[{ 'full-screen': dim_store.is_full_screen }]">
                 <div id="fmw-datatable" ref="table"></div>
             </div>
@@ -53,6 +54,8 @@ function emToPx(em) {
 function preventScrollPropagate(el) {
     el.addEventListener('wheel', (event) => {
         const { scrollTop, scrollHeight, clientHeight } = table_scroller.value;
+        const { scrollLeft, scrollWidth, clientWidth } = table_scroller.value;
+
         if (cell_box_elt.value !== undefined) {
             cell_box_elt.value.style.opacity = 0;
             setTimeout(() => {
@@ -60,7 +63,26 @@ function preventScrollPropagate(el) {
             }, 300);
 
         }
-        if ((scrollTop === 0 && event.deltaY < 0) || (scrollTop + clientHeight >= scrollHeight && event.deltaY > 0)) {
+
+        let shouldPrevent = false;
+
+        const isVerticalScrolling = Math.abs(event.deltaY) > Math.abs(event.deltaX);
+
+        if (isVerticalScrolling) {
+            if ((scrollTop === 0 && event.deltaY < 0) || // Trying to scroll up when at the top
+                (scrollTop + clientHeight >= scrollHeight && event.deltaY > 0)) { // Trying to scroll down when at the bottom
+                shouldPrevent = true;
+            }
+        }
+
+        if (!isVerticalScrolling) {
+            if ((scrollLeft === 0 && event.deltaX < 0) || // Trying to scroll left when at the left edge
+                (scrollLeft + clientWidth >= scrollWidth && event.deltaX > 0)) { // Trying to scroll right when at the right edge
+                shouldPrevent = true;
+            }
+        }
+
+        if (shouldPrevent) {
             event.preventDefault();
             event.stopPropagation();
         }
@@ -128,14 +150,7 @@ function add_row_formatter(ref_row) {
 watch(() => dim_store.refresh_save_page, () => {
     if (dim_store.dimension === 'data_table') {
 
-
-        console.log('00000',tabulator.value.getData())
-        console.log('99999999 ', original_data.value)
-        console.log('buffer_modified_uuids.value', buffer_modified_uuids.value)
-
-
         let differences = find_differences(original_data.value, tabulator.value.getData(), buffer_modified_uuids.value);
-        console.log('differences', differences)
         dim_store.transaction_list = differences
 
         dim_store.dimension = 'save';
@@ -143,24 +158,51 @@ watch(() => dim_store.refresh_save_page, () => {
 })
 
 
-watch(() => dim_store.data_table, () => {
+function init_tabulator_obj() {
     original_data.value = JSON.parse(JSON.stringify(dim_store.data_table.data));
-
-    if (!tabulator.value) {
-        tabulator.value = new Tabulator(table.value, {
-            // reactiveData: true,
-            layout: "fitColumns",
-        });
+    let column_meta = dim_store.data_table.column_meta.meta
+    let mgnt_meta = {
+        title: " ", align: "center", width: 5, field: "fmw___info", formatter: function (cell, formatterParams) {
+            return '<div style="display: grid;justify-self: center;opacity: 0.1"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M5 6a1 1 0 0 1 1-1h2a1 1 0 0 0 0-2H6a3 3 0 0 0-3 3v2a1 1 0 0 0 2 0V6ZM5 18a1 1 0 0 0 1 1h2a1 1 0 1 1 0 2H6a3 3 0 0 1-3-3v-2a1 1 0 1 1 2 0v2ZM18 5a1 1 0 0 1 1 1v2a1 1 0 1 0 2 0V6a3 3 0 0 0-3-3h-2a1 1 0 1 0 0 2h2ZM19 18a1 1 0 0 1-1 1h-2a1 1 0 1 0 0 2h2a3 3 0 0 0 3-3v-2a1 1 0 1 0-2 0v2Z" fill="#222F3D"/></svg></div>';
+        }
     }
 
-    
-    setTimeout(() => {
-        tabulator.value.setColumns(dim_store.data_table.column_meta.meta);
-        tabulator.value.replaceData(dim_store.data_table.data);
-        tabulator.value.options.rowFormatter = add_row_formatter(dim_store.data_table.column_meta)
-        tabulator.value.redraw(true);
-    }, 500);
+    column_meta = [mgnt_meta, ...column_meta]
+    column_meta = add_cell_editing_callback(column_meta)
 
+    tabulator.value = new Tabulator(table.value, {
+        height: `${window.innerHeight - 100 - 100}px`,
+        layout: "fitColumns",
+        columnDefaults: {
+            resizable: true,
+        },
+        // data: dim_store.data_table.data,
+        // columns: column_meta,
+        // rowFormatter: add_row_formatter(dim_store.data_table.column_meta),
+    });
+
+    setTimeout(() => {
+
+    tabulator.value.setColumns(column_meta);
+    tabulator.value.replaceData(dim_store.data_table.data);
+    tabulator.value.options.rowFormatter = add_row_formatter(dim_store.data_table.column_meta)
+    // tabulator.value.redraw(true);
+}, 500);
+
+    wait_for_element('#fmw-datatable .tabulator-tableholder').then((elt) => {
+        setTimeout(() => {
+            table_scroller.value = elt
+        }, 1000);
+    })
+
+    preventScrollPropagate(table.value);
+}
+
+watch(() => dim_store.data_table, () => {
+
+    setTimeout(() => {
+        init_tabulator_obj()
+    }, 300);
 })
 
 
@@ -296,38 +338,45 @@ function remove_cell_menu() {
 }
 
 onMounted(() => {
-    original_data.value = JSON.parse(JSON.stringify(dim_store.data_table.data));
-
-    let column_meta = dim_store.data_table.column_meta.meta
-    let mgnt_meta = {
-        title: " ", align: "center", width: '5px', field: "fmw___info", formatter: function (cell, formatterParams) {
-            return '<div style="display: grid;justify-self: center;opacity: 0.1"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M5 6a1 1 0 0 1 1-1h2a1 1 0 0 0 0-2H6a3 3 0 0 0-3 3v2a1 1 0 0 0 2 0V6ZM5 18a1 1 0 0 0 1 1h2a1 1 0 1 1 0 2H6a3 3 0 0 1-3-3v-2a1 1 0 1 1 2 0v2ZM18 5a1 1 0 0 1 1 1v2a1 1 0 1 0 2 0V6a3 3 0 0 0-3-3h-2a1 1 0 1 0 0 2h2ZM19 18a1 1 0 0 1-1 1h-2a1 1 0 1 0 0 2h2a3 3 0 0 0 3-3v-2a1 1 0 1 0-2 0v2Z" fill="#222F3D"/></svg></div>';
-        }
+    if (dim_store.data_table === undefined) {
+        return;
     }
 
-    column_meta = [mgnt_meta, ...column_meta]
-    column_meta = add_cell_editing_callback(column_meta)
+    setTimeout(() => {
+        init_tabulator_obj()
+    }, 300);
+    // init_tabulator_obj()
 
-    tabulator.value = new Tabulator(table.value, {
-        height: `${window.innerHeight - 100 - 100}px`,
-        layout: "fitColumns",
-        columnDefaults: {
-            resizable: true,
-        },
-        // reactiveData:true,
-        data: dim_store.data_table.data,
-        // columns: dim_store.data_table.column_meta.meta,
-        columns: column_meta,
-        rowFormatter: add_row_formatter(dim_store.data_table.column_meta),
-    });
+    // original_data.value = JSON.parse(JSON.stringify(dim_store.data_table.data));
 
-    wait_for_element('#fmw-datatable .tabulator-tableholder').then((elt) => {
-        setTimeout(() => {
-            table_scroller.value = elt
-        }, 1000);
-    })
+    // let column_meta = dim_store.data_table.column_meta.meta
+    // let mgnt_meta = {
+    //     title: " ", align: "center", width: '5px', field: "fmw___info", formatter: function (cell, formatterParams) {
+    //         return '<div style="display: grid;justify-self: center;opacity: 0.1"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M5 6a1 1 0 0 1 1-1h2a1 1 0 0 0 0-2H6a3 3 0 0 0-3 3v2a1 1 0 0 0 2 0V6ZM5 18a1 1 0 0 0 1 1h2a1 1 0 1 1 0 2H6a3 3 0 0 1-3-3v-2a1 1 0 1 1 2 0v2ZM18 5a1 1 0 0 1 1 1v2a1 1 0 1 0 2 0V6a3 3 0 0 0-3-3h-2a1 1 0 1 0 0 2h2ZM19 18a1 1 0 0 1-1 1h-2a1 1 0 1 0 0 2h2a3 3 0 0 0 3-3v-2a1 1 0 1 0-2 0v2Z" fill="#222F3D"/></svg></div>';
+    //     }
+    // }
 
-    preventScrollPropagate(table.value);
+    // column_meta = [mgnt_meta, ...column_meta]
+    // column_meta = add_cell_editing_callback(column_meta)
+
+    // tabulator.value = new Tabulator(table.value, {
+    //     height: `${window.innerHeight - 100 - 100}px`,
+    //     layout: "fitColumns",
+    //     columnDefaults: {
+    //         resizable: true,
+    //     },
+    //     data: dim_store.data_table.data,
+    //     columns: column_meta,
+    //     rowFormatter: add_row_formatter(dim_store.data_table.column_meta),
+    // });
+
+    // wait_for_element('#fmw-datatable .tabulator-tableholder').then((elt) => {
+    //     setTimeout(() => {
+    //         table_scroller.value = elt
+    //     }, 1000);
+    // })
+
+    // preventScrollPropagate(table.value);
 
 })
 

@@ -305,7 +305,7 @@ function submit(user_input, type_input) {
         dim_store.one_shot_home = user_input
         add_message_to_history(user_input, 'human')
         dim_store.dimension = 'hierarchy'
-        dim_store.left_panel = 'markdown'
+        dim_store.left_panel = 'editor'
     } else {
         if (type_input === 'graphql') {
             add_message_to_history(user_input, 'human', 'graphql')

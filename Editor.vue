@@ -1,5 +1,7 @@
 <template>
-  <div v-if="dim_store.left_panel === 'markdown'" style="z-index:10;padding-left:3vw;padding-bottom:120px">
+  <div v-if="dim_store.left_panel === 'editor'" 
+  id="editor-panel-container"
+  style="z-index:10;padding-left:3vw;padding-bottom:120px;opacity: 0.01;">
     <div style="width: 100%;">
       <div class="editor-content-type" style="width:fit-content;margin:auto">
 
@@ -36,12 +38,10 @@
 
 
     <Transition name="fade" mode="out-in">
-      <editor-content v-if="dim_store.content_type === 'tiptap'" 
-      id="dimension_tiptap" :editor="editor"
-        key="tiptap-editor" />
-        <Graphql v-else-if="dim_store.content_type === 'html'" key="html"></Graphql>
-        <MarkdownEditor v-else-if="dim_store.content_type === 'markdown'" key="markdown"></MarkdownEditor>
-        <GraphqlInput v-else-if="dim_store.content_type === 'graphql'" key="graphql"></GraphqlInput>
+      <editor-content v-if="dim_store.content_type === 'tiptap'" id="dimension_tiptap" :editor="editor" key="tiptap-editor" />
+      <Graphql v-else-if="dim_store.content_type === 'html'" key="html"></Graphql>
+      <MarkdownEditor v-else-if="dim_store.content_type === 'markdown'" key="markdown"></MarkdownEditor>
+      <GraphqlInput v-else-if="dim_store.content_type === 'graphql'" key="graphql"></GraphqlInput>
     </Transition>
   </div>
 </template>
@@ -55,7 +55,7 @@ import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { all, createLowlight } from 'lowlight'
 import { CustomHeading, getTrackHeadingsExtension, TripleBacktickLogger } from '@/components_shared/tiptap_custom.js'
 import { dimStore } from '@/components_shared/dimStore'
-import { md_to_html } from '@/components_shared/utils.js'
+import { md_to_html, fmw_transition } from '@/components_shared/utils.js'
 import Link from '@tiptap/extension-link'
 import ButtonNode from '@/components_shared/ButtonExtension.js';
 import Mention from '@tiptap/extension-mention'
@@ -281,6 +281,8 @@ onMounted(() => {
       remove_mention_from_headings()
     }
   })
+
+  fmw_transition('#editor-panel-container', 'show')
 });
 
 onUnmounted(() => {
@@ -365,6 +367,14 @@ watch(() => dim_store.content_type, () => {
   } else if (dim_store.content_type === 'graphql') {
     dim_store.code = dim_store.graphql
   }
+})
+
+watch(() => dim_store.loading_flag, () => {
+    if (dim_store.left_panel !== 'editor') return
+    if (dim_store.loading_flag === true) {
+      console.log('aaaaaa++++++AAA')
+        fmw_transition('#editor-panel-container', 'hide')
+    }
 })
 
 </script>

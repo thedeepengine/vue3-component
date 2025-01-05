@@ -23,10 +23,10 @@ export const dimStore = defineStore("dimStore", () => {
   const APP_TYPE = ref('fmw')
 
   const dimension = ref(APP_TYPE.value === 'fmw' ? 'hierarchy':'home')
-  const left_panel = ref(APP_TYPE.value === 'fmw' ? 'markdown': '')
+  const left_panel = ref(APP_TYPE.value === 'fmw' ? 'editor': '')
 
   // const dimension = ref('hierarchy')
-  // const left_panel = ref('markdown')
+  // const left_panel = ref('editor')
 
   const is_object_dirty = ref({
     w_data: true,
@@ -326,11 +326,11 @@ function update_md(hierarchy, header_prop_name) {
     stream_accumulated.value += text_chunk.value + ' '
   })
 
-  watch(()=> full_mode.value, (n,o) =>{
+  watch(() => full_mode.value, (n,o) =>{
     if (full_mode.value) {
       left_panel.value = 'loading'
     } else {
-      left_panel.value = 'markdown'
+      left_panel.value = 'editor'
     }
   })
 

@@ -9,8 +9,9 @@
             </n-space>
         </n-gi>
         <n-gi>
-            <div ref="table_wrapper" style="border-radius: 10px;background-color: #eeeae6;"
-            :style="{ padding : dim_store.data_table ? '5px': '0'}"
+            <div id="fmw-datatable-container" ref="table_wrapper"
+                style="border-radius: 10px;background-color: #eeeae6;opacity: 0.01;"
+                :style="{ padding: dim_store.data_table ? '5px' : '0' }"
                 :class="[{ 'full-screen': dim_store.is_full_screen }]">
                 <div id="fmw-datatable" ref="table"></div>
             </div>
@@ -28,14 +29,14 @@ import 'tabulator-tables/dist/css/tabulator_simple.min.css'
 import { dimStore } from '@/components_shared/dimStore.js'
 import { NButton, NIcon, NGrid, NGi, NSpace } from "naive-ui";
 import { Add24Regular, Subtract24Regular } from '@vicons/fluent'
-import { wait_for_element, remove_entry_by_id, append_new_obj, find_differences } from '@/components_shared/utils'
+import { wait_for_element, find_differences, fmw_transition } from '@/components_shared/utils'
 
 const dim_store = dimStore()
 import { shallowRef } from 'vue'
 
 const table = ref(null);
 const table_wrapper = ref(null);
-const tabulator = ref(null);
+const tabulator = ref(undefined);
 const tableData = ref([]);
 const icon = shallowRef(Add24Regular);
 const is_shrunk = ref(false);
@@ -45,6 +46,7 @@ const buffer_modified_uuids = ref([])
 const table_scroller = ref()
 const cell_box_elt = ref()
 const original_data = ref()
+const ready_to_display = ref(false)
 
 function emToPx(em) {
     const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
@@ -142,11 +144,6 @@ function add_row_formatter(ref_row) {
 // });
 
 
-// onDeactivated(() => {
-//     console.log('DEACC')
-// });
-
-
 watch(() => dim_store.refresh_save_page, () => {
     if (dim_store.dimension === 'data_table') {
 
@@ -158,36 +155,59 @@ watch(() => dim_store.refresh_save_page, () => {
 })
 
 
-function init_tabulator_obj() {
-    original_data.value = JSON.parse(JSON.stringify(dim_store.data_table.data));
-    let column_meta = dim_store.data_table.column_meta.meta
+function set_mgnt_column(original_meta) {
     let mgnt_meta = {
-        title: " ", align: "center", width: 5, field: "fmw___info", formatter: function (cell, formatterParams) {
+        title: " ", width: 5, field: "fmw___info", formatter: function (cell, formatterParams) {
             return '<div style="display: grid;justify-self: center;opacity: 0.1"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M5 6a1 1 0 0 1 1-1h2a1 1 0 0 0 0-2H6a3 3 0 0 0-3 3v2a1 1 0 0 0 2 0V6ZM5 18a1 1 0 0 0 1 1h2a1 1 0 1 1 0 2H6a3 3 0 0 1-3-3v-2a1 1 0 1 1 2 0v2ZM18 5a1 1 0 0 1 1 1v2a1 1 0 1 0 2 0V6a3 3 0 0 0-3-3h-2a1 1 0 1 0 0 2h2ZM19 18a1 1 0 0 1-1 1h-2a1 1 0 1 0 0 2h2a3 3 0 0 0 3-3v-2a1 1 0 1 0-2 0v2Z" fill="#222F3D"/></svg></div>';
         }
     }
 
-    column_meta = [mgnt_meta, ...column_meta]
-    column_meta = add_cell_editing_callback(column_meta)
+    original_meta = [mgnt_meta, ...original_meta]
+    original_meta = add_cell_editing_callback(original_meta)
+    return original_meta
+}
 
+function init_tabulator_obj() {
+    ready_to_display.value = false
+    original_data.value = JSON.parse(JSON.stringify(dim_store.data_table.data));
+
+    let column_meta = set_mgnt_column(dim_store.data_table.column_meta.meta)
     tabulator.value = new Tabulator(table.value, {
         height: `${window.innerHeight - 100 - 100}px`,
         layout: "fitColumns",
         columnDefaults: {
             resizable: true,
         },
-        // data: dim_store.data_table.data,
-        // columns: column_meta,
-        // rowFormatter: add_row_formatter(dim_store.data_table.column_meta),
+        // tableBuilt: 
     });
 
-    setTimeout(() => {
+    tabulator.value.on("tableBuilt", function () {
+        tabulator.value.setColumns(column_meta);
+        tabulator.value.replaceData(dim_store.data_table.data);
+        tabulator.value.options.rowFormatter = add_row_formatter(dim_store.data_table.column_meta)
 
-    tabulator.value.setColumns(column_meta);
-    tabulator.value.replaceData(dim_store.data_table.data);
-    tabulator.value.options.rowFormatter = add_row_formatter(dim_store.data_table.column_meta)
+        // setTimeout(() => {
+            fmw_transition('#fmw-datatable-container', 'show')
+        // }, 200);
+
+    });
+
+
+
+    // tabulator.value.on("renderComplete", function() {
+    //     console.log('RENDER COMPLETE')
+    //     ready_to_display.value = true
+    //     setTimeout(() => {
+    //         console.log('PPPPPPPPP')
+    //         fmw_transition('#fmw-datatable-container', 'show')
+    //     }, 200);
+    // });
+
+    // setTimeout(() => {
+
+
     // tabulator.value.redraw(true);
-}, 500);
+    // }, 500);
 
     wait_for_element('#fmw-datatable .tabulator-tableholder').then((elt) => {
         setTimeout(() => {
@@ -199,12 +219,20 @@ function init_tabulator_obj() {
 }
 
 watch(() => dim_store.data_table, () => {
+    if (dim_store.dimension !== 'data_table') return
 
-    setTimeout(() => {
+
+    if (tabulator.value === undefined) {
         init_tabulator_obj()
-    }, 300);
+    } else {
+        setTimeout(() => {
+            let column_meta = set_mgnt_column(dim_store.data_table.column_meta.meta)
+            tabulator.value.setColumns(column_meta);
+            tabulator.value.replaceData(dim_store.data_table.data);
+            tabulator.value.options.rowFormatter = add_row_formatter(dim_store.data_table.column_meta)
+        }, 300);
+    }
 })
-
 
 function add_cell_editing_callback(meta) {
     meta = meta.map(column => ({
@@ -296,9 +324,9 @@ function delete_row(cell) {
     cell._cell.row.element.style.minHeight = '0'
     cell._cell.row.element.style.height = '0'
     cell._cell.row.element.style.borderBottom = '0'
-    
+
     remove_cell_menu()
-    
+
     if (!buffer_modified_uuids.value.includes(deleted_uuid)) {
         buffer_modified_uuids.value.push(deleted_uuid)
     }
@@ -345,39 +373,6 @@ onMounted(() => {
     setTimeout(() => {
         init_tabulator_obj()
     }, 300);
-    // init_tabulator_obj()
-
-    // original_data.value = JSON.parse(JSON.stringify(dim_store.data_table.data));
-
-    // let column_meta = dim_store.data_table.column_meta.meta
-    // let mgnt_meta = {
-    //     title: " ", align: "center", width: '5px', field: "fmw___info", formatter: function (cell, formatterParams) {
-    //         return '<div style="display: grid;justify-self: center;opacity: 0.1"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M5 6a1 1 0 0 1 1-1h2a1 1 0 0 0 0-2H6a3 3 0 0 0-3 3v2a1 1 0 0 0 2 0V6ZM5 18a1 1 0 0 0 1 1h2a1 1 0 1 1 0 2H6a3 3 0 0 1-3-3v-2a1 1 0 1 1 2 0v2ZM18 5a1 1 0 0 1 1 1v2a1 1 0 1 0 2 0V6a3 3 0 0 0-3-3h-2a1 1 0 1 0 0 2h2ZM19 18a1 1 0 0 1-1 1h-2a1 1 0 1 0 0 2h2a3 3 0 0 0 3-3v-2a1 1 0 1 0-2 0v2Z" fill="#222F3D"/></svg></div>';
-    //     }
-    // }
-
-    // column_meta = [mgnt_meta, ...column_meta]
-    // column_meta = add_cell_editing_callback(column_meta)
-
-    // tabulator.value = new Tabulator(table.value, {
-    //     height: `${window.innerHeight - 100 - 100}px`,
-    //     layout: "fitColumns",
-    //     columnDefaults: {
-    //         resizable: true,
-    //     },
-    //     data: dim_store.data_table.data,
-    //     columns: column_meta,
-    //     rowFormatter: add_row_formatter(dim_store.data_table.column_meta),
-    // });
-
-    // wait_for_element('#fmw-datatable .tabulator-tableholder').then((elt) => {
-    //     setTimeout(() => {
-    //         table_scroller.value = elt
-    //     }, 1000);
-    // })
-
-    // preventScrollPropagate(table.value);
-
 })
 
 
@@ -422,6 +417,15 @@ const expand = () => {
         }, 0)
     }
 };
+
+
+watch(() => dim_store.loading_flag, () => {
+    if (dim_store.dimension !== 'data_table') return
+    if (dim_store.loading_flag === true) {
+        fmw_transition('#fmw-datatable-container', 'hide')
+    }
+})
+
 
 </script>
 

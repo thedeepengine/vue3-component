@@ -21,6 +21,9 @@ import { ref, onMounted, watch, onActivated, onDeactivated } from "vue";
 import { defineProps } from 'vue';
 import { dimStore } from '@/components_shared/dimStore.js'
 import { displayStaticTree, empty_static_tree, empty_force_tree } from './network_utils.js';
+import { fmw_transition } from '@/components_shared/utils'
+
+
 
 const dim_store = dimStore()
 
@@ -48,18 +51,20 @@ const checkElement = () => {
     }
 };
 
-watch(() => [dim_store.w_data, 
-            dim_store.d3_network_data, 
-            isElementPresent.value, 
-            dim_store.dimension],
+watch(() => [dim_store.w_data,
+dim_store.d3_network_data,
+isElementPresent.value,
+dim_store.dimension],
     ([refresh_network, s, old_data], [q, h, w]) => {
         if (isElementPresent.value) {
             if (dim_store.dimension === 'network' && !dim_store.is_object_dirty.d3_network_data) {
                 empty_static_tree()
                 forcedTree(dim_store.d3_network_data, 'network')
+                fmw_transition('.network_class', 'show')
             } else if (dim_store.dimension === 'hierarchy' && !dim_store.is_object_dirty.w_data) {
                 empty_force_tree()
                 displayStaticTree(dim_store)
+                fmw_transition('.network_class', 'show')
             }
         }
     });
@@ -143,7 +148,8 @@ function initSVGBase() {
 
     console.log('window.innerWidth', window.innerWidth)
     d3select(".network_class")
-    .style('height', '100vh')
+        .style('height', '100vh')
+        // .style("opacity", "0.01")
         .append("svg")
         .attr('id', 'forcedtree')
         .attr("viewBox", viewBox)
@@ -364,6 +370,12 @@ let updateButtonOpacity = function (event) {
     buttonOpacity.value = Math.min(1, 1 - distanceToBottom / 100);
 }
 
+watch(() => dim_store.loading_flag, () => {
+    if (!['hierarchy', 'network'].includes(dim_store.dimension)) return
+    
+    fmw_transition('.network_class', 'hide')
+})
+
 </script>
 
 <style>
@@ -395,15 +407,15 @@ foreignObject body input {
 
 
 .hover-trace-left {
-    width: 10px; 
-    height: 10px; 
+    width: 10px;
+    height: 10px;
     /* background: red;  */
-    display: inline-block; 
-    position: absolute; 
-    bottom: 2px; 
-    transform: translate(15px,0);
+    display: inline-block;
+    position: absolute;
+    bottom: 2px;
+    transform: translate(15px, 0);
     right: 0;
-    opacity:0;
+    opacity: 0;
     transition: opacity 0.3s;
     /* overflow: visible; */
 }
@@ -413,14 +425,14 @@ foreignObject body input {
 }
 
 .hover-trace-right {
-    width: 10px; 
-    height: 10px; 
+    width: 10px;
+    height: 10px;
     /* background: red;  */
-    display: inline-block; 
-    position: absolute; 
-    bottom: 2px; 
+    display: inline-block;
+    position: absolute;
+    bottom: 2px;
     left: 0;
-    transform: translate(-15px,0);
+    transform: translate(-15px, 0);
     opacity: 0;
     transition: opacity 0.3s;
 }
@@ -431,5 +443,6 @@ foreignObject body input {
 
 .network_class {
     width: 50vw;
+    opacity: 0.01;
 }
 </style>

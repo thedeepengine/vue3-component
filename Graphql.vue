@@ -1,7 +1,7 @@
 <template>
-    <Codemirror class="fmw-codemirror" ref="cm_ref"
+    <Codemirror :id="`fmw-base-codemirror-${props.dis}`" class="fmw-codemirror " ref="cm_ref"
     @ready="onReady"
-    v-model:value="props.code" :options="cmOptions" placeholder="" :height="props.height || 600" />
+    v-model:value="props.code" :options="cmOptions" placeholder="" :height="props.height || '100vh'" />
 </template>
 
 <script setup>
@@ -38,7 +38,8 @@ const cmOptions = ref()
 const props = defineProps({
     prop_option: Object,
     code: String,
-    height: Number
+    height: Number,
+    dis: String
 });
 
 function getCode() {
@@ -93,13 +94,22 @@ watch(() => dim_store.conv_full_screen, () => {
 
 
 <style>
+
+.cm-s-yeti.CodeMirror {
+    background-color: transparent!important;
+}
 .fmw-codemirror .CodeMirror {
     opacity: 0;
     transition: opacity 0.3s;
     padding: 14px;
+    padding-top: 0px;
 }
 
 .CodeMirror-scroll {
     font-family: monospace !important;
+    /* padding-top: 100px; */
+    height: 100vh;
+    /* padding-bottom: 120px; */
 }
+
 </style>

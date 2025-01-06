@@ -1,7 +1,7 @@
 <!-- TEMPLATE MUST HAVE A SINGLE CHILD EVEN COMMENT NOT ACCEPTED -->
 <template>
     <div>
-        <div class="network_class"></div>
+        <div class="network_class fmw-transition-network"></div>
         <div style="position: fixed;bottom:0;padding-bottom: 28px;">
             <div style="font-weight: bold;">{{ hovered_data?.title }}</div>
             <div style="font-weight: 200;">{{ hovered_data?.subs }}</div>
@@ -17,11 +17,11 @@ import { forceSimulation as d3forceSimulation, forceX, forceY, forceCollide, for
 import { select as d3select, selectAll as d3selectAll } from 'd3-selection'
 import { min, max } from "d3-array";
 import { scaleLinear } from "d3-scale";
-import { ref, onMounted, watch, onActivated, onDeactivated } from "vue";
+import { ref, onMounted, watch, onActivated, onDeactivated, onUnmounted } from "vue";
 import { defineProps } from 'vue';
 import { dimStore } from '@/components_shared/dimStore.js'
 import { displayStaticTree, empty_static_tree, empty_force_tree } from './network_utils.js';
-import { fmw_transition } from '@/components_shared/utils'
+import { fmw_transition, wait_for_element } from '@/components_shared/utils'
 
 
 
@@ -32,48 +32,46 @@ const props = defineProps({
 });
 
 const isElementPresent = ref(false);
-let maxRetries = 10;
-let retries = 0;
-
 
 onMounted(() => {
     initSVGBase()
     window.addEventListener("mousemove", updateButtonOpacity);
+
+    wait_for_element('.network_class').then(() => {
+        fmw_transition('.fmw-transition-network', 'show')
+    })
 })
 
-const checkElement = () => {
-    const element = document.querySelector('.network_class');
-    if (element) {
-        isElementPresent.value = true;
-    } else if (retries < maxRetries) {
-        retries++;
-        setTimeout(checkElement, 100);
-    }
-};
+onUnmounted(()=> {
+    isElementPresent.value = false
+})
 
 watch(() => [dim_store.w_data,
 dim_store.d3_network_data,
 isElementPresent.value,
 dim_store.dimension],
     ([refresh_network, s, old_data], [q, h, w]) => {
-        if (isElementPresent.value) {
+        if (isElementPresent.value && Object.keys(dim_store.w_data).length > 0) {
             if (dim_store.dimension === 'network' && !dim_store.is_object_dirty.d3_network_data) {
                 empty_static_tree()
                 forcedTree(dim_store.d3_network_data, 'network')
-                fmw_transition('.network_class', 'show')
+                // fmw_transition('.fmw-transition-network', 'show')
             } else if (dim_store.dimension === 'hierarchy' && !dim_store.is_object_dirty.w_data) {
+                console.log('aaaaa;LPLPLPLPLPPLP')
                 empty_force_tree()
                 displayStaticTree(dim_store)
-                fmw_transition('.network_class', 'show')
+                // fmw_transition('.fmw-transition-network', 'show')
             }
         }
     });
 
 
 onActivated(() => {
-    maxRetries = 10;
-    retries = 0;
-    checkElement()
+    wait_for_element('.network_class').then(() => {
+        isElementPresent.value = true;
+        fmw_transition('.fmw-transition-network', 'show')
+})
+
 });
 
 onDeactivated(() => {
@@ -371,9 +369,10 @@ let updateButtonOpacity = function (event) {
 }
 
 watch(() => dim_store.loading_flag, () => {
-    if (!['hierarchy', 'network'].includes(dim_store.dimension)) return
-    
-    fmw_transition('.network_class', 'hide')
+    if (['hierarchy', 'network'].includes(dim_store.dimension) && 
+        dim_store.loading_flag) {
+        fmw_transition('.fmw-transition-network', 'hide')
+    }
 })
 
 </script>
@@ -443,6 +442,11 @@ foreignObject body input {
 
 .network_class {
     width: 50vw;
+    opacity: 0.01;
+    padding-top:var(--general-padding-top);
+}
+
+.fmw-transition-network {
     opacity: 0.01;
 }
 </style>

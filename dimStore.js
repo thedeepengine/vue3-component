@@ -43,6 +43,7 @@ export const dimStore = defineStore("dimStore", () => {
   const llm_message = ref('')
   const selected_clt = ref('')
   const loading_flag = ref(false)
+  const loading_elt = ref(0)
   const right_panel_message = ref(undefined)
   const show_llm_hist_box = ref(true)
   const one_shot_home = ref('')
@@ -676,6 +677,7 @@ watch(() => dimension.value,
 
   return {
     loading_flag,
+    loading_elt,
     is_object_dirty,
     set_all_object_dirty,
     right_panel_message,

@@ -203,13 +203,19 @@ function f_log(tag, message) {
 
 
 
-function wait_for_element(selector, parent = document, useQuerySelectorAll = false, timeout = 10000) {
+function wait_for_element(selector, selector_extra = null, parent = document, useQuerySelectorAll = false, timeout = 3000) {
     return new Promise((resolve, reject) => {
         const startTime = Date.now();
 
         function check() {
             const elements = useQuerySelectorAll ? parent.querySelectorAll(selector) : parent.querySelector(selector);
-            if ((useQuerySelectorAll && elements.length > 0) || (!useQuerySelectorAll && elements)) {
+            let cond = (useQuerySelectorAll && elements.length > 0) || (!useQuerySelectorAll && elements)
+            if (selector_extra !== null) {
+                const elements_extra = useQuerySelectorAll ? parent.querySelectorAll(selector_extra) : parent.querySelector(selector_extra);
+                cond = (useQuerySelectorAll && elements.length > 0 && elements_extra.length > 0) || (!useQuerySelectorAll && elements && elements_extra)
+            }
+
+            if (cond) {
                 resolve(elements);
             } else if (Date.now() - startTime >= timeout) {
                 reject(new Error(`Element(s) "${selector}" not found within ${timeout}ms`));
@@ -456,40 +462,36 @@ function highlight_new_node(id, origin) {
 }
 
 
-
 function fmw_transition(elt_selector, way) {
-    if (way === 'show') {
-    
-        wait_for_element(elt_selector).then((elt) => {
-            console.log('999999999')
-            elt.animate([
-                { opacity: 0.01 },
-                { opacity: 1 }
-            ], {
-                duration: 200,
-                fill: 'forwards'
-            });
-            elt.style.opacity = 1
-        })
-    } else if (way === 'hide') {
 
-        wait_for_element(elt_selector).then((elt) => {
-            elt.animate([
-                { opacity: 1 },
-                { opacity: 0.01 }
-            ], {
-                duration: 200,
-                fill: 'forwards'
-            });
-            elt.style.opacity = 0.01
-        }) 
+    if (way === 'hide') {
+        store.loading_elt+=1
     }
+    return new Promise((resolve) => {
+        wait_for_element(elt_selector).then((elt) => {
+            const [startOpacity, endOpacity] = way === 'show' ? [0, 1] : [1, 0];
+            const animation = elt.animate(
+                [
+                    { opacity: startOpacity },
+                    { opacity: endOpacity }
+                ],
+                {
+                    duration: 200,
+                    fill: 'forwards'
+                }
+            );
 
-    setTimeout(() => {
-        store.loading_flag = false
-    }, 200);
+            animation.onfinish = () => {
+                if (way === 'hide') {
+                    store.loading_elt = Math.max(0, store.loading_elt-1)
+                    store.loading_flag = false;
+                    
+                }
+                resolve(); 
+            };
+        });
+    });
 }
-
 
 function remove_entry_by_id(dataArray, entryId) {
     // Helper function to recursively check and remove entries

@@ -1,7 +1,7 @@
 <template>
   <div v-if="dim_store.left_panel === 'editor'" 
   id="editor-panel-container"
-  style="z-index:10;padding-left:3vw;padding-bottom:120px;opacity: 0.01;">
+  style="z-index:10;padding-left:3vw;padding-bottom:120px;opacity: 0.01;padding-top:var(--general-padding-top)">
     <div style="width: 100%;">
       <div class="editor-content-type" style="width:fit-content;margin:auto">
 
@@ -41,14 +41,14 @@
       <editor-content v-if="dim_store.content_type === 'tiptap'" id="dimension_tiptap" :editor="editor" key="tiptap-editor" />
       <Graphql v-else-if="dim_store.content_type === 'html'" key="html"></Graphql>
       <MarkdownEditor v-else-if="dim_store.content_type === 'markdown'" key="markdown"></MarkdownEditor>
-      <GraphqlInput v-else-if="dim_store.content_type === 'graphql'" key="graphql"></GraphqlInput>
+      <!-- <GraphqlInput v-else-if="dim_store.content_type === 'graphql'" key="graphql"></GraphqlInput> -->
     </Transition>
   </div>
 </template>
 
 <script setup>
 import axios from 'axios'
-import { ref, onMounted, onBeforeUnmount, watch, onUnmounted, onActivated } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch, onUnmounted, onActivated, onDeactivated } from 'vue'
 import { useEditor, Editor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
@@ -256,11 +256,15 @@ const editor = useEditor({
 });
 
 
-onMounted(() => {
+onDeactivated(()=> {
+  is_editor_ready.value = false
+})
 
+onMounted(() => {
   watch(is_editor_ready, () => {
     if (is_editor_ready.value) {
         dim_store.is_comp_mounted.editor = true
+        fmw_transition('#editor-panel-container', 'show')
     }
   })
 
@@ -282,7 +286,7 @@ onMounted(() => {
     }
   })
 
-  fmw_transition('#editor-panel-container', 'show')
+  
 });
 
 onUnmounted(() => {
@@ -369,12 +373,22 @@ watch(() => dim_store.content_type, () => {
   }
 })
 
+// watch(() => [dim_store.left_panel, dim_store.content_type], () => {
+//     if (dim_store.left_panel !== 'editor' 
+//     || dim_store.content_type === undefined) return
+
+//     console.log('EDITOR+++',dim_store.left_panel,  dim_store.content_type, dim_store.loading_elt, dim_store.loading_flag)
+//     if (dim_store.loading_flag === false && dim_store.loading_elt === 0) {
+//       setTimeout(() => {
+//         fmw_transition('#editor-panel-container', 'show')
+//       }, 300);
+//     } 
+// })
+
 watch(() => dim_store.loading_flag, () => {
-    if (dim_store.left_panel !== 'editor') return
-    if (dim_store.loading_flag === true) {
-      console.log('aaaaaa++++++AAA')
-        fmw_transition('#editor-panel-container', 'hide')
-    }
+  if (dim_store.left_panel === 'editor' && dim_store.loading_flag === true) {
+    fmw_transition('#editor-panel-container', 'hide')
+  }
 })
 
 </script>

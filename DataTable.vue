@@ -46,7 +46,6 @@ const buffer_modified_uuids = ref([])
 const table_scroller = ref()
 const cell_box_elt = ref()
 const original_data = ref()
-const ready_to_display = ref(false)
 
 function emToPx(em) {
     const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
@@ -168,7 +167,6 @@ function set_mgnt_column(original_meta) {
 }
 
 function init_tabulator_obj() {
-    ready_to_display.value = false
     original_data.value = JSON.parse(JSON.stringify(dim_store.data_table.data));
 
     let column_meta = set_mgnt_column(dim_store.data_table.column_meta.meta)
@@ -185,29 +183,8 @@ function init_tabulator_obj() {
         tabulator.value.setColumns(column_meta);
         tabulator.value.replaceData(dim_store.data_table.data);
         tabulator.value.options.rowFormatter = add_row_formatter(dim_store.data_table.column_meta)
-
-        // setTimeout(() => {
-            fmw_transition('#fmw-datatable-container', 'show')
-        // }, 200);
-
+        fmw_transition('#fmw-datatable-container', 'show')
     });
-
-
-
-    // tabulator.value.on("renderComplete", function() {
-    //     console.log('RENDER COMPLETE')
-    //     ready_to_display.value = true
-    //     setTimeout(() => {
-    //         console.log('PPPPPPPPP')
-    //         fmw_transition('#fmw-datatable-container', 'show')
-    //     }, 200);
-    // });
-
-    // setTimeout(() => {
-
-
-    // tabulator.value.redraw(true);
-    // }, 500);
 
     wait_for_element('#fmw-datatable .tabulator-tableholder').then((elt) => {
         setTimeout(() => {
@@ -420,8 +397,7 @@ const expand = () => {
 
 
 watch(() => dim_store.loading_flag, () => {
-    if (dim_store.dimension !== 'data_table') return
-    if (dim_store.loading_flag === true) {
+    if (dim_store.dimension === 'data_table' && dim_store.loading_flag === true) {
         fmw_transition('#fmw-datatable-container', 'hide')
     }
 })
@@ -434,6 +410,7 @@ watch(() => dim_store.loading_flag, () => {
 #datatable_component {
     /* padding-top: var(--general-padding-top) */
     z-index: 999999999999999;
+    padding-top: calc(var(--general-padding-top));
 }
 
 #fmw-datatable .tabulator-col,

@@ -121,6 +121,7 @@ export const dimStore = defineStore("dimStore", () => {
   //popup box
   const isVisible = ref(false);
   const position = ref({ x: 400, y: 400 });
+  const popup_event = ref(undefined)
   const isDragging = ref(false);
   const lastPosition = ref({ x: 0, y: 0 });
   const shared_popup_text = ref()
@@ -744,6 +745,7 @@ watch(() => dimension.value,
     lastPosition,
     popUpBoxStyle,
     shared_popup_text,
+    popup_event,
 
 
     turndownService,

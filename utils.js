@@ -128,6 +128,35 @@ function find_path(headings, target) {
 }
 
 
+function find_object_by_UUID(obj, uuid) {
+    if (Array.isArray(obj)) {
+        for (const item of obj) {
+            const found = find_object_by_UUID(item, uuid);
+            if (found) {
+                return found;
+            }
+        }
+    } else {
+        if (obj.uuid === uuid) {
+            return obj;
+        }
+
+        if (obj.references) {
+            for (const key in obj.references) {
+                for (const item of obj.references[key]) {
+                    const found = find_object_by_UUID(item, uuid);
+                    if (found) {
+                        return found;
+                    }
+                }
+            }
+        }
+    }
+
+    return null;
+}
+
+
 function insert_object_at_uuid(new_obj, nestedObj, uuid_front, position) {
     function find_object_by_uuid(obj, uuid, parent = null) {
         if (obj.uuid_front === uuid) {
@@ -619,5 +648,6 @@ export {
     remove_entry_by_id,
     append_new_obj,
     find_differences,
-    fmw_transition
+    fmw_transition,
+    find_object_by_UUID
 }

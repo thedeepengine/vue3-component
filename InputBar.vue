@@ -864,6 +864,7 @@ function on_show_select_clt(state) {
 .chevron-llm-history {
     opacity: 0.1;
     transition: opacity 1s;
+    cursor: pointer;
 }
 
 .chevron-llm-history:hover {

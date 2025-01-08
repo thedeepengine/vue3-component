@@ -232,7 +232,7 @@ function draw_text_tree(store) {
             
                 body.append('input')
                     .setAttrs({ value: d => { return d.data[store.header_prop_name] }, type: 'text', 'background-color': 'transparent', background: 'transparent' })
-                    .attr('style', d => { return `border: none; outline: none; font-size: 12px; padding: 0; font-family: inherit; box-sizing: border-box;` })
+                    .attr('style', d => { return `border: none; outline: none; font-size: 12px; padding: 0; font-family: inherit; box-sizing: border-box;background-color:transparent` })
                     .style('justify-items', d => {return d.depth === 0 ? 'center': ''})
                     .style('width', node_width2)
                     .style('font-family', 'inherit')

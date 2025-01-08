@@ -1,7 +1,5 @@
 <template>
-    <div id="fmw-llm-bar" 
-    @click.stop
-    :class="{
+    <div id="fmw-llm-bar" @click.stop :class="{
         home_display_config: dim_store.dimension === 'home',
         bottom_display_config: dim_store.dimension !== 'home'
     }">
@@ -11,7 +9,8 @@
         <div>
             <n-grid>
                 <n-gi span="24">
-                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;padding-bottom:10px">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; width: 100%;padding-bottom:10px">
                         <div style="height: 100%;">
                             <!-- COLLECTION SELECTOR -->
                             <n-select style="z-index: 999999999" id="fmw-select-clt" :show-checkmark="false"
@@ -20,10 +19,18 @@
                         </div>
 
                         <!-- ICON BOOK OPEN INFORMATION DOCUMENTATION -->
-                          <div style="flex:auto;width: 20px;cursor: pointer;">
-                            <div @click="switch_left_drawer" style="flex:auto;padding-left: 10px;width: 20px;height:28px">
+                        <div style="flex:auto;width: 20px;cursor: pointer;">
+                            <div @click="switch_left_drawer"
+                                style="flex:auto;padding-left: 10px;width: 20px;height:28px">
                                 <!-- <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="background-color: #f9f7f5;" viewBox="4 5 12 10" width="20px" height="28px"><g fill="none"><path d="M4 4v12a2 2 0 0 0 2 2h9.5a.5.5 0 0 0 0-1H6a1 1 0 0 1-1-1h10a1 1 0 0 0 1-1V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2zm10-1a1 1 0 0 1 1 1v11H5V4a1 1 0 0 1 1-1h8zm-3.25 2.75a.75.75 0 1 0-1.5 0a.75.75 0 0 0 1.5 0zm-.25 6.75a.5.5 0 0 1-1 0v-4a.5.5 0 0 1 1 0v4z" fill="currentColor"></path></g></svg> -->
-                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="background-color: #f9f7f5;" viewBox="4 2 12 16" width="20px" height="28px"><g fill="none"><path d="M4 4v12a2 2 0 0 0 2 2h9.5a.5.5 0 0 0 0-1H6a1 1 0 0 1-1-1h10a1 1 0 0 0 1-1V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2zm10-1a1 1 0 0 1 1 1v11H5V4a1 1 0 0 1 1-1h8zm-3.25 2.75a.75.75 0 1 0-1.5 0a.75.75 0 0 0 1.5 0zm-.25 6.75a.5.5 0 0 1-1 0v-4a.5.5 0 0 1 1 0v4z" fill="currentColor"></path></g></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                                    style="background-color: #f9f7f5;" viewBox="4 2 12 16" width="20px" height="28px">
+                                    <g fill="none">
+                                        <path
+                                            d="M4 4v12a2 2 0 0 0 2 2h9.5a.5.5 0 0 0 0-1H6a1 1 0 0 1-1-1h10a1 1 0 0 0 1-1V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2zm10-1a1 1 0 0 1 1 1v11H5V4a1 1 0 0 1 1-1h8zm-3.25 2.75a.75.75 0 1 0-1.5 0a.75.75 0 0 0 1.5 0zm-.25 6.75a.5.5 0 0 1-1 0v-4a.5.5 0 0 1 1 0v4z"
+                                            fill="currentColor"></path>
+                                    </g>
+                                </svg>
                             </div>
                         </div>
                     </div>
@@ -47,8 +54,7 @@
                             <div style="flex-grow: 1;">
                                 <div v-if="editor_type === 'tiptap'" style="padding:12px 10px 12px 30px;flex-grow: 1;">
                                     <!-- tiptap editor -->
-                                    <editor-content class="editor" ref="editor_ref"
-                                        :editor="editor" />
+                                    <editor-content class="editor" ref="editor_ref" :editor="editor" />
                                 </div>
                                 <div v-else-if="editor_type === 'codemirror'"
                                     style="padding:10px 10px 9px 30px;flex-grow: 1;">
@@ -106,8 +112,7 @@
                                                 <div style="width: 99.8%;align-items:center;"
                                                     :class="{ ai_style: item.user === 'ai', human_style: item.user === 'human' }"
                                                     class="conv_item">
-                                                    <div id="ai_generated_data" 
-                                                    v-html="md_to_html_llm(item.message)">
+                                                    <div id="ai_generated_data" v-html="md_to_html_llm(item.message)">
                                                     </div>
                                                     <!-- {{ item.message }} -->
                                                 </div>
@@ -176,13 +181,13 @@ const with_last_transition = ref(true)
 on('should_display_llm_context', () => {
     if (is_llm_chat_context_open.value === false) {
         switch_llm_history()
-    } 
+    }
 })
 
 on('should_close_llm_context', () => {
     if (is_llm_chat_context_open.value === true) {
         switch_llm_history('close')
-    } 
+    }
 })
 
 const clt_options = computed(() => {
@@ -229,6 +234,118 @@ onBeforeUnmount(() => {
 });
 
 
+const isPDF = async (url) => {
+    try {
+        const response = await axios.head(url);
+        return response.headers['content-type'] === 'application/pdf';
+    } catch (error) {
+        console.error('Error checking URL:', error);
+        return false;
+    }
+};
+
+async function submit(user_input, type_input) {
+    if (user_input === '') return
+
+    dim_store.user_input = user_input
+    dim_store.set_all_object_dirty()
+
+    if (user_input === '!help') {
+        emit('should_display_llm_context', true)
+
+        setTimeout(() => {
+
+            dim_store.conversation_history.push({ message: '', user: 'ai', id: dim_store.conversation_history.length + 1 })
+            let index = 0;
+            let to_send = test_help.split(' ')
+            const interval = setInterval(() => {
+                if (index < to_send.length) {
+                    dim_store.conversation_history[dim_store.conversation_history.length - 1].message += to_send[index] + ' '
+                    index++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 50);
+
+        }, 700);
+
+        return
+    }
+
+
+    if (user_input.startsWith('www.') || user_input.startsWith('http')) {
+        let is_pdf = await isPDF(user_input)
+        if (is_pdf) {
+            dim_store.left_panel = 'pdfViewer'
+            dim_store.download_pdf(user_input)
+        } else {
+            if (user_input.includes('arxiv.org/html/')) {
+                console.log('aaaaakakkkzzzzz')
+                let pdf_url = user_input.replace('/html/', '/pdf/')
+                let is_pdf_existing = await isPDF(pdf_url)
+
+                if (is_pdf_existing) {
+                    dim_store.left_panel = 'pdfViewer'
+                    dim_store.download_pdf(pdf_url)
+
+                }
+
+                const response = await apiClient.post(`https://localhost:8002/v1/api/get_doc_hierarchy/`, {pdf_url});      
+                
+                console.log('respo--------nse', response)
+
+                dim_store.w_data = response.data
+                dim_store.header_prop_name = 'name'
+                dim_store.is_object_dirty.w_data = false
+                
+            }
+        }
+        // isPDF(user_input).then((is_pdf) => {
+        //     if (is_pdf) {
+        //         dim_store.left_panel = 'pdfViewer'
+        //         dim_store.download_pdf(user_input)
+        //     }
+        // })
+        editor.value.commands.setContent('')
+        return
+    }
+
+
+    if (dim_store.dimension === 'home') {
+        let user_input = editor.value.getText()
+        dim_store.one_shot_home = user_input
+        add_message_to_history(user_input, 'human')
+        dim_store.dimension = 'hierarchy'
+        dim_store.left_panel = 'editor'
+    } else {
+        if (type_input === 'graphql') {
+            add_message_to_history(user_input, 'human', 'graphql')
+            dim_store.fetch_data({
+                dimension: dim_store.dimension,
+                query_bundle: { query_type: 'graphql', query: dim_store.user_input }
+            })
+            emit('clean_graphql_input')
+        } if (user_input.startsWith('::')) {
+            dim_store.fetch_data({
+                dimension: dim_store.dimension,
+                query_bundle: { query_type: 'fmw', clt_name: dim_store.selected_clt, query: dim_store.user_input.replace('::', '') }
+            })
+            editor.value.commands.setContent('')
+        } if (user_input.startsWith('llm::')) {
+            apiClient.post("https://localhost:8002/v1/api/set_llm_url/", { url: user_input.replace('llm::', '') })
+            //   .then(response => {})
+        } else {
+            add_message_to_history(user_input, 'human')
+            dim_store.fetch_data({
+                dimension: dim_store.dimension,
+                query_bundle: { query_type: 'unknown', clt_name: dim_store.selected_clt, query: dim_store.user_input }
+            })
+            editor.value.commands.setContent('')
+        }
+    }
+}
+
+
 
 function switch_left_drawer() {
     dim_store.is_left_drawer_open = dim_store.is_left_drawer_open ? false : true
@@ -270,69 +387,6 @@ For simple queries, Full Metal query syntax comes handy and intuitive:
 If you need **AI query** generation assistance or **Weaviate Gorilla**, set up your API keys.  
 <br>
 `
-
-
-function submit(user_input, type_input) {
-    if (user_input === '') return
-    
-    dim_store.user_input = user_input
-    dim_store.set_all_object_dirty()
-
-    if (user_input === '!help') {
-      emit('should_display_llm_context', true)
-
-      setTimeout(() => {
-        
-        dim_store.conversation_history.push({ message: '', user: 'ai', id: dim_store.conversation_history.length + 1 })
-        let index = 0;
-        let to_send = test_help.split(' ')
-        const interval = setInterval(() => {
-          if (index < to_send.length) {
-            dim_store.conversation_history[dim_store.conversation_history.length - 1].message += to_send[index] + ' '
-            index++;
-          } else {
-            clearInterval(interval); 
-          }
-        }, 50);
-
-      }, 700);
-      
-      return
-    }
-
-    if (dim_store.dimension === 'home') {
-        let user_input = editor.value.getText()
-        dim_store.one_shot_home = user_input
-        add_message_to_history(user_input, 'human')
-        dim_store.dimension = 'hierarchy'
-        dim_store.left_panel = 'editor'
-    } else {
-        if (type_input === 'graphql') {
-            add_message_to_history(user_input, 'human', 'graphql')
-            dim_store.fetch_data({
-                dimension: dim_store.dimension,
-                query_bundle: { query_type: 'graphql', query: dim_store.user_input }
-            })
-            emit('clean_graphql_input')
-        } if (user_input.startsWith('::')) {
-            dim_store.fetch_data({
-                dimension: dim_store.dimension,
-                query_bundle: { query_type: 'fmw', clt_name: dim_store.selected_clt, query: dim_store.user_input.replace('::', '') }
-            })
-            editor.value.commands.setContent('')
-        } if (user_input.startsWith('llm::')) {
-            apiClient.post("https://localhost:8002/v1/api/set_llm_url/", { url: user_input.replace('llm::', '') })
-            //   .then(response => {})
-        } else {
-            add_message_to_history(user_input, 'human')
-            dim_store.fetch_data({
-                dimension: dim_store.dimension,
-                query_bundle: { query_type: 'unknown', clt_name: dim_store.selected_clt, query: dim_store.user_input }
-            })
-            editor.value.commands.setContent('')
-        }
-    }
-}
 
 
 function switch_llm_history(way = 'open') {
@@ -428,8 +482,8 @@ function switch_llm_history(way = 'open') {
 
 
             open_anim.onfinish = function () {
-            is_llm_chat_context_open.value = true
-        };
+                is_llm_chat_context_open.value = true
+            };
         })
 
     }

@@ -37,23 +37,6 @@ let arrow_filled_right = '<circle cx="256" cy="256" r="256" fill="#f9f7f5"></cir
 let arrow_filled_left = '<g><circle cx="256" cy="256" r="256" fill="#f9f7f5"></circle><path d="M512 256A256 256 0 1 0 0 256a256 256 0 1 0 512 0zM271 135c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-87 87 87 87c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0L167 273c-9.4-9.4-9.4-24.6 0-33.9L271 135z" fill="#1f2937"/></g>'
 let add_icon = '<svg width="16" height="16" viewBox="0 0 24 24"><path d="M5 6a1 1 0 0 1 1-1h2a1 1 0 0 0 0-2H6a3 3 0 0 0-3 3v2a1 1 0 0 0 2 0V6ZM5 18a1 1 0 0 0 1 1h2a1 1 0 1 1 0 2H6a3 3 0 0 1-3-3v-2a1 1 0 1 1 2 0v2ZM18 5a1 1 0 0 1 1 1v2a1 1 0 1 0 2 0V6a3 3 0 0 0-3-3h-2a1 1 0 1 0 0 2h2ZM19 18a1 1 0 0 1-1 1h-2a1 1 0 1 0 0 2h2a3 3 0 0 0 3-3v-2a1 1 0 1 0-2 0v2Z" fill="#222F3D"/></svg>'
 
-let timeoutId;
-
-function splitOddEven(n) {
-    let odds = [];
-    let evens = [];
-
-    for (let i = 0; i < n; i++) {
-        if (i % 2 === 0) {
-            evens.push(i);
-        } else {
-            odds.push(i);
-        }
-    }
-
-    return [odds, evens];
-}
-
 d3selection.prototype.setAttrs = function (attrs) {
     Object.entries(attrs).forEach(([key, value]) => {
         this.attr(key, value);
@@ -92,7 +75,7 @@ function empty_force_tree() {
     d3selectAll("#forcedtree g.back_link_container").remove()
 }
 
-const TREE_UPDATE_DURATION = 300
+const TREE_UPDATE_DURATION = 0
 
 function draw_path_tree(root_nodes, root_links) {
 
@@ -153,7 +136,7 @@ function draw_path_tree(root_nodes, root_links) {
         .y(d => d[1]);
 
     let r = root_nodes
-        .map(x => ({ uuid_front: x.data.uuid_front, coord: ([[x.y_end, x.x], [x.y_start, x.x]]) }))
+        .map(d => ({ uuid_front: d.data.uuid_front, coord: ([[d.y_end, d.x], [d.y_start, d.x]]) }))
 
     underlinedPath
         .attr("stroke", stroke)
@@ -196,7 +179,35 @@ function displayStaticTree(store) {
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function draw_text_tree(store) {
+
+    console.log('store.root_nodes::: ', store.root_nodes)
     let d3sel = d3select(".front_text_container").selectAll(".node_text")
     let rr = d3sel
         .data(store.root_nodes, d => d.data.uuid_front); // Using a key function based on uuid
@@ -204,6 +215,7 @@ function draw_text_tree(store) {
     let AREA_EXTRA = 20
     let node_width = d => { return `${Math.max(d.y_end - d.y_start, NODE_MIN_WIDTH )}px` }
     let node_width2 = d => { return `${Math.max(d.y_end - d.y_start, NODE_MIN_WIDTH)}px` }
+    let node_height = d => { return `${d.x_height}px` }
 
     rr.enter()
         .filter(d => d.data.uuid !== 'SPECIFIC_UUID_X')
@@ -211,30 +223,35 @@ function draw_text_tree(store) {
         .each(function (d) {
 
             let foreignObject = d3select(this)
-                .setAttrs({overflow: 'visible', height: 13, 'data-pathid': d => d.data.uuid_front })
+                .setAttrs({overflow: 'visible', 'data-pathid': d => d.data.uuid_front })
                 .attr("class", d => {
                     if (d.depth === 0) return `node_text`
                     else if (d.side === 'left') return `node_text left-sided`
                     else if (d.side === 'right') return `node_text right-sided`
                 })
-                .attr("transform", d => { return `translate(${d.y_start},${d.x - 14})` })
+                .attr("transform", d => { return `translate(${d.y_start},${d.x - d.x_height})` })
                 .style('width', node_width)
+                .style('height', node_height)
                 
             let body = foreignObject.append('xhtml:body')
                     .setStyles({ margin: 0, padding: 0, 
                         'font-size': '12px', 'line-height': '1', 
                         'min-height': '10px', 'background-color': 'transparent', 
-                        'width': node_width, 'background': 'transparent', 'font-family': 'inherit' })
+                        'width': node_width, 'background': 'transparent'})
                     .on('click', function (event) {
                         event.preventDefault();
                         event.stopPropagation()
                     })
             
-                body.append('input')
+                body.append('textarea')
+                    .attr('class', 'fmw-textarea')
                     .setAttrs({ value: d => { return d.data[store.header_prop_name] }, type: 'text', 'background-color': 'transparent', background: 'transparent' })
-                    .attr('style', d => { return `border: none; outline: none; font-size: 12px; padding: 0; font-family: inherit; box-sizing: border-box;background-color:transparent` })
-                    .style('justify-items', d => {return d.depth === 0 ? 'center': ''})
+                    .attr('style', d => { return `resize:none;overflow-y: hidden;border: none; outline: none; font-size: 12px; padding: 0; font-family: inherit; box-sizing: border-box;background-color:transparent` })
+                    // .style('justify-items', d => {return d.depth === 0 ? 'center': ''})
                     .style('width', node_width2)
+                    .style('height', node_height)
+                    .style('max-width', '100px')
+                    .style('line-height', '1')
                     .style('font-family', 'inherit')
                         .on('input', function (event) {
                             let uuid_front = this.__data__.data.uuid_front
@@ -285,28 +302,30 @@ function draw_text_tree(store) {
             else if (d.side === 'left') return `node_text left-sided`
             else if (d.side === 'right') return `node_text right-sided`
         })
-        .select('input')
+        .select('.fmw-textarea')
           .property('value', d => {
-                // console.log('d.data[store.header_prop_name]', d.data[store.header_prop_name]); 
                 return d.data[store.header_prop_name];
             })  
             // .attr('value', d => {console.log('d.data[store.header_prop_name]', d.data[store.header_prop_name]); return d.data[store.header_prop_name]})
             
         rr
             .transition()
-            .duration(TREE_UPDATE_DURATION)
-        .attr("transform", d => `translate(${d.y_start},${d.x - 14})`)
+            // .duration(TREE_UPDATE_DURATION)
+            .attr("transform", d => `translate(${d.y_start},${d.x - d.x_height})`)
+            // .attr("transform", d => `translate(${d.y_start},${d.x})`)
             .style('width', node_width)
+            .style('height', node_height)
         .select('body')
             .style('width', node_width)
-        .select('input')
-            // .property('value', d => {
-            //     console.log('d.data[store.header_prop_name]', d.data[store.header_prop_name]); 
-            //     return d.data[store.header_prop_name];
-            // })  
-            // .attr('value', d => {console.log('d.data[store.header_prop_name]', d.data[store.header_prop_name]); return d.data[store.header_prop_name]})
-            .attr("transform", d => `translate(${d.y_start},${d.x - 14})`)
+            .style('height', node_height)
+        .select('.fmw-textarea')
+            .attr("transform", d => `translate(${d.y_start},${d.x - d.x_height})`)
+            // .attr("transform", d => `translate(${d.y_start},${d.x})`)
             .style('width', node_width2)
+            .style('height', node_height)
+            
+            // .style('width', '100px')
+            // .style('height', '100px')
         // .each(function(d) { console.log('updating:', d.data.uuid_front); });  
 
     rr.select('.hover-trace')
@@ -485,8 +504,14 @@ function handle_click_new_node(hierarchy, node_data, position) {
 //////////////////////////////////////////////////////////////////////
 
 function compute_tree(store) {
-    let { root_right, root_left } = compute_base_tree(store.w_data)
-    compute_text_length(store, root_right, root_left)
+    let { data_right, data_left } = compute_base_tree(store.w_data)
+
+    let root_right = compute_side(data_right, "right")
+    let root_left = compute_side(data_left, "left")
+
+    root_right = draw_side_tree(store, root_right, "right")
+    root_left = draw_side_tree(store, root_left, "left")
+    adjust_tree_x(root_left, root_right)
 
     const root_nodes = [
         ...root_right.descendants(),
@@ -523,9 +548,7 @@ function compute_base_tree(d) {
         data_left = { uuid: 'SPECIFIC_UUID_X', uuid_front: 'SPECIFIC_UUID_X_FRONT', 'children': left }
     }
 
-    let root_right = compute_side(data_right, "right")
-    let root_left = compute_side(data_left, "left")
-    return { root_right, root_left }
+    return { data_right, data_left }
 }
 
 function compute_side(data, side) {
@@ -549,17 +572,12 @@ function compute_side(data, side) {
         if (t.length > 0) position_iter(t)
     }
 
-    root.leaves().map((item, i) => { item.x = -1000 + i * 15 }) // initialize leaves positions
-    position_iter(root.leaves()) // recursivity
+    // root.leaves().map((item, i) => { item.x = -10000 + i * 15 }) //!!!!!!!!!!
+    root.leaves().map((item, i) => { item.x = 0 }) //!!!!!!!!!!
+    position_iter(root.leaves()) 
     return root
 }
 
-function compute_text_length(store, root_right, root_left) {
-    root_right = draw_side_tree(store, root_right, "right")
-    root_left = draw_side_tree(store, root_left, "left")
-    adjust_tree_x(root_left, root_right)
-    return { root_right, root_left }
-}
 
 function draw_side_tree(store, root, side) {
     if (Object.keys(root).length === 0) return hierarchy({});
@@ -576,38 +594,130 @@ function draw_side_tree(store, root, side) {
         .join("a")
         .attr('class', NODE_CLASS)
 
-    var node_text = node_container
-        .append("text")
-        .style('line-height', '1')
-        .style('font-size', '12px')
-        .style('font-family', 'inherit')
-        .style("opacity", 0)
-        .style('margin', 0)
-        .style('padding', 0)
-        .attr('height', 3)
-        .text((d, i) => labels[i])
 
-    // compute text length.
-    var text_length = node_text.nodes().reduce((prev, cur) => ({ ...prev, [cur.__data__.data[store.header_prop_name]]: cur.getComputedTextLength() || 0 }), {})
-    node_container.selectAll("text").remove();
+        console.log('root.descendants()', root.descendants())
+    var node_text = //node_container
+    d3select('#qwerty')
+    .selectAll('div') 
+    .data(root.descendants(), d => d.data.uuid_front)
+    .join("div")
+    .attr("class", 'fmw-hidden-size-computer')
+    .attr('contenteditable', true)
+    .setStyles({'line-height': '1', 'font-size': '12px', 'margin': 0, 'padding': 0})
+    .attr('height', 3)
+    .style('width', 'fit-content')
+    .style('max-width', '100px')
+    .property('value',(d, i) => labels[i])
+    .text((d, i) => labels[i])
 
-    // set position y_start and y_end of each node.
+// compute text length.
+// var text_length = node_text.nodes().reduce((prev, cur) => ({ ...prev, [cur.__data__.data[store.header_prop_name]]: Math.min(cur.getComputedTextLength() || 0, 100) }), {})
+// var text_length = node_text.nodes().reduce((prev, cur) => ({ ...prev, [cur.__data__.data[store.header_prop_name]]: Math.min(cur.getComputedTextLength() + 10, 100) }), {})
+// node_container.selectAll("text").remove();
+
+console.log('node_text.nodes()---', node_text.nodes())
+
+var ggg = node_text.nodes().reduce((prev, cur) => ({ ...prev, [cur.__data__.data[store.header_prop_name]]: cur.getBoundingClientRect() }), {})
+// node_text.nodes().reduce((prev, cur) => console.log('cur.getBoundingClientRect()', cur), {})
+// var x_height = node_text.nodes().reduce((prev, cur) => ({ ...prev, [cur.__data__.data[store.header_prop_name]]: cur.scrollHeight }), {})
+
+
+// d3selectAll(".fmw-hidden-size-computer").remove();
+
+// d3selectAll(".fmw-hidden-size-computer")
+//   .filter(function(d, i, nodes) {
+//     return i !== nodes.length - 1;
+//   })
+//   .remove();
+
+console.log('GGGGGGGGG', ggg)
+
+const x_height = {};
+const text_length = {};
+
+Object.keys(ggg).forEach(key => {
+  const value = ggg[key];
+  x_height[key] = value.height;
+});
+
+Object.keys(ggg).forEach(key => {
+    const value = ggg[key];
+    text_length[key] = Math.min(value.width, 100);
+  });
+
+
+    console.log('text_length', text_length)
+    console.log('x_height', x_height)
+
+
     var rec_y_position = function (node) {
         if (node.depth === 0) { // initialisation for root node
-            root.y_start = root.y
-            root.y_end = root.y + Math.max(NODE_MIN_WIDTH, text_length[root.data[store.header_prop_name]])
+            node.y_start = node.y
+            node.y_end = node.y + Math.max(NODE_MIN_WIDTH, text_length[node.data[store.header_prop_name]])
+            node.x_height = x_height[node.data[store.header_prop_name]]
+            node.x = 0
         }
 
         if (node.children !== undefined) {
+
             for (const child of node.children) {
                 child.y_start = (side === "right" ? child.parent.y_end : child.parent.y_start) + SIDE_CONST * NODE_Y_SHIFT + (side === "right" ? 0 : -Math.max(text_length[child.data[store.header_prop_name]], NODE_MIN_WIDTH))
                 child.y_end = (side === "right" ? child.parent.y_end : child.parent.y_start) + SIDE_CONST * (NODE_Y_SHIFT + (side === "right" ? Math.max(text_length[child.data[store.header_prop_name]], NODE_MIN_WIDTH) : 0))
+                child.x_height = x_height[child.data[store.header_prop_name]]
+            }
+
+
+            centerChildrenSymmetrically(0, 12, node.children);
+
+    
+
+            for (const child of node.children) {
                 rec_y_position(child)
             }
+
+
+
         }
     }
 
+
+    function centerChildrenSymmetrically(centralNodePosition = 0, centralNodeHeight, children) {
+        console.log('============================== START================ START')
+        const centralNodeMidpoint = centralNodeHeight / 2;
+    
+        const totalHeight = children.reduce((acc, child) => acc + child.x_height, 0);
+
+
+        console.log('centralNodeMidpoint: ', centralNodeMidpoint)
+        console.log('totalHeight: ', totalHeight)
+        console.log('children.length: ', children.length)
+        
+        let cumulativeHeight = 0;    
+        let starting = centralNodePosition - totalHeight/2
+        console.log('starting: ', starting)
+        if (children.length === 1) {
+            children[0].x = centralNodePosition
+        } else {
+            for (let i = 0; i < children.length; i++) {
+                cumulativeHeight += children[i].x_height;
+                children[i].x = starting - centralNodeMidpoint + cumulativeHeight
+                console.log('children[i].x:  ', starting - centralNodeMidpoint + cumulativeHeight)
+                
+                console.log('cumulativeHeight: ', cumulativeHeight)
+            }
+        }
+
+
+        console.log('============================== END ==============END ')
+    }
+
+
+    
+    
     rec_y_position(root)
+
+    console.log('rootrootroot: ', root)
+
     root.descendants().map(item => item.side = side)
 
     if (side === 'right') {

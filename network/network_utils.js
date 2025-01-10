@@ -77,7 +77,7 @@ function empty_force_tree() {
 
 const TREE_UPDATE_DURATION = 0
 
-function draw_path_tree(root_nodes, root_links) {
+function draw_path_tree(root_nodes, root_links, side_to_update) {
 
     var linkContainer = d3select(".link_container")
     var underlinedPath = d3select(".underlined_path_container")
@@ -153,7 +153,7 @@ function draw_path_tree(root_nodes, root_links) {
                 //     console.log("Entering:", d); // Logs data for entering elements
                 // }),
             update => update
-                .transition()  // Start a transition for update selection
+                .transition() 
                 .duration(TREE_UPDATE_DURATION)
                 .attr("d", d => d3linew(d.coord)),
                 // .each(function (d) {
@@ -169,12 +169,12 @@ function draw_path_tree(root_nodes, root_links) {
         );
 }
 
-function displayStaticTree(store) {
+function displayStaticTree(store, side_to_update) {
     console.log('store.w_data---- ', store.w_data)
     if (store.w_data !== null && Object.keys(store.w_data).length > 0) {
         let { root_nodes, root_links } = compute_tree(store)
-        draw_path_tree(root_nodes, root_links)
-        draw_text_tree(store)
+        draw_path_tree(root_nodes, root_links, side_to_update)
+        draw_text_tree(store, side_to_update)
     }
 }
 
@@ -198,23 +198,25 @@ function displayStaticTree(store) {
 
 
 
+        // .filter(d => {
+        //     console.log('side_to_update', side_to_update)
+        //     if (side_to_update !== undefined) {
+        //     console.log('fffffff', d.data.target.side); return d.data.target.side === side_to_update
+        // } else {
+        //     return true
+        // }})
 
 
 
 
 
 
-
-function draw_text_tree(store) {
-
-    console.log('store.root_nodes::: ', store.root_nodes)
+function draw_text_tree(store, side_to_update) {
     let d3sel = d3select(".front_text_container").selectAll(".node_text")
     let rr = d3sel
-        .data(store.root_nodes, d => d.data.uuid_front); // Using a key function based on uuid
+        .data(store.root_nodes, d => d.data.uuid_front);
 
-    let AREA_EXTRA = 20
-    let node_width = d => { return `${Math.max(d.y_end - d.y_start, NODE_MIN_WIDTH )}px` }
-    let node_width2 = d => { return `${Math.max(d.y_end - d.y_start, NODE_MIN_WIDTH)}px` }
+    let node_width = d => { return `${Math.max(d.y_end - d.y_start + 15, NODE_MIN_WIDTH)}px` }
     let node_height = d => { return `${d.x_height}px` }
 
     rr.enter()
@@ -245,25 +247,31 @@ function draw_text_tree(store) {
             
                 body.append('textarea')
                     .attr('class', 'fmw-textarea')
-                    .setAttrs({ value: d => { return d.data[store.header_prop_name] }, type: 'text', 'background-color': 'transparent', background: 'transparent' })
+                    .property('value', d => {
+                        return d.data[store.header_prop_name];
+                    })  
+                    .setAttrs({type: 'text', 'background-color': 'transparent', background: 'transparent' })
                     .attr('style', d => { return `resize:none;overflow-y: hidden;border: none; outline: none; font-size: 12px; padding: 0; font-family: inherit; box-sizing: border-box;background-color:transparent` })
-                    // .style('justify-items', d => {return d.depth === 0 ? 'center': ''})
-                    .style('width', node_width2)
+                    .style('justify-items', d => {return d.depth === 0 ? 'center': ''})
+                    .style('width', node_width)
                     .style('height', node_height)
-                    .style('max-width', '100px')
+                    .style('max-width', '180px')
                     .style('line-height', '1')
+                    .style('align-content', 'center')
                     .style('font-family', 'inherit')
                         .on('input', function (event) {
                             let uuid_front = this.__data__.data.uuid_front
+                            let side = this.__data__.data.side
                             let value = event.srcElement.value
+                            console.log('side: ', side)
                             update_node_property(store.w_data, uuid_front, 'name', value)
-                            displayStaticTree(store)
+                            displayStaticTree(store, side)
                             d3select(`#${uuid_front}`).text(value)
                         })
                         .on('keydown', function (event) {
                             if (event.key === 'Enter') {
                                 update_node_property(store.w_data, this.__data__.data.uuid_front, 'name', this.value)
-                                displayStaticTree(store)
+                                displayStaticTree(store, side)
                             }
                         })
                         .on('click', function (event) {
@@ -286,7 +294,6 @@ function draw_text_tree(store) {
                 .attr('class', 'hover-trace hover-trace-left')
                 .html(add_icon)
             
-                
             d3selectAll('.hover-trace')
                 .on('click', (event, data) => { 
                     show_map_menu(store.w_data, data)
@@ -309,19 +316,20 @@ function draw_text_tree(store) {
             // .attr('value', d => {console.log('d.data[store.header_prop_name]', d.data[store.header_prop_name]); return d.data[store.header_prop_name]})
             
         rr
-            .transition()
-            // .duration(TREE_UPDATE_DURATION)
+            // .transition()
+            // .duration(300)
             .attr("transform", d => `translate(${d.y_start},${d.x - d.x_height})`)
-            // .attr("transform", d => `translate(${d.y_start},${d.x})`)
             .style('width', node_width)
             .style('height', node_height)
         .select('body')
             .style('width', node_width)
             .style('height', node_height)
+            // .attr("transform", d => `translate(${d.y_start},${d.x - d.x_height})`)
         .select('.fmw-textarea')
+        // .transition()
+        // .duration(300)
             .attr("transform", d => `translate(${d.y_start},${d.x - d.x_height})`)
-            // .attr("transform", d => `translate(${d.y_start},${d.x})`)
-            .style('width', node_width2)
+            .style('width', node_width)
             .style('height', node_height)
             
             // .style('width', '100px')
@@ -579,156 +587,113 @@ function compute_side(data, side) {
 }
 
 
+function centerChildrenSymmetrically(centralNodePosition = 0, centralNodeHeight, children, parent) {
+    const totalHeight = children.reduce((acc, child) => acc + child.x_height, 0);
+    let cumulativeHeight = 0;
+    let starting = centralNodePosition - totalHeight / 2;
+
+    if (children.length === 1) {
+        children[0].x = centralNodePosition;
+    } else {
+        if (parent.depth >= 1) {
+            let parent_siblings = parent.parent.children
+            parent_siblings.filter(d=>d.x < parent.x).map(x=>x.extra_x -= totalHeight/2)
+            parent_siblings.filter(d=>d.x > parent.x).map(x=>x.extra_x += totalHeight/2)
+        }
+
+        let bigger = children[0].x_height
+        for (let i = 0; i < children.length; i++) {
+            bigger = bigger < children[i].x_height ? children[i].x_height : bigger
+            cumulativeHeight += children[i].x_height;
+            children[i].x = starting + cumulativeHeight
+        }
+        for (let i = 0; i < children.length; i++) {
+            children[i].x -= bigger/2
+        }
+        
+    }
+}
+
+var rec_y_position = function (node, side, y_width, x_height) {
+    var SIDE_CONST = side === "right" ? 1 : -1
+    const NODE_Y_SHIFT = 50
+    if (node.depth === 0) {
+        node.y_start = node.y;
+        node.y_end = node.y + Math.max(NODE_MIN_WIDTH, y_width[node.data[store.header_prop_name]]);
+        node.x_height = x_height[node.data[store.header_prop_name]];
+        node.x = 0;
+    }
+
+    if (node.children !== undefined) {
+        for (const child of node.children) {
+            child.y_start = (side === "right" ? node.y_end : node.y_start) + SIDE_CONST * NODE_Y_SHIFT + (side === "right" ? 0 : -Math.max(y_width[child.data[store.header_prop_name]], NODE_MIN_WIDTH));
+            child.y_end = (side === "right" ? node.y_end : node.y_start) + SIDE_CONST * (NODE_Y_SHIFT + (side === "right" ? Math.max(y_width[child.data[store.header_prop_name]], NODE_MIN_WIDTH) : 0));
+            child.x_height = x_height[child.data[store.header_prop_name]];
+            child.extra_x = 0
+            // child.x = 0
+        }
+
+        centerChildrenSymmetrically(node.x, node.x_height, node.children, node);
+
+        for (const child of node.children) {
+            rec_y_position(child, side, y_width, x_height);
+        }
+    }
+};
+
+
+function rec_adjust(node, cum = 0) {
+    if (node.depth === 0 && node.children !== undefined) {
+        for (const child of node.children) {
+            rec_adjust(child, cum);
+        }
+    } else {
+        node.x += cum + node.extra_x;
+        if (node.children !== undefined) {
+            for (const child of node.children) {
+                rec_adjust(child, cum + node.extra_x);
+            }
+        }
+    }
+};
+
+
 function draw_side_tree(store, root, side) {
     if (Object.keys(root).length === 0) return hierarchy({});
 
-    var SIDE_CONST = side === "right" ? 1 : -1
-    var NODE_CLASS = "node_" + side
-    const NODE_Y_SHIFT = 50
     const labels = root.descendants().map(d => d.data[store.header_prop_name]);
-    let side_container = d3select(".global_tree_container ." + side + "_tree_container .node_container");
 
-    var node_container = side_container
-        .selectAll("." + NODE_CLASS)
-        .data(root.descendants())
-        .join("a")
-        .attr('class', NODE_CLASS)
-
-
-        console.log('root.descendants()', root.descendants())
-    var node_text = //node_container
-    d3select('#qwerty')
+    var node_text =
+    d3select('#hidden-text-size-placeholder')
     .selectAll('div') 
     .data(root.descendants(), d => d.data.uuid_front)
     .join("div")
     .attr("class", 'fmw-hidden-size-computer')
     .attr('contenteditable', true)
     .setStyles({'line-height': '1', 'font-size': '12px', 'margin': 0, 'padding': 0})
-    .attr('height', 3)
     .style('width', 'fit-content')
-    .style('max-width', '100px')
+    .style('max-width', '180px')
+    .style('opacity', 0)
     .property('value',(d, i) => labels[i])
     .text((d, i) => labels[i])
 
-// compute text length.
-// var text_length = node_text.nodes().reduce((prev, cur) => ({ ...prev, [cur.__data__.data[store.header_prop_name]]: Math.min(cur.getComputedTextLength() || 0, 100) }), {})
-// var text_length = node_text.nodes().reduce((prev, cur) => ({ ...prev, [cur.__data__.data[store.header_prop_name]]: Math.min(cur.getComputedTextLength() + 10, 100) }), {})
-// node_container.selectAll("text").remove();
 
-console.log('node_text.nodes()---', node_text.nodes())
+    var rect = node_text.nodes().reduce((prev, cur) => ({ ...prev, [cur.__data__.data[store.header_prop_name]]: cur.getBoundingClientRect() }), {})
 
-var ggg = node_text.nodes().reduce((prev, cur) => ({ ...prev, [cur.__data__.data[store.header_prop_name]]: cur.getBoundingClientRect() }), {})
-// node_text.nodes().reduce((prev, cur) => console.log('cur.getBoundingClientRect()', cur), {})
-// var x_height = node_text.nodes().reduce((prev, cur) => ({ ...prev, [cur.__data__.data[store.header_prop_name]]: cur.scrollHeight }), {})
+    const x_height = {};
+    const y_width = {};
 
+    Object.keys(rect).forEach(key => {x_height[key] = rect[key].height});
+    Object.keys(rect).forEach(key => {y_width[key] = Math.min(rect[key].width, 180)});
 
-// d3selectAll(".fmw-hidden-size-computer").remove();
-
-// d3selectAll(".fmw-hidden-size-computer")
-//   .filter(function(d, i, nodes) {
-//     return i !== nodes.length - 1;
-//   })
-//   .remove();
-
-console.log('GGGGGGGGG', ggg)
-
-const x_height = {};
-const text_length = {};
-
-Object.keys(ggg).forEach(key => {
-  const value = ggg[key];
-  x_height[key] = value.height;
-});
-
-Object.keys(ggg).forEach(key => {
-    const value = ggg[key];
-    text_length[key] = Math.min(value.width, 100);
-  });
-
-
-    console.log('text_length', text_length)
-    console.log('x_height', x_height)
-
-
-    var rec_y_position = function (node) {
-        if (node.depth === 0) { // initialisation for root node
-            node.y_start = node.y
-            node.y_end = node.y + Math.max(NODE_MIN_WIDTH, text_length[node.data[store.header_prop_name]])
-            node.x_height = x_height[node.data[store.header_prop_name]]
-            node.x = 0
-        }
-
-        if (node.children !== undefined) {
-
-            for (const child of node.children) {
-                child.y_start = (side === "right" ? child.parent.y_end : child.parent.y_start) + SIDE_CONST * NODE_Y_SHIFT + (side === "right" ? 0 : -Math.max(text_length[child.data[store.header_prop_name]], NODE_MIN_WIDTH))
-                child.y_end = (side === "right" ? child.parent.y_end : child.parent.y_start) + SIDE_CONST * (NODE_Y_SHIFT + (side === "right" ? Math.max(text_length[child.data[store.header_prop_name]], NODE_MIN_WIDTH) : 0))
-                child.x_height = x_height[child.data[store.header_prop_name]]
-            }
-
-
-            centerChildrenSymmetrically(0, 12, node.children);
-
-    
-
-            for (const child of node.children) {
-                rec_y_position(child)
-            }
-
-
-
-        }
-    }
-
-
-    function centerChildrenSymmetrically(centralNodePosition = 0, centralNodeHeight, children) {
-        console.log('============================== START================ START')
-        const centralNodeMidpoint = centralNodeHeight / 2;
-    
-        const totalHeight = children.reduce((acc, child) => acc + child.x_height, 0);
-
-
-        console.log('centralNodeMidpoint: ', centralNodeMidpoint)
-        console.log('totalHeight: ', totalHeight)
-        console.log('children.length: ', children.length)
-        
-        let cumulativeHeight = 0;    
-        let starting = centralNodePosition - totalHeight/2
-        console.log('starting: ', starting)
-        if (children.length === 1) {
-            children[0].x = centralNodePosition
-        } else {
-            for (let i = 0; i < children.length; i++) {
-                cumulativeHeight += children[i].x_height;
-                children[i].x = starting - centralNodeMidpoint + cumulativeHeight
-                console.log('children[i].x:  ', starting - centralNodeMidpoint + cumulativeHeight)
-                
-                console.log('cumulativeHeight: ', cumulativeHeight)
-            }
-        }
-
-
-        console.log('============================== END ==============END ')
-    }
-
-
-    
-    
-    rec_y_position(root)
-
-    console.log('rootrootroot: ', root)
+    rec_y_position(root, side, y_width, x_height)
+    rec_adjust(root)
 
     root.descendants().map(item => item.side = side)
 
-    if (side === 'right') {
-        store.map_center = { ...store.map_center, text_length: text_length[labels[0]] }
-        store.ontology_left_position = 0 + (text_length[labels[0]] / 2);
-        d3select('.ontologyNameBackground')
-            .attr("x", store.ontology_left_position)
-            .text(store.ontology_name_selected);
-    }
     return root
 }
+
 
 function calculateStrokeDashArray(width, height) {
     let widthGapRatio = 70 / 100
@@ -836,26 +801,6 @@ function removeContainerCornerRect() {
         .remove();
 }
 
-function deepEngineSpinner(store) {
-    let strokeWidth = 2
-    let width = 150
-    let height = 30
-    getCorneredRectangle(window.innerWidth * 50 / 100 - 75, window.innerHeight * 70 / 100, width, height, strokeWidth)
-
-    d3select("#corneredRectId")
-        .append("rect")
-        .attr("x", strokeWidth + 1)
-        .attr("y", strokeWidth + 1)
-        .style("position", "fixed")
-        .attr("width", `0px`)
-        .attr("height", `${height - 2 * strokeWidth}px`)
-        .attr("fill", "#222222")
-        .transition()
-        .duration(2000)
-        .attr("width", `${width - strokeWidth - 2}px`)
-}
-
-
 
 export {
     stroke,
@@ -864,7 +809,6 @@ export {
     adjust_tree_x,
     displayStaticTree,
     getCorneredRectangle,
-    deepEngineSpinner,
     getFloatingTextBox,
     removeContainerCornerRect,
     d3selection,

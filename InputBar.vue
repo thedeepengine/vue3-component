@@ -274,40 +274,7 @@ async function submit(user_input, type_input) {
 
 
     if (user_input.startsWith('www.') || user_input.startsWith('http')) {
-        let is_pdf = await isPDF(user_input)
-        if (is_pdf) {
-            dim_store.left_panel = 'pdfViewer'
-            dim_store.download_pdf(user_input)
-        } else {
-            if (user_input.includes('arxiv.org/html/')) {
-                console.log('aaaaakakkkzzzzz')
-                let pdf_url = user_input.replace('/html/', '/pdf/')
-                let is_pdf_existing = await isPDF(pdf_url)
-
-                if (is_pdf_existing) {
-                    dim_store.left_panel = 'pdfViewer'
-                    dim_store.download_pdf(pdf_url)
-
-                }
-
-                const response = await apiClient.post(`https://localhost:8002/v1/api/get_doc_hierarchy/`, {pdf_url});      
-                
-                console.log('respo--------nse', response)
-
-                dim_store.w_data = response.data
-                dim_store.header_prop_name = 'name'
-                dim_store.is_object_dirty.w_data = false
-                
-            }
-        }
-        // isPDF(user_input).then((is_pdf) => {
-        //     if (is_pdf) {
-        //         dim_store.left_panel = 'pdfViewer'
-        //         dim_store.download_pdf(user_input)
-        //     }
-        // })
-        editor.value.commands.setContent('')
-        return
+        await input_html_manager(user_input)
     }
 
 
@@ -346,6 +313,57 @@ async function submit(user_input, type_input) {
 }
 
 
+
+async function input_html_manager(user_input) {
+    if (user_input.includes('lesswrong.com')) {
+        apiClient.post("https://localhost:8002/v1/api/get_html/", { url: user_input }).then((res)=> {
+            console.log('hhhhhh', res)
+            console.log('hhhhhh', res.data.content)
+            // dim_store.html_content = res.data.content
+            emit('set_editor_content', res.data.content)
+            dim_store.w_data = res.data.hierarchy
+            dim_store.is_object_dirty.w_data = false
+            // dim_store.md_content = res.data.hierarchy
+            dim_store.header_prop_name = 'name' 
+        })
+        return
+    }
+
+    let is_pdf = await isPDF(user_input)
+
+        if (is_pdf) {
+            dim_store.left_panel = 'pdfViewer'
+            dim_store.download_pdf(user_input)
+        } else {
+            if (user_input.includes('arxiv.org/html/')) {
+                let pdf_url = user_input.replace('/html/', '/pdf/')
+                let is_pdf_existing = await isPDF(pdf_url)
+
+                if (is_pdf_existing) {
+                    dim_store.left_panel = 'pdfViewer'
+                    dim_store.download_pdf(pdf_url)
+
+                }
+
+                const response = await apiClient.post(`https://localhost:8002/v1/api/get_doc_hierarchy/`, {pdf_url});      
+                
+                console.log('respo--------nse', response)
+
+                dim_store.w_data = response.data
+                dim_store.header_prop_name = 'name'
+                dim_store.is_object_dirty.w_data = false
+                
+            }
+        }
+        // isPDF(user_input).then((is_pdf) => {
+        //     if (is_pdf) {
+        //         dim_store.left_panel = 'pdfViewer'
+        //         dim_store.download_pdf(user_input)
+        //     }
+        // })
+        editor.value.commands.setContent('')
+        return
+}
 
 function switch_left_drawer() {
     dim_store.is_left_drawer_open = dim_store.is_left_drawer_open ? false : true

@@ -108,6 +108,10 @@ onMounted(() => {
   on('things_space_scroll_to', (message) => {
     addClassToHeadingById(message.uuid_front, message.action_type);
   });
+
+  on('set_editor_content', (message) => {
+    editor.value.commands.setContent(message);
+  });
 });
 
 
@@ -372,18 +376,6 @@ watch(() => dim_store.content_type, () => {
     dim_store.code = dim_store.graphql
   }
 })
-
-// watch(() => [dim_store.left_panel, dim_store.content_type], () => {
-//     if (dim_store.left_panel !== 'editor' 
-//     || dim_store.content_type === undefined) return
-
-//     console.log('EDITOR+++',dim_store.left_panel,  dim_store.content_type, dim_store.loading_elt, dim_store.loading_flag)
-//     if (dim_store.loading_flag === false && dim_store.loading_elt === 0) {
-//       setTimeout(() => {
-//         fmw_transition('#editor-panel-container', 'show')
-//       }, 300);
-//     } 
-// })
 
 watch(() => dim_store.loading_flag, () => {
   if (dim_store.left_panel === 'editor' && dim_store.loading_flag === true) {

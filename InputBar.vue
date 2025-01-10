@@ -275,6 +275,7 @@ async function submit(user_input, type_input) {
 
     if (user_input.startsWith('www.') || user_input.startsWith('http')) {
         await input_html_manager(user_input)
+        return
     }
 
 
@@ -317,14 +318,12 @@ async function submit(user_input, type_input) {
 async function input_html_manager(user_input) {
     if (user_input.includes('lesswrong.com')) {
         apiClient.post("https://localhost:8002/v1/api/get_html/", { url: user_input }).then((res)=> {
-            console.log('hhhhhh', res)
-            console.log('hhhhhh', res.data.content)
-            // dim_store.html_content = res.data.content
-            emit('set_editor_content', res.data.content)
+            emit('set_editor_content', res.data.md_content)
+            dim_store.header_prop_name = 'name'
             dim_store.w_data = res.data.hierarchy
             dim_store.is_object_dirty.w_data = false
-            // dim_store.md_content = res.data.hierarchy
-            dim_store.header_prop_name = 'name' 
+            dim_store.md_content = res.data.hierarchy
+            dim_store.is_dirty = true
         })
         return
     }
@@ -362,7 +361,6 @@ async function input_html_manager(user_input) {
         //     }
         // })
         editor.value.commands.setContent('')
-        return
 }
 
 function switch_left_drawer() {

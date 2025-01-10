@@ -110,7 +110,7 @@ onMounted(() => {
   });
 
   on('set_editor_content', (message) => {
-    editor.value.commands.setContent(message);
+    editor.value.commands.setContent(md_to_html(message));
   });
 });
 

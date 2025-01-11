@@ -235,6 +235,8 @@ onBeforeUnmount(() => {
 
 
 const isPDF = async (url) => {
+    if (url.endsWith('.pdf')) return true
+
     try {
         const response = await axios.head(url);
         return response.headers['content-type'] === 'application/pdf';
@@ -245,6 +247,7 @@ const isPDF = async (url) => {
 };
 
 async function submit(user_input, type_input) {
+    // user_input = 'https://arxiv.org/pdf/2409.04701v2'
     if (user_input === '') return
 
     dim_store.user_input = user_input
@@ -273,7 +276,7 @@ async function submit(user_input, type_input) {
     }
 
 
-    if (user_input.startsWith('www.') || user_input.startsWith('http')) {
+    if (user_input.startsWith('www.') || user_input.startsWith('http') || user_input.endsWith('.pdf')) {
         await input_html_manager(user_input)
         return
     }
@@ -325,10 +328,9 @@ async function input_html_manager(user_input) {
             dim_store.md_content = res.data.hierarchy
             dim_store.is_dirty = true
         })
-        return
-    }
+    } else {
 
-    let is_pdf = await isPDF(user_input)
+        let is_pdf = await isPDF(user_input)
 
         if (is_pdf) {
             dim_store.left_panel = 'pdfViewer'
@@ -341,26 +343,22 @@ async function input_html_manager(user_input) {
                 if (is_pdf_existing) {
                     dim_store.left_panel = 'pdfViewer'
                     dim_store.download_pdf(pdf_url)
-
                 }
+            }
+        }
 
-                const response = await apiClient.post(`https://localhost:8002/v1/api/get_doc_hierarchy/`, {pdf_url});      
-                
+    // if (user_input.cont)
+    let html_url = user_input.replace('/pdf/', '/html/')
+    apiClient.post(`https://localhost:8002/v1/api/get_doc_hierarchy/`, {url: html_url}).then(response => {
                 console.log('respo--------nse', response)
-
                 dim_store.w_data = response.data
                 dim_store.header_prop_name = 'name'
                 dim_store.is_object_dirty.w_data = false
-                
-            }
-        }
-        // isPDF(user_input).then((is_pdf) => {
-        //     if (is_pdf) {
-        //         dim_store.left_panel = 'pdfViewer'
-        //         dim_store.download_pdf(user_input)
-        //     }
-        // })
-        editor.value.commands.setContent('')
+            })
+
+    editor.value.commands.setContent('')
+
+    }
 }
 
 function switch_left_drawer() {

@@ -517,8 +517,12 @@ function compute_tree(store) {
     let root_right = compute_side(data_right, "right")
     let root_left = compute_side(data_left, "left")
 
-    root_right = draw_side_tree(store, root_right, "right")
-    root_left = draw_side_tree(store, root_left, "left")
+    let right_dim = compute_text_dim(store, root_right)
+    root_right = draw_side_tree(root_right, "right", right_dim.x_height, right_dim.y_width)
+
+    let left_dim = compute_text_dim(store, root_left)
+    root_left = draw_side_tree(root_left, "left", left_dim.x_height, left_dim.y_width)
+
     adjust_tree_x(root_left, root_right)
 
     const root_nodes = [
@@ -658,8 +662,7 @@ function rec_adjust(node, cum = 0) {
 };
 
 
-function draw_side_tree(store, root, side) {
-    if (Object.keys(root).length === 0) return hierarchy({});
+function compute_text_dim(store, root) {
 
     const labels = root.descendants().map(d => d.data[store.header_prop_name]);
 
@@ -673,10 +676,11 @@ function draw_side_tree(store, root, side) {
     .setStyles({'line-height': '1', 'font-size': '12px', 'margin': 0, 'padding': 0})
     .style('width', 'fit-content')
     .style('max-width', '180px')
+    .style('background-color', 'white')
     .style('opacity', 0)
+    .style('display', 'inline-block')
     .property('value',(d, i) => labels[i])
     .text((d, i) => labels[i])
-
 
     var rect = node_text.nodes().reduce((prev, cur) => ({ ...prev, [cur.__data__.data[store.header_prop_name]]: cur.getBoundingClientRect() }), {})
 
@@ -685,6 +689,11 @@ function draw_side_tree(store, root, side) {
 
     Object.keys(rect).forEach(key => {x_height[key] = rect[key].height});
     Object.keys(rect).forEach(key => {y_width[key] = Math.min(rect[key].width, 180)});
+    return {x_height, y_width}
+}
+
+function draw_side_tree(root, side, x_height, y_width) {
+    if (Object.keys(root).length === 0) return hierarchy({});
 
     rec_y_position(root, side, y_width, x_height)
     rec_adjust(root)

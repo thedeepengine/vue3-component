@@ -680,9 +680,10 @@ watch(() => dimension.value,
 
   async function download_pdf(pdf_url) {
     try {
-      const response = await apiClient.post('https://localhost:8002/v1/api/download_pdf/', { pdf_url });      
-      let filename = pdf_url.split('/').at(-1)
-      pdf_path.value = 'https://localhost:8002/v1/api/get_pdf/'+ filename
+      apiClient.post('https://localhost:8002/v1/api/download_pdf/', { pdf_url }).then(response=> {
+        let filename = pdf_url.split('/').at(-1)
+        pdf_path.value = 'https://localhost:8002/v1/api/get_pdf/'+ filename  
+      })      
 
     } catch (error) {
       console.error('Error downloading PDF:', error);

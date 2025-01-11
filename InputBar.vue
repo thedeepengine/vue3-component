@@ -3,9 +3,6 @@
         home_display_config: dim_store.dimension === 'home',
         bottom_display_config: dim_store.dimension !== 'home'
     }">
-        <!-- <div style="position: fixed;left: 300px;top:300px;">
-            <n-button @click="switch_llm_history(is_llm_chat_context_open ? 'close' : 'open')">aaa</n-button>
-        </div> -->
         <div>
             <n-grid>
                 <n-gi span="24">
@@ -34,31 +31,37 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- <n-select style="z-index: 999999999" id="fmw-select-clt" :show-checkmark="false" placement="top"
-                        size="tiny" placeholder="" v-model:value="dim_store.selected_clt"
-                        @updateShow="on_show_select_clt" :options="clt_options" filterable /> -->
-                    <!-- <span>
-                        <n-icon :component="ChevronUp28Regular" color="#4c5467" size="24"></n-icon>
-                    </span> -->
                 </n-gi>
-                <!-- input bar -->
+                <!-- INPUT BAR -->
                 <n-gi span="24">
                     <div id="fm_input_container">
                         <!-- divider -->
                         <!-- <div v-if="is_llm_chat_context_open"
                             style="width:auto;display:block;flex-grow: 24;z-index: 99999;height:2px;margin-right:20px;margin-left:20px;background-color: #f9f7f5;border-radius: 5px;">
                         </div> -->
+
+
+                        <!-- <div v-if="editor_type_active === ''" style="height:24px;cursor: text;text-align:center" @click="search_editor_active = 'ai'">
+                                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24" width="24px" height="24px" color="#BBBBBB"><g fill="none"><path d="M8.664 15.735c.245.173.537.265.836.264v-.004a1.442 1.442 0 0 0 1.327-.872l.613-1.864a2.872 2.872 0 0 1 1.817-1.812l1.778-.578a1.442 1.442 0 0 0-.052-2.74l-1.755-.57a2.876 2.876 0 0 1-1.822-1.823l-.578-1.777a1.446 1.446 0 0 0-2.732.022l-.583 1.792a2.877 2.877 0 0 1-1.77 1.786l-1.777.57a1.444 1.444 0 0 0 .017 2.735l1.754.569a2.887 2.887 0 0 1 1.822 1.826l.578 1.775c.099.283.283.527.527.7zm-.374-4.25a4.054 4.054 0 0 0-.363-.413h.003a4.393 4.393 0 0 0-1.72-1.063L4.61 9.5l1.611-.524a4.4 4.4 0 0 0 1.69-1.065a4.448 4.448 0 0 0 1.041-1.708l.515-1.582l.516 1.587a4.374 4.374 0 0 0 2.781 2.773l1.62.522l-1.59.515a4.379 4.379 0 0 0-2.774 2.775l-.515 1.582l-.515-1.585a4.368 4.368 0 0 0-.7-1.306zm8.041 9.297a1.123 1.123 0 0 1-.41-.55l-.328-1.006a1.292 1.292 0 0 0-.821-.823l-.991-.323A1.148 1.148 0 0 1 13 16.997a1.143 1.143 0 0 1 .771-1.08l1.006-.326a1.3 1.3 0 0 0 .8-.82l.324-.991a1.143 1.143 0 0 1 2.157-.021l.329 1.014a1.3 1.3 0 0 0 .82.816l.992.323a1.141 1.141 0 0 1 .039 2.165l-1.014.329a1.3 1.3 0 0 0-.818.822l-.322.989c-.078.23-.226.43-.425.57a1.14 1.14 0 0 1-1.328-.005zm-1.03-3.783A2.79 2.79 0 0 1 17 18.708a2.793 2.793 0 0 1 1.7-1.7a2.813 2.813 0 0 1-1.718-1.708a2.808 2.808 0 0 1-1.682 1.699z" fill="#BBBBBB"></path></g></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24" width="24px" height="24px" color="#BBBBBB"><g fill="none"><path d="M8.664 15.735c.245.173.537.265.836.264v-.004a1.442 1.442 0 0 0 1.327-.872l.613-1.864a2.872 2.872 0 0 1 1.817-1.812l1.778-.578a1.442 1.442 0 0 0-.052-2.74l-1.755-.57a2.876 2.876 0 0 1-1.822-1.823l-.578-1.777a1.446 1.446 0 0 0-2.732.022l-.583 1.792a2.877 2.877 0 0 1-1.77 1.786l-1.777.57a1.444 1.444 0 0 0 .017 2.735l1.754.569a2.887 2.887 0 0 1 1.822 1.826l.578 1.775c.099.283.283.527.527.7zm7.667 5.047a1.123 1.123 0 0 1-.41-.55l-.328-1.006a1.292 1.292 0 0 0-.821-.823l-.991-.323A1.148 1.148 0 0 1 13 16.997a1.143 1.143 0 0 1 .771-1.08l1.006-.326a1.3 1.3 0 0 0 .8-.82l.324-.991a1.143 1.143 0 0 1 2.157-.021l.329 1.014a1.3 1.3 0 0 0 .82.816l.992.323a1.141 1.141 0 0 1 .039 2.165l-1.014.329a1.3 1.3 0 0 0-.818.822l-.322.989c-.078.23-.226.43-.425.57a1.14 1.14 0 0 1-1.328-.005z" fill="#BBBBBB"></path></g></svg>
+                                </div> -->
+
                         <!-- tiptap or codemirror editor -->
-                        <div style="display:flex">
-                            <div style="flex-grow: 1;">
-                                <div v-if="editor_type === 'tiptap'" style="padding:12px 10px 12px 30px;flex-grow: 1;">
-                                    <!-- tiptap editor -->
+                        <div style="display:flex;">
+                            <div id="ai-editor-container" 
+                            :style="{width: editor_type_active === 'ai' ? '100%' : editor_type_active === 'search' ? '0%' : '50%'}"
+                            style="transition: width 0.4s;" 
+                            @click="editor_type_active = 'ai'">
+                                <div>
+
+                                <div v-if="editor_type_active === 'ai' || editor_type_active === '' && editor_type === 'tiptap'" 
+                                style="padding:12px 10px 12px 30px;flex-grow: 1;">
+                                    <!-- TIPTAP EDITOR -->
                                     <editor-content class="editor" ref="editor_ref" :editor="editor" />
                                 </div>
-                                <div v-else-if="editor_type === 'codemirror'"
+                                <div v-else-if="editor_type_active === 'ai' || editor_type_active === '' && editor_type === 'codemirror'"
                                     style="padding:10px 10px 9px 30px;flex-grow: 1;">
-                                    <!-- codemirror editor -->
+                                    <!-- CODEMIRRROR EDITOR -->
                                     <div style="display: flex;">
                                         <GraphqlBar @editor_change_request="editor_type = 'tiptap'"
                                             class="graphql_bar_id" ref="graphql_ref" @change="onChange" :code="code"
@@ -66,8 +69,26 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- icon pushed at the end -->
-                            <div style="cursor: pointer;flex-grow: 0;align-content: center;width: 22px;height:22px;margin:auto;margin-right:3vh;"
+                            </div>
+                            <div id="search-editor-container" 
+                            :style="{width: editor_type_active === 'search' ? '100%' : '44%'}">
+                                <div style="padding:12px 10px 12px 30px;background-color: transparent;transition: width 0.4s;">
+                                    <!-- SEARCH ICON -->
+                                    <div
+                                    :style="{opacity: editor_type_active === 'search' || editor_type_active === 'ai' ? 0 : 1}"
+                                    style="position:absolute;width:40%;height:24px;cursor: text;text-align:center;transition: opacity 0s;" 
+                                    @click="editor_type_active = 'search'">
+                                        <n-icon :component="Search20Regular" color="#BBBBBB" size="24"></n-icon>
+                                    </div>
+                                    <!-- TIPTAP EDITOR SEARCH-->
+                                    <div v-if="editor_type_active === 'search'">
+                                        <editor-content class="editor" ref="editor_ref_search" :editor="editor2" />
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            <!-- GRAPHQL ICON -->
+                            <div style="cursor: pointer;position: absolute;right:0;top:25%;align-content: center;width: 22px;height:22px;margin:auto;margin-right:3vh;"
                                 @click="graphql_search_panel">
                                 <svg fill="#4c5467" width="22px" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
                                     <path
@@ -153,7 +174,7 @@ import { NIcon, NGrid, NGi, NSelect, NDivider, NButton } from 'naive-ui'
 import { DismissCircle20Regular } from '@vicons/fluent'
 import { useEventBus } from '@/components_shared/event_bus';
 import GraphqlBar from './GraphqlBar.vue'
-import { ChevronUp28Regular, ChevronDown28Regular } from '@vicons/fluent'
+import { ChevronUp28Regular, ChevronDown28Regular, Search20Regular } from '@vicons/fluent'
 import TiptapCodemirrorExtension from '@/components_shared/TiptapCodemirrorExtension.js';
 import { TextSelection } from 'prosemirror-state';
 import axios from 'axios'
@@ -164,6 +185,7 @@ const { on, emit } = useEventBus();
 
 const dim_store = dimStore()
 const editor_ref = ref()
+const editor_ref_search = ref()
 const box_input_html = ref('')
 // const clt_options = ref(['+'])
 const box_input_md = ref('')
@@ -177,6 +199,7 @@ const editor_type = ref('tiptap')
 // const editor_type = ref('codemirror')
 const code = ref(``)
 const with_last_transition = ref(true)
+const editor_type_active = ref('')
 
 on('should_display_llm_context', () => {
     if (is_llm_chat_context_open.value === false) {
@@ -196,6 +219,10 @@ const clt_options = computed(() => {
     return all
 })
 
+
+// function hh() {
+//     console.e
+// }
 
 function onChange(val) {
     code.value = val
@@ -320,7 +347,7 @@ async function submit(user_input, type_input) {
 
 async function input_html_manager(user_input) {
     if (user_input.includes('lesswrong.com')) {
-        apiClient.post("https://localhost:8002/v1/api/get_html/", { url: user_input }).then((res)=> {
+        apiClient.post("https://localhost:8002/v1/api/get_html/", { url: user_input }).then((res) => {
             emit('set_editor_content', res.data.md_content)
             dim_store.header_prop_name = 'name'
             dim_store.w_data = res.data.hierarchy
@@ -328,37 +355,34 @@ async function input_html_manager(user_input) {
             dim_store.md_content = res.data.hierarchy
             dim_store.is_dirty = true
         })
-    } else {
+    } else if (user_input.includes('arxiv.org')) {
 
         let is_pdf = await isPDF(user_input)
 
         if (is_pdf) {
             dim_store.left_panel = 'pdfViewer'
             dim_store.download_pdf(user_input)
-        } else {
-            if (user_input.includes('arxiv.org/html/')) {
-                let pdf_url = user_input.replace('/html/', '/pdf/')
-                let is_pdf_existing = await isPDF(pdf_url)
+        } else if (user_input.includes('/html/')) {
+            let pdf_url = user_input.replace('/html/', '/pdf/')
+            let is_pdf_existing = await isPDF(pdf_url)
 
-                if (is_pdf_existing) {
-                    dim_store.left_panel = 'pdfViewer'
-                    dim_store.download_pdf(pdf_url)
-                }
+            if (is_pdf_existing) {
+                dim_store.left_panel = 'pdfViewer'
+                dim_store.download_pdf(pdf_url)
             }
         }
 
-    // if (user_input.cont)
-    let html_url = user_input.replace('/pdf/', '/html/')
-    apiClient.post(`https://localhost:8002/v1/api/get_doc_hierarchy/`, {url: html_url}).then(response => {
-                console.log('respo--------nse', response)
-                dim_store.w_data = response.data
-                dim_store.header_prop_name = 'name'
-                dim_store.is_object_dirty.w_data = false
-            })
+        let html_url = user_input.replace('/pdf/', '/html/')
+        apiClient.post(`https://localhost:8002/v1/api/get_doc_hierarchy/`, { url: html_url }).then(response => {
+            console.log('respo--------nse', response)
+            dim_store.w_data = response.data
+            dim_store.header_prop_name = 'name'
+            dim_store.is_object_dirty.w_data = false
+        })
 
-    editor.value.commands.setContent('')
 
     }
+    editor.value.commands.setContent('')
 }
 
 function switch_left_drawer() {
@@ -684,11 +708,68 @@ const editor = useEditor({
         }
     },
     onBlur({ event }) {
+        editor_type_active.value = ''
     },
     onTransaction: ({ editor, transaction }) => {
-    }
+    },
 });
 
+
+
+const editor2 = useEditor({
+    extensions: [
+        StarterKit.configure({ codeBlock: false }),
+        KeyHandler,
+        // EnterKeyHandler,
+        // UpAndDownKeyHandler,
+        TiptapCodemirrorExtension,
+    ],
+    content: '',
+    editorProps: {
+        attributes: {
+            spellcheck: "false"
+        }
+    },
+    attributes: {
+        spellcheck: "false"
+    },
+    onUpdate: ({ editor }) => {
+
+        let html = editor.getHTML()
+        if (html !== box_input_html.value) {
+            box_input_html.value = html
+        }
+    },
+    onBlur({ event }) {
+        console.log('aaaaaaaaagg')
+        editor_type_active.value = ''
+    },
+    onTransaction: ({ editor, transaction }) => {
+    },
+    // onCreate: ({ editor, transaction }) => {
+    //     console.log('EDITOR @ CREEATED')
+    //     editor.value.focus()
+    // }
+});
+
+
+watch(()=> editor_type_active.value, ()=>{
+
+    console.log('editor_ref_search', editor_ref_search)
+    console.log('editor_ref_search', editor_ref_search.value)
+
+    if (editor_type_active.value === 'search') {
+        requestAnimationFrame(()=> {
+            editor_ref_search.value.editor.commands.focus()
+        })
+
+        // setTimeout(() => {
+        //     console.log('editor_ref_search.value', editor_ref_search.value)
+        //     editor_ref_search.value.focus()
+        //     // editor2.value.focus()
+        // }, 1000);
+    }
+})
 
 function on_show_select_clt(state) {
     if (state) {

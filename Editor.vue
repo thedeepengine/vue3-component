@@ -94,6 +94,12 @@ onActivated(() => {
     maxRetries = 10;
     retries = 0;
     checkElement()
+
+    if (dim_store.temp_save_content !== undefined) {
+        dim_store.html_content = dim_store.temp_save_content.html
+        editor.value.commands.setContent(dim_store.temp_save_content.html);
+        dim_store.temp_save_content = undefined
+    }
 });
 
 
@@ -234,7 +240,7 @@ const editor = useEditor({
     // let html = editor.getHTML()
     let html = dim_store.show_refs ? clean_html() : editor.getHTML()
     if (html !== dim_store.html_content) {
-      dim_store.html_content = html
+        dim_store.html_content = html
     }
 
     if (dim_store.refresh_map) {
@@ -352,8 +358,15 @@ function clean_html() {
 
 watch(() => dim_store.refresh_save_page, () => {
   if (dim_store.dimension === 'hierarchy') {
+    
     let html = dim_store.show_refs ? clean_html() : editor.value.getHTML()
-  let bundle = { old_html: dim_store.html_content_original, new_html: html, header_prop_name: dim_store.header_prop_name, dry_run: true }
+
+    dim_store.temp_save_content = {html: html}
+  let bundle = { old_html: dim_store.html_content_original, 
+    new_html: html, 
+    header_prop_name: dim_store.header_prop_name, 
+    dry_run: true,
+    selected_clt: dim_store.selected_clt }
 
   apiClient
     .post("https://localhost:8002/v1/api/save_dry_run/", bundle)
@@ -361,6 +374,8 @@ watch(() => dim_store.refresh_save_page, () => {
       dim_store.transaction_list = response.data
     })
   }
+
+  dim_store.dimension = 'save';
 })
 
 onBeforeUnmount(() => {
@@ -433,8 +448,13 @@ watch(() => dim_store.loading_flag, () => {
   animation: backgroundColorChange 1s forwards;
 }
 
+#dimension_tiptap .tiptap {
+  height: 65vh;
+}
+
 /* Basic editor styles */
 .tiptap {
+
   :first-child {
     margin-top: 0;
   }

@@ -85,6 +85,7 @@ export const dimStore = defineStore("dimStore", () => {
   const html_content_original = ref()
   const modif_stack = ref([])
   const is_dirty = ref(false)
+  const temp_save_content = ref(undefined)
 
   // thingsSpace
   const things_space_data = ref([])
@@ -168,6 +169,27 @@ export const dimStore = defineStore("dimStore", () => {
     last_dimension.value = old_value
   })
 
+
+
+  function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        func.apply(this, args);
+      }, wait);
+    };
+  }
+  
+  const debounced_dirty_md = debounce((new_value, old_value) => {
+    if (new_value !== old_value) {
+      is_dirty.value = true
+    }
+  }, 1000);
+  
+  watch(()=> md_content.value, (new_value, old_value) => {
+    debounced_dirty_md(new_value, old_value);
+  });
 
 
   watch(() => is_comp_mounted.value.editor, () => {
@@ -732,6 +754,7 @@ watch(() => dimension.value,
     is_dirty,
     html_content_original,
     refresh_map,
+    temp_save_content,
 
     // thingsSpace
     things_space_option,

@@ -353,7 +353,6 @@ async function input_html_manager(user_input) {
             dim_store.w_data = res.data.hierarchy
             dim_store.is_object_dirty.w_data = false
             dim_store.md_content = res.data.hierarchy
-            dim_store.is_dirty = true
         })
     } else if (user_input.includes('arxiv.org')) {
 
@@ -375,9 +374,11 @@ async function input_html_manager(user_input) {
         let html_url = user_input.replace('/pdf/', '/html/')
         apiClient.post(`https://localhost:8002/v1/api/get_doc_hierarchy/`, { url: html_url }).then(response => {
             console.log('respo--------nse', response)
-            dim_store.w_data = response.data
-            dim_store.header_prop_name = 'name'
+            dim_store.w_data = response.data.hierarchy
+            dim_store.md_content = response.data.md
             dim_store.is_object_dirty.w_data = false
+            dim_store.is_object_dirty.md = false
+            dim_store.header_prop_name = 'name'
         })
 
 

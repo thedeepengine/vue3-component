@@ -1,6 +1,6 @@
 <!-- TEMPLATE MUST HAVE A SINGLE CHILD EVEN COMMENT NOT ACCEPTED -->
 <template>
-    <n-grid cols=1 style="padding-right:3em;padding-top:var(--fmw-left-selector-height)">
+    <n-grid id="save-container" cols=1 style="padding-right:3em;">
         <n-gi v-for="item, k in dim_store.transaction_list">
             <div v-if="item.length > 0">
                 <div style="font-weight: 600;font-size: 20px">{{ CATEGORY_MAPPING[k] }}</div>
@@ -13,7 +13,7 @@
 
         </n-gi>
         <n-gi>
-            <div style="margin: auto;width: 100%;text-align: center;padding-top:14px">
+            <div style="margin: auto;width: 100%;text-align: center;padding-top:50px">
                         <n-button>Commit</n-button>
                     </div>
         </n-gi>
@@ -32,3 +32,9 @@ removed_obj: 'Removed Object', added_obj: 'Added Object',
 removed_prop: 'Removed Properties', added_refs: 'Added References',
 deleted_refs: 'Deleted References'}
 </script>
+
+<style>
+#save-container {
+    padding-top: calc(var(--general-padding-top) + var(--fmw-left-selector-height));
+}
+</style>

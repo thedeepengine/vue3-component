@@ -198,13 +198,10 @@ function displayStaticTree(store, side_to_update) {
 
 
 
-        // .filter(d => {
-        //     console.log('side_to_update', side_to_update)
-        //     if (side_to_update !== undefined) {
-        //     console.log('fffffff', d.data.target.side); return d.data.target.side === side_to_update
-        // } else {
-        //     return true
-        // }})
+
+
+
+
 
 
 
@@ -216,7 +213,7 @@ function draw_text_tree(store, side_to_update) {
     let rr = d3sel
         .data(store.root_nodes, d => d.data.uuid_front);
 
-    let node_width = d => { return `${Math.max(d.y_end - d.y_start + 15, NODE_MIN_WIDTH)}px` }
+    let node_width = d => { return `${Math.max(d.y_end - d.y_start, NODE_MIN_WIDTH)}px` }
     let node_height = d => { return `${d.x_height}px` }
 
     rr.enter()
@@ -488,7 +485,7 @@ function show_map_menu(hierarchy, data) {
 
 function handle_click_new_node(hierarchy, node_data, position) {
     let temp_uuid = Math.random().toString(36).substring(2, 7)
-    let new_item = {uuid: temp_uuid, uuid_front: 'X_TEM_'+temp_uuid, name: ''}
+    let new_item = {uuid: temp_uuid, uuid_front: 'X_TEM_tempid'+temp_uuid, name: ''}
 
     insert_object_at_uuid(new_item, hierarchy, node_data.data.uuid_front, position)
 
@@ -516,12 +513,12 @@ function compute_tree(store) {
 
     let root_right = compute_side(data_right, "right")
     let root_left = compute_side(data_left, "left")
-
     let right_dim = compute_text_dim(store, root_right)
     root_right = draw_side_tree(root_right, "right", right_dim.x_height, right_dim.y_width)
 
     let left_dim = compute_text_dim(store, root_left)
     root_left = draw_side_tree(root_left, "left", left_dim.x_height, left_dim.y_width)
+
 
     adjust_tree_x(root_left, root_right)
 
@@ -584,8 +581,7 @@ function compute_side(data, side) {
         if (t.length > 0) position_iter(t)
     }
 
-    // root.leaves().map((item, i) => { item.x = -10000 + i * 15 }) //!!!!!!!!!!
-    root.leaves().map((item, i) => { item.x = 0 }) //!!!!!!!!!!
+    root.descendants().map((item, i) => { item.x = 0 }) //!!!!!!!!!!
     position_iter(root.leaves()) 
     return root
 }
@@ -652,7 +648,7 @@ function rec_adjust(node, cum = 0) {
             rec_adjust(child, cum);
         }
     } else {
-        node.x += cum + node.extra_x;
+        node.x += cum + (node.extra_x !== undefined ? node.extra_x : 0);
         if (node.children !== undefined) {
             for (const child of node.children) {
                 rec_adjust(child, cum + node.extra_x);
@@ -663,6 +659,7 @@ function rec_adjust(node, cum = 0) {
 
 
 function compute_text_dim(store, root) {
+    if (Object.keys(root).length === 0) return {}
 
     const labels = root.descendants().map(d => d.data[store.header_prop_name]);
 
@@ -697,9 +694,7 @@ function draw_side_tree(root, side, x_height, y_width) {
 
     rec_y_position(root, side, y_width, x_height)
     rec_adjust(root)
-
     root.descendants().map(item => item.side = side)
-
     return root
 }
 

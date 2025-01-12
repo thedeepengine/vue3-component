@@ -94,8 +94,12 @@ const CustomHeading = Heading.extend({
 
   renderHTML({ node, HTMLAttributes }) {
     if (!node.attrs.id) {
-      node.attrs.id = `X_TEM_${Math.random().toString(36).substr(2, 9)}`;
+      node.attrs.id = `X_TEM_tempid${Math.random().toString(36).substr(2, 9)}`;
       highlight_new_node(node.attrs.id)
+    }
+
+    if (!node.attrs['data-clt-name']) {
+      node.attrs['data-clt-name'] = store.selected_clt;
     }
 
     let default_style = 'display: inline; align-items: baseline;'

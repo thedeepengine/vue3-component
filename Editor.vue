@@ -359,17 +359,18 @@ function clean_html() {
 watch(() => dim_store.refresh_save_page, () => {
   if (dim_store.dimension === 'hierarchy') {
     
-    let html = dim_store.show_refs ? clean_html() : editor.value.getHTML()
+    // let html = dim_store.show_refs ? clean_html() : editor.value.getHTML()
 
-    dim_store.temp_save_content = {html: html}
+    dim_store.temp_save_content = {html: dim_store.html_content}
+    
   let bundle = { old_html: dim_store.html_content_original, 
-    new_html: html, 
+    new_html: dim_store.html_content, 
     header_prop_name: dim_store.header_prop_name, 
     dry_run: true,
     selected_clt: dim_store.selected_clt }
 
   apiClient
-    .post("https://localhost:8002/v1/api/save_dry_run/", bundle)
+    .post("https://localhost:8002/v1/api/commit/", bundle)
     .then(response => {
       dim_store.transaction_list = response.data
     })

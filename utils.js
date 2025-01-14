@@ -631,6 +631,18 @@ function find_differences(arr1, arr2, uuids) {
     return result;
 }
 
+
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        func.apply(this, args);
+      }, wait);
+    };
+  }
+  
+
 export {
     set_store_utils,
     md_to_html,
@@ -649,5 +661,6 @@ export {
     append_new_obj,
     find_differences,
     fmw_transition,
-    find_object_by_UUID
+    find_object_by_UUID,
+    debounce
 }

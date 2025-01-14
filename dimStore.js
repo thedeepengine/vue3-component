@@ -2,7 +2,7 @@ import axios from 'axios'
 import { ref, onMounted, watch, computed, onBeforeUnmount, onUnmounted } from "vue";
 import { defineStore, acceptHMRUpdate } from "pinia";
 import TurndownService from 'turndown';
-import { md_to_html } from '@/components_shared/utils'
+import { md_to_html, debounce } from '@/components_shared/utils'
 import { marked } from "marked";
 import { tdeStore } from '@/tde/tdeStore.js'
 import { useEventBus } from '@/components_shared/event_bus';
@@ -170,17 +170,6 @@ export const dimStore = defineStore("dimStore", () => {
   })
 
 
-
-  function debounce(func, wait) {
-    let timeout;
-    return function(...args) {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        func.apply(this, args);
-      }, wait);
-    };
-  }
-  
   const debounced_dirty_md = debounce((new_value, old_value) => {
     if (new_value !== old_value) {
       is_dirty.value = true

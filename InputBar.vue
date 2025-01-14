@@ -3,6 +3,31 @@
         home_display_config: dim_store.dimension === 'home',
         bottom_display_config: dim_store.dimension !== 'home'
     }">
+
+
+
+    <div v-if="search_results.length > 0" style="height:70vh;overflow:scroll;backdrop-filter: blur(10px);">
+        <div v-for="(i,index) in search_results" :key="index">
+            <div class="fmw-search-list-item" 
+            style="padding: 14px 0 14px 0;font-weight: 300;"
+            @click="event=>click_search_item(event, i.uuid)">
+                <div style="padding-left: 12px;">
+                    <div v-for="(v,k) in i" :key="k">
+                        <span style="font-weight: bold;">{{ k }}: </span>
+                        <span v-for="(parts,k) in v" :key="k"
+                        style="border-radius: 4px;" :style="{'background-color': parts.highlight === true ? '#F1E6FF': 'transparent'}">
+                            <!-- <span ></span> -->
+                            {{ parts.text }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <!-- <n-divider style="margin-top:0px;margin-bottom:0px"/> -->
+        </div>
+    </div>
+
+
+
         <div>
             <n-grid>
                 <n-gi span="24">
@@ -34,7 +59,21 @@
                 </n-gi>
                 <!-- INPUT BAR -->
                 <n-gi span="24">
+                    <!-- TYPE SIGNAL ICON -->
                     <div id="fm_input_container">
+                        <div id="type-signal-icon"
+                        @click="switch_editor_type"
+                        style="position:absolute;height:100%;left:-40px;align-content: center;">
+                        <n-icon v-if="editor_type_active === ''" size="20">
+                            <Sparkle20Regular style="height:100%;color:#676767"/>
+                        </n-icon>
+                        <n-icon v-else-if="editor_type_active === 'ai'" size="20">
+                            <Sparkle20Regular style="height:100%;color:var(--gold-color)"/>
+                        </n-icon>
+                        <n-icon v-else-if="editor_type_active === 'search'" size="20">
+                            <Search20Filled style="height:100%;color:var(--gold-color)"/>
+                        </n-icon>
+                    </div>
                         <!-- divider -->
                         <!-- <div v-if="is_llm_chat_context_open"
                             style="width:auto;display:block;flex-grow: 24;z-index: 99999;height:2px;margin-right:20px;margin-left:20px;background-color: #f9f7f5;border-radius: 5px;">
@@ -51,7 +90,7 @@
                             <div id="ai-editor-container" 
                             :style="{width: editor_type_active === 'ai' ? '100%' : editor_type_active === 'search' ? '0%' : '50%'}"
                             style="transition: width 0.4s;" 
-                            @click="editor_type_active = 'ai'">
+                            @click="editor_type_active = 'ai';console.log('kkkkk')">
                                 <div>
 
                                 <div v-if="editor_type_active === 'ai' || editor_type_active === '' && editor_type === 'tiptap'" 
@@ -77,7 +116,7 @@
                                     <div
                                     :style="{opacity: editor_type_active === 'search' || editor_type_active === 'ai' ? 0 : 1}"
                                     style="position:absolute;width:40%;height:24px;cursor: text;text-align:center;transition: opacity 0s;" 
-                                    @click="editor_type_active = 'search'">
+                                    @click="editor_type_active = 'search';console.log('AAAA')">
                                         <n-icon :component="Search20Regular" color="#BBBBBB" size="24"></n-icon>
                                     </div>
                                     <!-- TIPTAP EDITOR SEARCH-->
@@ -166,7 +205,7 @@
 import { dimStore } from '@/components_shared/dimStore.js'
 import { useEditor, Editor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
-import { md_to_html, md_to_html_llm, wait_for_element } from '@/components_shared/utils.js'
+import { md_to_html, md_to_html_llm, wait_for_element, debounce } from '@/components_shared/utils.js'
 import { onMounted, onUnmounted, ref, watch, onBeforeUnmount, computed } from 'vue';
 import { Extension } from '@tiptap/core'
 import { nextTick, reactive, watchEffect } from 'vue';
@@ -178,6 +217,7 @@ import { ChevronUp28Regular, ChevronDown28Regular, Search20Regular } from '@vico
 import TiptapCodemirrorExtension from '@/components_shared/TiptapCodemirrorExtension.js';
 import { TextSelection } from 'prosemirror-state';
 import axios from 'axios'
+import { Sparkle20Regular, Search20Filled } from '@vicons/fluent'
 
 
 const { on, emit } = useEventBus();
@@ -200,6 +240,9 @@ const editor_type = ref('tiptap')
 const code = ref(``)
 const with_last_transition = ref(true)
 const editor_type_active = ref('')
+
+const search_results = ref([])
+const buffer_editor_content = ref('')
 
 on('should_display_llm_context', () => {
     if (is_llm_chat_context_open.value === false) {
@@ -260,6 +303,36 @@ onBeforeUnmount(() => {
     }
 });
 
+
+function click_search_item(event, uuid) {
+    console.log('uuid: ', uuid)
+}
+
+function switch_editor_type() {
+    console.log('editor_type_active.value+++++', editor_type_active.value)
+    let buffer_content;
+    let editor_temp;
+    let wait_for;
+    if (editor_type_active.value === 'ai') {
+        buffer_content = editor_ref.value.editor.getHTML()
+        wait_for = '#ai-editor-container .tiptap.ProseMirror'
+    } else if (editor_type_active.value === 'search') {
+        buffer_content = editor_ref_search.value.editor.getHTML()
+        wait_for = '#search-editor-container .tiptap.ProseMirror'
+    }
+
+    editor_type_active.value = editor_type_active.value === 'ai' ? 'search' : 'ai'
+
+    wait_for_element(wait_for).then((elt) => {
+        setTimeout(() => {
+        if (editor_type_active.value === 'search') {
+            editor_ref_search.value.editor.commands.setContent(buffer_content)
+        } else if (editor_type_active.value === 'ai') {
+            editor_ref.value.editor.commands.setContent(buffer_content)
+        }
+    }, 200);
+    })
+}
 
 const isPDF = async (url) => {
     if (url.endsWith('.pdf')) return true
@@ -708,14 +781,25 @@ const editor = useEditor({
             box_input_html.value = html
         }
     },
-    onBlur({ event }) {
-        editor_type_active.value = ''
+    onBlur({ editor, event }) {
+        // editor_type_active.value = ''
+        // temp_save_editor_content.value = editor.getHTML()
     },
     onTransaction: ({ editor, transaction }) => {
     },
 });
 
 
+const debounced_search = debounce((request) => {
+    apiClient.post("https://localhost:8002/v1/api/search_weaviate/", 
+    { selected_clt: dim_store.selected_clt, request: request })
+    .then(response => {
+        console.log('response: ', response)
+        search_results.value = response.data
+    })
+  }, 600);
+
+  
 
 const editor2 = useEditor({
     extensions: [
@@ -736,39 +820,30 @@ const editor2 = useEditor({
     },
     onUpdate: ({ editor }) => {
 
-        let html = editor.getHTML()
-        if (html !== box_input_html.value) {
-            box_input_html.value = html
-        }
+        let html = editor.getText()
+        debounced_search(html)
     },
-    onBlur({ event }) {
-        console.log('aaaaaaaaagg')
-        editor_type_active.value = ''
+    onBlur({ editor, event }) {
+        // temp_save_editor_content.value = editor.getHTML()
+        // if (editor.getText() === '') {
+        //     editor_type_active.value = ''
+        // }
     },
     onTransaction: ({ editor, transaction }) => {
     },
-    // onCreate: ({ editor, transaction }) => {
-    //     console.log('EDITOR @ CREEATED')
-    //     editor.value.focus()
-    // }
 });
 
 
-watch(()=> editor_type_active.value, ()=>{
-
-    console.log('editor_ref_search', editor_ref_search)
-    console.log('editor_ref_search', editor_ref_search.value)
-
+watch(() => editor_type_active.value, ()=> {
+    
     if (editor_type_active.value === 'search') {
         requestAnimationFrame(()=> {
             editor_ref_search.value.editor.commands.focus()
         })
-
-        // setTimeout(() => {
-        //     console.log('editor_ref_search.value', editor_ref_search.value)
-        //     editor_ref_search.value.focus()
-        //     // editor2.value.focus()
-        // }, 1000);
+    } else if (editor_type_active.value === 'ai') {
+        requestAnimationFrame(()=> {
+            editor_ref.value.editor.commands.focus()
+        })
     }
 })
 
@@ -1041,5 +1116,16 @@ function on_show_select_clt(state) {
 
 #fmw-scroll-div {
     -ms-overflow-style: none;
+}
+
+
+.fmw-search-list-item {
+    transition: background-color 0.2s;
+}
+
+.fmw-search-list-item:hover {
+    /* background-color: #F1E6FF; */
+    background-color: rgba(238, 234, 230, 0.4);
+    /* border-radius: 10px; */
 }
 </style>

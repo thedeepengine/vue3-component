@@ -82,7 +82,7 @@ export const dimStore = defineStore("dimStore", () => {
   const show_refs = ref(false)
   const refresh_map = ref(false)
   const content_type = ref('tiptap')
-  const html_content_original = ref()
+  const html_content_original = ref('')
   const modif_stack = ref([])
   const is_dirty = ref(false)
   const temp_save_content = ref(undefined)
@@ -96,21 +96,7 @@ export const dimStore = defineStore("dimStore", () => {
   const stream_status = ref('')
   const stream_content = ref([])
   const user_input = ref('')
-  const conversation_history = ref([
-    // { user: 'human', message: 'Hey', id: 0 },
-    // { user: 'ai', message: md_to_html(`In Vue 3, to apply different styles based on the value of item.user, you can modify your class binding to include both conditions directly within the template. Here's how you can adjust your to apply a style for when item.user equals 'ai' and another style for when it equals 'human'`), id: 1 },
-    // { user: 'human', message: `this is a helper`, id: 2 },
-    // { user: 'ai', message: md_to_html("**fdsfddfs** ffs fd sfuds *fdfd*  fff `code block inline` fidsjfds"), id: 0 },
-    // { user: 'ai', message: md_to_html(test_help), id: 0 },
-    // { user: 'ai', message: `In Vue 3, to apply different styles based on the value of item.user, you can modify your class binding to include both conditions directly within the template. Here's how you can adjust your <div> to apply a style for when item.user equals 'ai' and another style for when it equals 'human'`, id: 3 },
-    // { user: 'human', message: `In Vue 3, to apply different styles based on the value of item.user, you can modify your class binding to include both conditions directly within the template. Here's how you can adjust your <div> to apply a style for when item.user equals 'ai' and another style for when it equals 'human'`, id: 4 },
-    // { user: 'ai', message: `In Vue 3, to apply different styles based on the value of item.user, you can modify your class binding to include both conditions directly within the template. Here's how you can adjust your <div> to apply a style for when item.user equals 'ai' and another style for when it equals 'human'`, id: 5 },
-    // { user: 'human', message: `In Vue 3, to apply different styles based on the value of item.user, you can modify your class binding to include both conditions directly within the template. Here's how you can adjust your <div> to apply a style for when item.user equals 'ai' and another style for when it equals 'human'`, id: 6 },
-    // { user: 'ai', message: `In Vue 3, to apply different styles based on the value of item.user, you can modify your class binding to include both conditions directly within the template. Here's how you can adjust your <div> to apply a style for when item.user equals 'ai' and another style for when it equals 'human'`, id: 7 },
-
-    // { user: 'human', message: 'I am good thansk and you' },
-    // { user: 'ai', message: 'I\'m alright. How can I help you today?' }
-])
+  const conversation_history = ref([])
   const conv_full_screen = ref()
 
   // graphql
@@ -257,6 +243,8 @@ export const dimStore = defineStore("dimStore", () => {
         }
         if (response.data?.md) {
           md_content.value = response.data.md
+          // html_content_original = editor.value.getHTML()
+          html_content_original = md_to_html(response.data.md)
         }
         if (response.data?.things_space) {
             things_space_data.value = response.data.things_space
@@ -702,6 +690,18 @@ watch(() => dimension.value,
   };
 
 
+function commit(dry_run) {
+  let bundle = { old_html: html_content_original.value, 
+    new_html: html_content.value, 
+    header_prop_name: header_prop_name.value, 
+    dry_run: dry_run,
+    selected_clt: selected_clt.value 
+}
+
+ return apiClient.post("https://localhost:8002/v1/api/commit/", bundle)
+
+}
+
   return {
     loading_flag,
     loading_elt,
@@ -806,7 +806,9 @@ watch(() => dimension.value,
     download_pdf,
 
     update_md,
-    last_dimension
+    last_dimension,
+
+    commit
 
 
   }

@@ -100,15 +100,9 @@ onActivated(() => {
         editor.value.commands.setContent(dim_store.temp_save_content.html);
         dim_store.temp_save_content = undefined
     }
+
 });
 
-
-const apiClient = axios.create({
-  baseURL: 'https://localhost:8002/',
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
 
 onMounted(() => {
   on('things_space_scroll_to', (message) => {
@@ -281,10 +275,9 @@ onMounted(() => {
   watch(() => dim_store.md_content, (newValue) => {
     // console.log(' && editor.value.getHTML() !== newValue', editor.value.getHTML() !== newValue)
     // !dim_store.is_dirty && 
-    if (editor.value) {
+    if (editor.value && dim_store.md_content !== '' && dim_store.md_content !== undefined) {
       dim_store.html_content = md_to_html(newValue)
       editor.value.commands.setContent(dim_store.html_content);
-      dim_store.html_content_original = editor.value.getHTML()
     }
   }, { immediate: true });
 
@@ -359,21 +352,12 @@ function clean_html() {
 watch(() => dim_store.refresh_save_page, () => {
   if (dim_store.dimension === 'hierarchy') {
     
-    // let html = dim_store.show_refs ? clean_html() : editor.value.getHTML()
-
     dim_store.temp_save_content = {html: dim_store.html_content}
     
-  let bundle = { old_html: dim_store.html_content_original, 
-    new_html: dim_store.html_content, 
-    header_prop_name: dim_store.header_prop_name, 
-    dry_run: true,
-    selected_clt: dim_store.selected_clt }
-
-  apiClient
-    .post("https://localhost:8002/v1/api/commit/", bundle)
+    dim_store.commit(true)
     .then(response => {
-      dim_store.transaction_list = response.data
-    })
+        dim_store.transaction_list = response.data.transaction_list
+      })
   }
 
   dim_store.dimension = 'save';

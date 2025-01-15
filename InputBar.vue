@@ -432,23 +432,23 @@ async function input_html_manager(user_input) {
         let is_pdf = await isPDF(user_input)
 
         if (is_pdf) {
-            dim_store.left_panel = 'pdfViewer'
+            // dim_store.left_panel = 'pdfViewer'
             dim_store.download_pdf(user_input)
         } else if (user_input.includes('/html/')) {
             let pdf_url = user_input.replace('/html/', '/pdf/')
             let is_pdf_existing = await isPDF(pdf_url)
 
             if (is_pdf_existing) {
-                dim_store.left_panel = 'pdfViewer'
+                // dim_store.left_panel = 'pdfViewer'
                 dim_store.download_pdf(pdf_url)
             }
         }
 
         let html_url = user_input.replace('/pdf/', '/html/')
-        apiClient.post(`https://localhost:8002/v1/api/get_doc_hierarchy/`, { url: html_url }).then(response => {
-            console.log('respo--------nse', response)
+        apiClient.post(`https://localhost:8002/v1/api/get_doc_hierarchy/`, { url: html_url, selected_clt: dim_store.selected_clt }).then(response => {
+            dim_store.dimension = 'hierarchy'
             dim_store.w_data = response.data.hierarchy
-            dim_store.md_content = response.data.md
+            dim_store.md_content = response.data.md_content
             dim_store.is_object_dirty.w_data = false
             dim_store.is_object_dirty.md = false
             dim_store.header_prop_name = 'name'
@@ -821,7 +821,11 @@ const editor2 = useEditor({
     onUpdate: ({ editor }) => {
 
         let html = editor.getText()
-        debounced_search(html)
+        if (html !== '') {
+            debounced_search(html)
+        } else {
+            search_results.value = []
+        }
     },
     onBlur({ editor, event }) {
         // temp_save_editor_content.value = editor.getHTML()

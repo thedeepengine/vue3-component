@@ -88,7 +88,11 @@ function draw_path_tree(root_nodes, root_links, side_to_update) {
         .data(root_links, function (d) { return d.source.data.uuid_front + '' + d.target.data.uuid_front })
         .join(
             enter => enter.append("path")
+                .attr("stroke", "#918981")
+                .attr('stroke-width', '1px')
                 .attr("class", "link2")
+                // .attr("class", "fmw-path")
+                
                 .attr("d", linkHorizontal()
                     .source(d => ({ ...d.source, 'type': 'source' }))
                     .target(d => ({ ...d.target, 'type': 'target' }))
@@ -104,6 +108,7 @@ function draw_path_tree(root_nodes, root_links, side_to_update) {
                         }
                     })
                     .y(d => d.x))
+                    // .style("fill", "#918981")
                 .style('opacity', 1),
             update => update
                 .transition()
@@ -123,6 +128,7 @@ function draw_path_tree(root_nodes, root_links, side_to_update) {
                         }
                     })
                     .y(d => d.x)),
+                    // .style("fill", "#918981"),
             exit => exit
                 .transition()  // Start transition for exit selection
                 .duration(500)  // Duration of 500ms
@@ -143,10 +149,14 @@ function draw_path_tree(root_nodes, root_links, side_to_update) {
         .attr("stroke-opacity", strokeOpacity)
         .attr("stroke-width", strokeWidth)
         .selectAll(".link")
+        .attr("class", "fmw-path")
+        
         .data(r,
             function (d) { return d.uuid_front })
         .join(
             enter => enter.append("path")
+                .attr("stroke", "#918981")
+                .attr('stroke-width', '1px')
                 .attr("class", "link")
                 .attr("d", d => d3linew(d.coord)),
                 // .each(function (d) {
@@ -253,7 +263,11 @@ function draw_text_tree(store, side_to_update) {
                     .style('width', node_width)
                     .style('height', node_height)
                     .style('max-width', '180px')
-                    .style('line-height', '1')
+                    // .style('line-height', '1.2')
+                    .style('font-weight', '300')
+                    // .style('color', '#7b7b74')
+                    // .style('margin-bottom', 2)
+                    // .style('padding-bottom', 2)
                     .style('align-content', 'center')
                     .style('font-family', 'inherit')
                         .on('input', function (event) {
@@ -670,12 +684,19 @@ function compute_text_dim(store, root) {
     .join("div")
     .attr("class", 'fmw-hidden-size-computer')
     .attr('contenteditable', true)
-    .setStyles({'line-height': '1', 'font-size': '12px', 'margin': 0, 'padding': 0})
+    // .setStyles({'line-height': '1', 'font-size': '12px'})
+    // .style('margin', 2)
+    // .style('padding', 2)
     .style('width', 'fit-content')
+    .style('font-weight', '300')
+    .style('line-height', '1.4')
+    .style('font-size', '12px')
     .style('max-width', '180px')
     .style('background-color', 'white')
     .style('opacity', 0)
     .style('display', 'inline-block')
+    .style('padding', 0)
+    .style('margin', 0)
     .property('value',(d, i) => labels[i])
     .text((d, i) => labels[i])
 

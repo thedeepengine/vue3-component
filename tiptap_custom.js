@@ -94,7 +94,7 @@ const CustomHeading = Heading.extend({
 
   renderHTML({ node, HTMLAttributes }) {
     if (!node.attrs.id) {
-      node.attrs.id = `X_TEM_tempid${Math.random().toString(36).substr(2, 9)}`;
+      node.attrs.id = `tempid${Math.random().toString(36).substr(2, 9)}`;
       highlight_new_node(node.attrs.id)
     }
 

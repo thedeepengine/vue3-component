@@ -22,8 +22,6 @@ const marked_1 = new Marked(markedHighlight({
         return hljs.highlight(code, { language }).value;
     }
 }));
-
-
 const renderer_1 = {
     heading({ tokens, depth }) {
         let split_text_uuid = tokens[0].text.split('{#')
@@ -36,11 +34,12 @@ const renderer_1 = {
         return `<h${depth} class="custom-heading" id="${uuid}" data-parent-ref="${parent_ref}" data-clt-name="${clt_name}" data-side="${side}" data-order="${order}">${text}</h${depth}>`;
     },
     paragraph(token) {
-
         if (token.text.startsWith('<button-node')) {
             return token.text;
         }
-        return `<p>${token.text}</p>`;
+        // console.log('defaultRenderer', defaultRenderer)
+        return false
+        // return `<p>${token.text}</p>`;
 
     }
 };

@@ -1,6 +1,8 @@
 <template>
   <div>
-    <!-- Container for the PDF viewer -->
+    <div style="position:absolute;right:-40px;top:100px;z-index:9999999">
+        BACK
+      </div>
     <div ref="viewerContainer" class="pdf-viewer-container">
       <div class="pdfViewer"></div>
     </div>
@@ -33,7 +35,7 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
-    window.removeEventListener('resize', resizeListener);
+    // window.removeEventListener('resize', resizeListener);
     if (pdfViewer) {
       pdfViewer.cleanup();
     }
@@ -44,7 +46,6 @@ async function set_pdf_file(pdf_path) {
   const loadingTask = pdfjsLib.getDocument(pdf_path);
   const pdfDocument = await loadingTask.promise;
 
-  console.log('pdfViewer.vaaaaaalue', pdfViewer)
   pdfViewer.setDocument(pdfDocument);
 
   const firstPage = await pdfViewer.firstPagePromise;
@@ -55,10 +56,7 @@ async function set_pdf_file(pdf_path) {
       const pageView = firstPage.view;
       const widthScale = container.clientWidth / pageView[2];
       const heightScale = container.clientHeight / pageView[3];
-      console.log('widthScale', widthScale)
-      console.log('widthScale', heightScale)
       const scale = Math.min(widthScale, heightScale); // Fit both width and height
-      console.log('scale', scale)
       pdfViewer.currentScale = 0.9;
     }
   };
@@ -69,7 +67,6 @@ async function set_pdf_file(pdf_path) {
 }
 
 watch(()=> dim_store.pdf_path, () => {
-  console.log('dim_store.------pdf_path', dim_store.pdf_path)
   set_pdf_file(dim_store.pdf_path)
 })
 
@@ -98,6 +95,11 @@ watch(()=> dim_store.pdf_path, () => {
   /* Center the PDF horizontally */
   align-items: center;
   /* Center the PDF vertically */
+  
+  box-shadow: 5px 5px 10px rgba(0,0,0,0.4);
+  border: 3px solid oklch(97.7882% .00418 56.375637);
+  border-radius: 22px;
+  margin: 14px;
 }
 
 .pdfViewer {

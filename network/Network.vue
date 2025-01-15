@@ -57,7 +57,6 @@ dim_store.dimension],
                 forcedTree(dim_store.d3_network_data, 'network')
                 // fmw_transition('.fmw-transition-network', 'show')
             } else if (dim_store.dimension === 'hierarchy' && !dim_store.is_object_dirty.w_data) {
-                console.log('aaaaa;LPLPLPLPLPPLP')
                 empty_force_tree()
                 displayStaticTree(dim_store)
                 // fmw_transition('.fmw-transition-network', 'show')
@@ -144,7 +143,6 @@ function initSVGBase() {
         viewBox = [-width / 2, -height / 2, width, height]
     }
 
-    console.log('window.innerWidth', window.innerWidth)
     d3select(".network_class")
         .style('height', '100vh')
         // .style("opacity", "0.01")

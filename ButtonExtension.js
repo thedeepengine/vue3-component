@@ -16,7 +16,7 @@ export default Node.create({
         default: '',
       },
       class: {
-        default: null,
+        default: 'field-indicator',
         renderHTML: (attributes) => {
           if (attributes.class) {
             return { class: attributes.class };

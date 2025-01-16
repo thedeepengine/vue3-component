@@ -14,7 +14,7 @@
 
         </n-gi>
         <n-gi>
-            <div style="margin: auto;width: 100%;text-align: center;padding-top:50px">
+            <div style="margin: auto;width: 100%;text-align: center;padding-top:50px;padding-bottom:200px">
                         <n-button @click="real_commit">Commit</n-button>
                     </div>
         </n-gi>

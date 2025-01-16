@@ -24,7 +24,7 @@ const marked_1 = new Marked(markedHighlight({
 }));
 const renderer_1 = {
     heading({ tokens, depth }) {
-        let split_text_uuid = tokens[0].text.split('{#')
+        let split_text_uuid = tokens.reduce((acc, x) => acc + x.text, '').split('{#')
         let text = split_text_uuid[0]
         let uuid = split_text_uuid[1]
         let parent_ref = split_text_uuid[2]
@@ -397,8 +397,6 @@ function restructure_tree(tree) {
             node.children.sort((a, b) => a.order - b.order);
             node.children.forEach((child) => processNode(child));
         }
-
-        console.log('nodekkk side', node)
 
         if (node.side === "left") {
             left.push(node);

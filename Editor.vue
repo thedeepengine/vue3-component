@@ -335,6 +335,23 @@ function addClassToHeadingById(headingId, action_type) {
 
 
 
+function update_data_clt_attr() {
+  const { tr } = editor.value.state;
+
+  tr.doc.descendants((node, pos) => {
+    if (node.type.name === 'heading') {
+
+      if(node.attrs['data-clt'] === null || node.attrs['data-clt'] === '') {
+        tr.setNodeMarkup(pos, null, {
+          ...node.attrs,
+          'data-clt': dim_store.selected_clt
+        });
+      }
+    }
+  });
+
+  editor.value.view.dispatch(tr);
+}
 
 
 
@@ -359,6 +376,7 @@ function clean_html() {
 watch(() => dim_store.refresh_save_page, () => {
   if (dim_store.dimension === 'hierarchy') {
     // dim_store.dimension = 'save';
+    // update_data_clt_attr()
     dim_store.temp_save_content = {html: dim_store.html_content}
     
     dim_store.commit(true)

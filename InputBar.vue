@@ -348,6 +348,7 @@ const isPDF = async (url) => {
 
 async function submit(user_input, type_input) {
     // user_input = 'https://arxiv.org/pdf/2409.04701v2'
+    
     // user_input = 'http://localhost:5173/test.html'
     if (user_input === '') return
 

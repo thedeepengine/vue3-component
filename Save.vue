@@ -1,6 +1,6 @@
 <!-- TEMPLATE MUST HAVE A SINGLE CHILD EVEN COMMENT NOT ACCEPTED -->
 <template>
-    <n-grid id="save-container" cols=1 style="padding-right:3em;overflow:scroll">
+    <n-grid id="save-container" cols=1 style="padding-right:3em;overflow:scroll;opacity:0.01">
         <n-gi v-for="item, k in dim_store.transaction_list">
             <div v-if="item.length > 0">
                 <div style="font-weight: 600;font-size: 20px">{{ CATEGORY_MAPPING[k] }}</div>
@@ -26,7 +26,7 @@ import axios from 'axios'
 import { dimStore } from '@/components_shared/dimStore.js'
 import { NButton, NGrid, NGi, NDivider } from "naive-ui";
 import { ref, onMounted, watch } from "vue";
-import { md_to_html } from '@/components_shared/utils.js'
+import { md_to_html, fmw_transition } from '@/components_shared/utils.js'
 
 const dim_store = dimStore()
 
@@ -52,10 +52,22 @@ function real_commit() {
 
     })
 }
+
+onMounted(() => {
+    fmw_transition('#save-container', 'show')
+})
+
+watch(() => dim_store.loading_flag, () => {
+  if (dim_store.dimension === 'save' && dim_store.loading_flag === true) {
+    fmw_transition('#save-container', 'hide')
+  }
+})
+
 </script>
 
 <style>
 #save-container {
     padding-top: calc(var(--general-padding-top) + var(--fmw-left-selector-height));
+    padding-left: 3em;
 }
 </style>

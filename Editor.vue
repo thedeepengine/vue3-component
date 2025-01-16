@@ -358,16 +358,18 @@ function clean_html() {
 
 watch(() => dim_store.refresh_save_page, () => {
   if (dim_store.dimension === 'hierarchy') {
-    
+    // dim_store.dimension = 'save';
     dim_store.temp_save_content = {html: dim_store.html_content}
     
     dim_store.commit(true)
     .then(response => {
         dim_store.transaction_list = response.data.transaction_list
+        // fmw_transition('#save-container', 'show')
       })
   }
 
-  dim_store.dimension = 'save';
+  
+  
 })
 
 onBeforeUnmount(() => {
@@ -567,100 +569,3 @@ watch(() => dim_store.loading_flag, () => {
   opacity: 1;
 }
 </style>
-
-
-<!-- 
-// dim_store.w_data.children.push({uuid: 'ffff', uuid_front: 'X_GHA_ffff', name: 'ddd'}) 
-
-
-
-
-// function find_path(headings, target) {
-//   const path = [];
-//   let currentDepth = 0;
-
-//   for (const heading of headings) {
-//     const depth = heading.lastIndexOf('#') + 1;
-
-//     if (depth <= currentDepth) {
-//       path.splice(depth);
-//     }
-
-//     currentDepth = depth;
-//     console.log('heading', heading)
-//     const headingText = heading.slice(depth + 1).trim();
-//     path[depth - 1] = headingText;
-
-    
-//     if (headingText === target) {
-//       return path
-//     }
-//   }
-
-//   return 'Title not found';
-// }
-
-//     headings = [
-//   '# Introduction',
-//   '## Overview',
-//   '### Goals',
-//   '### ',
-//   '## Background',
-//   '# Main Content',
-//   '## Section 1',
-//   '### Overview',
-//   '#### Details',
-//   '##### Specifics',
-//   '##### Specifics2',
-//   '## h',
-//   '##### Specifics3',
-//   '##### Specifics4',
-//   '#### Further Details',
-//   '### Conclusion',
-//   '## Section 2',
-//   '### Introduction', 
-//   '### Analysis',
-//   '#### Deep Dive',
-//   '## Final Thoughts',
-//   '# Conclusion',
-//   '## Summary',
-//   '## Future Work'
-// ];
-//     find_path(headings, 'NEW')
-
-//     function addObjectAtPath(root, path, newObj) {
-
-//         function findAndUpdate(current, pathIndex) {
-//             if (pathIndex < path.length) {
-//                 let nextNode = current.children.find(child => child.uuid_front === path[pathIndex]);
-//                 findAndUpdate(nextNode, pathIndex + 1); 
-//             } else {
-//                 if (!current.children) {
-//                     current.children = []; 
-//                 }
-//                 current.children.push(newObj);
-//                 return true
-//             }
-//         }
-    
-//       let pathIndex = 0
-//       if (root.uuid_front === path[pathIndex]) {
-//           return findAndUpdate(root, pathIndex+1); 
-//       }
-//       return false
-// }
-
-
-
-
-// console.log('headings', headings)
-
-
-// let path = find_path(headings, '!TEMP_TARGET_FMW_FRONT_!')
-// console.log('FOUND PATH: ', path)
-// let is_updated = addObjectAtPath(dim_store.w_data, path.slice(0,-1), {uuid: 'ffff', uuid_front: 'X_GHA_ffff', name: 'ddd'})
-// console.log('dim_store.w_ddddata', dim_store.w_data)
-// console.log('is_updated', is_updated)
-// if (is_updated) {
-// }
- -->

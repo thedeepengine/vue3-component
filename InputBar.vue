@@ -348,6 +348,7 @@ const isPDF = async (url) => {
 
 async function submit(user_input, type_input) {
     // user_input = 'https://arxiv.org/pdf/2409.04701v2'
+    // user_input = 'http://localhost:5173/test.html'
     if (user_input === '') return
 
     dim_store.user_input = user_input
@@ -427,7 +428,7 @@ async function input_html_manager(user_input) {
             dim_store.is_object_dirty.w_data = false
             dim_store.md_content = res.data.hierarchy
         })
-    } else if (user_input.includes('arxiv.org')) {
+    } else if (user_input.includes('arxiv.org') || user_input.includes('localhost')) {
 
         let is_pdf = await isPDF(user_input)
 

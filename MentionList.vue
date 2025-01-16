@@ -78,7 +78,7 @@
         const item = this.items[index]
   
         if (item) {
-          this.command({ id: item })
+          this.command({ label: item })
         }
       },
     },

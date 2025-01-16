@@ -134,10 +134,10 @@ const add_mention_to_heading = () => {
   const { tr } = editor.value.state;
   const insertions = [];
 
-  editor.value.state.doc.descendants((node, pos) => {
-    if (node.type.name === 'heading' && node.attrs['data-parent-ref'] !== '') {
+  editor.value.state.doc.descendants((node, pos) => {    
+    if (node.type.name === 'heading' && node.attrs['data-side'] !== 'center' && node.attrs['data-parent-ref'] !== '') {
       const mentionNode = editor.value.schema.nodes.mention.create({
-        label: node.attrs['data-parent-ref'] // Example label
+        label: node.attrs['data-parent-ref'] 
       });
       insertions.push({ pos: pos + 1, node: mentionNode }); // +1 to insert at the beginning of the heading content
     }
@@ -160,7 +160,14 @@ const remove_mention_from_headings = (dispatch_to_front = true) => {
   editor.value.state.doc.descendants((node, pos) => {
     if (node.type.name === 'mention') {
       const parentNode = editor.value.state.doc.resolve(pos).parent;
-      if (parentNode.type.name === 'heading' && parentNode.attrs['data-parent-ref'] === node.attrs.label) {
+      const parentPos = editor.value.view.state.doc.resolve(pos).before();
+
+      tr.setNodeMarkup(parentPos, undefined, {
+          ...parentNode.attrs,
+          'data-parent-ref': node.attrs.label
+        });
+
+      if (parentNode.type.name === 'heading') {
         deletions.push({ pos, size: node.nodeSize });
       }
     }

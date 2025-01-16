@@ -560,9 +560,9 @@ function compute_base_tree(d) {
     } else {
 
         let right, left;
-        if (!('side' in d)) {
+
             assign_tree_side_and_order(d);
-        }
+
 
         ({left,right} = restructure_tree(d));
         right = d.children.filter(x=>x.side === 'right')

@@ -359,23 +359,21 @@ function assign_tree_side_and_order(tree) {
             let rightOrder = 0; // Order counter for right side
 
             node.children.forEach((child, index) => {
-                // Assign side for children of the center node (odd-even fashion)
-                if (node.side === "center") {
-                    child.side = index % 2 === 0 ? "right" : "left";
-                } else {
-                    // For deeply nested children, inherit the parent's side
-                    child.side = node.side;
+                if (!('side' in child) || child.side === '') {
+                    if (node.side === "center") {
+                        child.side = index % 2 === 0 ? "right" : "left";
+                    } else {
+                        child.side = node.side;
+                    }
+    
+                    if (child.side === "left") {
+                        child.order = leftOrder++;
+                    } else if (child.side === "right") {
+                        child.order = rightOrder++;
+                    }
+    
+                    assignSideAndOrderRecursive(child, child.side);
                 }
-
-                // Assign order based on the side
-                if (child.side === "left") {
-                    child.order = leftOrder++;
-                } else if (child.side === "right") {
-                    child.order = rightOrder++;
-                }
-
-                // Recursively process the child
-                assignSideAndOrderRecursive(child, child.side);
             });
         }
     }
@@ -389,23 +387,19 @@ function assign_tree_side_and_order(tree) {
 
 
 function restructure_tree(tree) {
-    // Initialize left and right arrays
     const left = [];
     const right = [];
 
-    // Helper function to recursively process the tree
     function processNode(node) {
-        if (!node) return; // Base case: if the node is null or undefined
+        if (!node) return; 
 
-        // Sort the children array by order
         if (node.children && Array.isArray(node.children)) {
             node.children.sort((a, b) => a.order - b.order);
-
-            // Recursively process each child
             node.children.forEach((child) => processNode(child));
         }
 
-        // Add the node to the appropriate side array
+        console.log('nodekkk side', node)
+
         if (node.side === "left") {
             left.push(node);
         } else if (node.side === "right") {

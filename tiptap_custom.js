@@ -65,6 +65,8 @@ const CustomHeading = Heading.extend({
       'data-parent-ref': {
         default: null,
         rendered: true,
+        // parseDOM: element => ({'data-parent-ref': element.getAttribute('data-parent-ref')}),
+        // toDOM: node => ['div', {'data-parent-ref': node.attrs['data-parent-ref']}, 0]
       },
       'data-clt-name': {
         default: null,
@@ -73,6 +75,12 @@ const CustomHeading = Heading.extend({
       'data-side': {
         default: null,
         rendered: true,
+        // renderHTML: attributes => {
+        //   return {
+        //     'data-side': attributes['data-side'],
+        //   }
+        // },
+        // parseHTML: element => element.getAttribute('data-side')
       },
       'data-order': {
         default: null,
@@ -80,14 +88,13 @@ const CustomHeading = Heading.extend({
       },
 
       class: {
-        default: null,
+        default: 'custom-heading fmw-title',
         renderHTML: attributes => {
           return {
             class: attributes.class,
           }
         },
-        parseHTML: element =>
-          element.getAttribute('class')
+        parseHTML: element => element.getAttribute('class')
       }
     };
   },
@@ -102,9 +109,14 @@ const CustomHeading = Heading.extend({
       node.attrs['data-clt-name'] = store.selected_clt;
     }
 
+    if (node.attrs.level === 1 && !HTMLAttributes['data-side']) {
+      HTMLAttributes['data-side'] = 'center';
+      node.attrs['data-side'] = 'center'
+    }
+  
     let default_style = 'display: inline; align-items: baseline;'
     HTMLAttributes.id = node.attrs.id;
-    HTMLAttributes.class = (node.attrs.class ? `${node.attrs.class} custom-heading fmw-title` : 'custom-heading fmw-title').trim();
+    // HTMLAttributes.class = (node.attrs.class ? `${node.attrs.class} custom-heading fmw-title` : 'custom-heading fmw-title').trim();
     HTMLAttributes.style = (node.attrs.style ? `${node.attrs.style};${default_style}` : `${default_style}`).trim();
 
     const elements = [
@@ -164,10 +176,10 @@ function getTrackHeadingsExtension(store, html_content) {
               const { $from } = newState.selection;
               const nodeAtPos = $from.node();
               let old_heading = get_all_heading(oldState)
-              let new_heading = get_all_heading(newState)
+              let new_heading = get_all_heading(newState) 
               if (old_heading.length > 0) {
                 if (!areArraysEqual(old_heading, new_heading)) {
-                  update_node_property(store.w_data, nodeAtPos.attrs.id, store.header_prop_name, nodeAtPos.textContent)
+                  update_node_property(store.w_data, nodeAtPos.attrs.id, store.header_prop_name, nodeAtPos.textContent.trim())
                   displayStaticTree(store) 
                 }
               }
